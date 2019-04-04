@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Initializes a new instance of the <see cref="MachineLogger"/> class. The logger
         /// will be assigned the runtime <see cref="PSharp.Configuration"/> object when it
-        /// is passed to <see cref="PSharpRuntime.SetLogger(ILogger)"/>.
+        /// is passed to <see cref="IMachineRuntime.SetLogger(ILogger)"/>.
         /// </summary>
         /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
         public MachineLogger(int loggingVerbosity = 2)

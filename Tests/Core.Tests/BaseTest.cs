@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Core.Tests
         {
         }
 
-        protected void Run(Configuration configuration, Action<PSharpRuntime> test)
+        protected void Run(Configuration configuration, Action<IMachineRuntime> test)
         {
             var logger = new ThreadSafeInMemoryLogger();
             var outputLogger = new Common.TestOutputLogger(this.TestOutput);

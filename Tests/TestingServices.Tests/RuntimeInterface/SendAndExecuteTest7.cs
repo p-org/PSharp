@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestUnhandledEventOnSendExec()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(Harness));
             });

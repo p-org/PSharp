@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.Core.Tests
         private void AssertSucceeded(Type machine)
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
             });
 
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.Core.Tests
         private void AssertFailed(Type machine)
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();

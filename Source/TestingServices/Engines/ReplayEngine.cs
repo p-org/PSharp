@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static ReplayEngine Create(Configuration configuration, Action<IMachineRuntime> action)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration, action);
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action, string trace)
+        public static ReplayEngine Create(Configuration configuration, Action<IMachineRuntime> action, string trace)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             configuration.ScheduleTrace = trace;
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
         /// </summary>
-        private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
+        private ReplayEngine(Configuration configuration, Action<IMachineRuntime> action)
             : base(configuration, action)
         {
         }

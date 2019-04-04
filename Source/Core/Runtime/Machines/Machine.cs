@@ -262,37 +262,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the specified type and with the specified
-        /// optional <see cref="Event"/>. This <see cref="Event"/> can only be used
-        /// to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="endpoint">Endpoint</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
-        {
-            return this.Runtime.CreateRemoteMachine(type, null, endpoint, e, this, null);
-        }
-
-        /// <summary>
-        /// Creates a new remote machine of the specified type and name, and with the
-        /// specified optional <see cref="Event"/>. This <see cref="Event"/> can only
-        /// be used to access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="friendlyName">Friendly machine name used for logging</param>
-        /// <param name="endpoint">Endpoint</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string friendlyName,
-            string endpoint, Event e = null)
-        {
-            return this.Runtime.CreateRemoteMachine(type, friendlyName, endpoint, e, this, null);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to the specified machine.
+        /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">The id of the target machine.</param>
         /// <param name="e">The event to send.</param>
@@ -305,22 +275,6 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
             this.Runtime.SendEvent(mid, e, this, options);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a remote machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="options">Optional parameters</param>
-        protected void RemoteSend(MachineId mid, Event e, SendOptions options = null)
-        {
-            // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{this.Id}' is sending to a null machine.");
-
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
-            this.Runtime.SendEventRemotely(mid, e, this, options);
         }
 
         /// <summary>
@@ -369,8 +323,7 @@ namespace Microsoft.PSharp
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Goto while halted.");
 
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(
-                StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
+            this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
                 $"Machine '{this.Id}' is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -399,8 +352,7 @@ namespace Microsoft.PSharp
             this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Push while halted.");
 
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(
-                StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
+            this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
                 $"Machine '{this.Id}' is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new PushStateEvent(s));
         }
@@ -640,16 +592,14 @@ namespace Microsoft.PSharp
                 if (eventInfo.Event.Assert >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(
-                        eventCount <= eventInfo.Event.Assert,
+                    this.Assert(eventCount <= eventInfo.Event.Assert,
                         $"There are more than {eventInfo.Event.Assert} instances of '{eventInfo.EventName}' in the input queue of machine '{this}'");
                 }
 
                 if (eventInfo.Event.Assume >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(
-                        eventCount <= eventInfo.Event.Assume,
+                    this.Assert(eventCount <= eventInfo.Event.Assume,
                         $"There are more than {eventInfo.Event.Assume} instances of '{eventInfo.EventName}' in the input queue of machine '{this}'");
                 }
 
@@ -1688,9 +1638,8 @@ namespace Microsoft.PSharp
                         BindingFlags.NonPublic | BindingFlags.Public |
                         BindingFlags.DeclaredOnly))
                     {
-                        this.Assert(
-                            t.IsSubclassOf(typeof(StateGroup)) ||
-                            t.IsSubclassOf(typeof(MachineState)), $"'{t.Name}' is neither a group of states nor a state.");
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) || t.IsSubclassOf(typeof(MachineState)),
+                            $"'{t.Name}' is neither a group of states nor a state.");
                         stack.Push(t);
                     }
                 }
@@ -1744,8 +1693,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal override HashSet<string> GetAllStates()
         {
-            this.Assert(
-                StateMap.ContainsKey(this.GetType()),
+            this.Assert(StateMap.ContainsKey(this.GetType()),
                 $"Machine '{this.Id}' hasn't populated its states yet.");
 
             var allStates = new HashSet<string>();
@@ -1762,8 +1710,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
-            this.Assert(
-                StateMap.ContainsKey(this.GetType()),
+            this.Assert(StateMap.ContainsKey(this.GetType()),
                 $"Machine '{this.Id}' hasn't populated its states yet.");
 
             var pairs = new HashSet<Tuple<string, string>>();

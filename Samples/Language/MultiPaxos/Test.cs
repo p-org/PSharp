@@ -38,7 +38,7 @@ namespace MultiPaxos
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(ValidityCheck));
             runtime.CreateMachine(typeof(GodMachine));

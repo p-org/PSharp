@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        protected void AssertSucceeded(Action<PSharpRuntime> test)
+        protected void AssertSucceeded(Action<IMachineRuntime> test)
         {
             var configuration = GetConfiguration();
             this.AssertSucceeded(configuration, test);
         }
 
-        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<PSharpRuntime> test)
+        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<IMachineRuntime> test)
         {
             BugFindingEngine engine = null;
             var logger = new Common.TestOutputLogger(this.TestOutput);
@@ -54,35 +54,35 @@ namespace Microsoft.PSharp.TestingServices.Tests
             return engine;
         }
 
-        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
+        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors, bool replay)
         {
             var configuration = GetConfiguration();
             this.AssertFailed(configuration, test, numExpectedErrors, replay);
         }
 
-        protected void AssertFailed(Action<PSharpRuntime> test, string expectedOutput, bool replay)
+        protected void AssertFailed(Action<IMachineRuntime> test, string expectedOutput, bool replay)
         {
             var configuration = GetConfiguration();
             this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
-        protected void AssertFailed(Action<PSharpRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
+        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
         {
             var configuration = GetConfiguration();
             this.AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors, bool replay)
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors, bool replay)
         {
             this.AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, string expectedOutput, bool replay)
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, string expectedOutput, bool replay)
         {
             this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors,
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors,
             ISet<string> expectedOutputs, bool replay)
         {
             this.AssertFailed(configuration, test, numExpectedErrors, bugReports =>
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }, replay);
         }
 
-        protected void AssertFailed(Configuration configuration, Action<PSharpRuntime> test, int numExpectedErrors,
+        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors,
             Func<HashSet<string>, bool> expectedOutputFunc, bool replay)
         {
             var logger = new Common.TestOutputLogger(this.TestOutput);
@@ -132,13 +132,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        protected void AssertFailedWithException(Action<PSharpRuntime> test, Type exceptionType, bool replay)
+        protected void AssertFailedWithException(Action<IMachineRuntime> test, Type exceptionType, bool replay)
         {
             var configuration = GetConfiguration();
             this.AssertFailedWithException(configuration, test, exceptionType, replay);
         }
 
-        protected void AssertFailedWithException(Configuration configuration, Action<PSharpRuntime> test, Type exceptionType, bool replay)
+        protected void AssertFailedWithException(Configuration configuration, Action<IMachineRuntime> test, Type exceptionType, bool replay)
         {
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");

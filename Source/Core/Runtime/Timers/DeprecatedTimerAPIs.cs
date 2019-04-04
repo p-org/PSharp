@@ -80,7 +80,6 @@ namespace Microsoft.PSharp.Deprecated.Timers
     /// <summary>
     /// Timeout event sent by the timer.
     /// </summary>
-    [Obsolete("The TimedMachine class is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
     public class TimerElapsedEvent : Event
     {
         /// <summary>
@@ -101,7 +100,6 @@ namespace Microsoft.PSharp.Deprecated.Timers
     /// <summary>
     /// Unique identifier for a timer
     /// </summary>
-    [Obsolete("The TimerId is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
     public class TimerId
     {
         /// <summary>
@@ -224,8 +222,7 @@ namespace Microsoft.PSharp.Deprecated.Timers
     /// <summary>
     /// Wrapper class for a system timer.
     /// </summary>
-    [Obsolete("The ProductionTimerMachine class is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
-    public class ProductionTimerMachine : Machine
+    internal class ProductionTimerMachine : Machine
     {
         /// <summary>
         /// Specified if periodic timeout events are desired.

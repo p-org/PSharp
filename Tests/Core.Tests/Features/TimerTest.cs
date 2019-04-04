@@ -236,7 +236,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestBasicTimerOperation()
         {
             var configuration = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T1), new SetupEvent(tcs));
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestBasicPeriodicTimerOperation()
         {
             var configuration = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T2), new SetupEvent(tcs));
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestDropTimeoutsAfterTimerDisposal()
         {
             var configuration = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T3), new SetupEvent(tcs));
@@ -278,7 +278,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestIllegalDueTimeSpecification()
         {
             var configuration = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T4), new SetupEvent(tcs));
@@ -292,7 +292,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestIllegalPeriodSpecification()
         {
             var configuration = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T5), new SetupEvent(tcs));

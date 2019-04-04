@@ -7,6 +7,8 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading;
 
+using Microsoft.PSharp.Runtime;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -16,9 +18,9 @@ namespace Microsoft.PSharp
     public sealed class MachineId : IEquatable<MachineId>, IComparable<MachineId>
     {
         /// <summary>
-        /// The P# runtime that executes the machine with this id.
+        /// The runtime that executes the machine with this id.
         /// </summary>
-        public PSharpRuntime Runtime { get; private set; }
+        public IMachineRuntime Runtime { get; private set; }
 
         /// <summary>
         /// Unique id, when <see cref="NameValue"/> is empty.
@@ -64,20 +66,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="MachineId"/> class.
         /// </summary>
-        /// <param name="type">Machine type</param>
-        /// <param name="friendlyName">Friendly machine name</param>
-        /// <param name="runtime">PSharpRuntime</param>
-        /// <param name="useNameForHashing">Use friendly name as the id</param>
-        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime, bool useNameForHashing = false)
+        internal MachineId(Type type, string machineName, BaseRuntime runtime, bool useNameForHashing = false)
         {
             this.Runtime = runtime;
-            this.Endpoint = this.Runtime.NetworkProvider.GetLocalEndpoint();
+            this.Endpoint = string.Empty;
 
             if (useNameForHashing)
             {
                 this.Value = 0;
-                this.NameValue = friendlyName;
-                this.Runtime.Assert(!string.IsNullOrEmpty(this.NameValue), "Input friendlyName cannot be null when used as Id");
+                this.NameValue = machineName;
+                this.Runtime.Assert(!string.IsNullOrEmpty(this.NameValue), "Input machine name cannot be null when used as id.");
             }
             else
             {
@@ -86,7 +84,7 @@ namespace Microsoft.PSharp
                 this.NameValue = string.Empty;
 
                 // Checks for overflow.
-                this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected MachineId overflow.");
+                this.Runtime.Assert(this.Value != ulong.MaxValue, "Detected machine id overflow.");
             }
 
             this.Generation = runtime.Configuration.RuntimeGeneration;
@@ -98,25 +96,21 @@ namespace Microsoft.PSharp
             }
             else
             {
-                this.Name = string.Format("{0}({1})", string.IsNullOrEmpty(friendlyName) ? this.Type : friendlyName, this.Value);
+                this.Name = string.Format("{0}({1})", string.IsNullOrEmpty(machineName) ? this.Type : machineName, this.Value);
             }
         }
 
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
-        internal void Bind(PSharpRuntime runtime)
+        internal void Bind(BaseRuntime runtime)
         {
             this.Runtime = runtime;
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
             if (obj is MachineId mid)
@@ -138,7 +132,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
         public override int GetHashCode()
         {
             int hash = 17;
@@ -150,40 +143,22 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns a string that represents the current machine id.
         /// </summary>
-        /// <returns>string</returns>
-        public override string ToString()
-        {
-            return this.Name;
-        }
+        public override string ToString() => this.Name;
 
         /// <summary>
         /// Indicates whether the specified <see cref="MachineId"/> is equal
         /// to the current <see cref="MachineId"/>.
         /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
-        public bool Equals(MachineId other)
-        {
-            return this.Equals((object)other);
-        }
+        public bool Equals(MachineId other) => this.Equals((object)other);
 
         /// <summary>
         /// Compares the specified <see cref="MachineId"/> with the current
         /// <see cref="MachineId"/> for ordering or sorting purposes.
         /// </summary>
-        public int CompareTo(MachineId other)
-        {
-            return string.Compare(this.Name, other?.Name);
-        }
+        public int CompareTo(MachineId other) => string.Compare(this.Name, other?.Name);
 
-        bool IEquatable<MachineId>.Equals(MachineId other)
-        {
-            return this.Equals(other);
-        }
+        bool IEquatable<MachineId>.Equals(MachineId other) => this.Equals(other);
 
-        int IComparable<MachineId>.CompareTo(MachineId other)
-        {
-            return string.Compare(this.Name, other?.Name);
-        }
+        int IComparable<MachineId>.CompareTo(MachineId other) => string.Compare(this.Name, other?.Name);
     }
 }

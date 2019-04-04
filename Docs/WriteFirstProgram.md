@@ -173,17 +173,18 @@ Because P# is built on top of the C# language, the entry point of a P# program (
 using Microsoft.PSharp;
 public class HostProgram {
   static void Main(string[] args) {
-    PSharpRuntime.Create().CreateMachine(typeof(Server));
+    IMachineRuntime runtime = PSharpRuntime.Create();
+    runtime.CreateMachine(typeof(Server));
     Console.ReadLine();
   }
 }
 ```
 
-The developer must first import the P# runtime library (`Microsoft.PSharp.dll`), then create a `PSharpRuntime` instance, and finally invoke the `CreateMachine` runtime method to instantiate the first P# machine (`Server` in the above example).
+The developer must first import the P# runtime library (`Microsoft.PSharp.dll`), then create a `runtime` instance (of type `IMachineRuntime`), and finally invoke the `CreateMachine` method of `runtime` to instantiate the first P# machine (`Server` in the above example).
 
-The `CreateMachine` method is part of the .NET interoperability API (a set of methods for calling P# from native C# code) that is exposed by `PSharpRuntime`. This method accepts as a parameter the type of the machine to be instantiated, and returns an object of the `MachineId` type, which contains a reference to the created P# machine. Because `CreateMachine` is an asynchronous method, we call the `Console.ReadLine` method, which pauses the main thread until a console input has been given, so that the host C# program does not exit prematurely.
+The `CreateMachine` method accepts as a parameter the type of the machine to be instantiated, and returns an object of the `MachineId` type, which contains a reference to the created P# machine. Because `CreateMachine` is an asynchronous method, we call the `Console.ReadLine` method, which pauses the main thread until a console input has been given, so that the host C# program does not exit prematurely.
 
-The `PSharpRuntime` .NET interoperability API also provides the `SendEvent` method for sending events to a P# machine from native C#. This method accepts as parameters an object of type `MachineId`, an event and an optional payload. Although the developer has to use `CreateMachine` and `SendEvent` to call P# code from native C#, the opposite is straightforward, as it only requires accessing a C# object from P# code.
+The `IMachineRuntime` interface also provides the `SendEvent` method for sending events to a P# machine from C#. This method accepts as parameters an object of type `MachineId`, an event and an optional payload. Although the developer has to use `CreateMachine` and `SendEvent` to interact with the P# runtime from C#, the opposite is straightforward, as it only requires accessing a C# object from inside a P# machine.
 
 ## Using P# as a C# library
 The above example can be written using P# as a C# library as follows:

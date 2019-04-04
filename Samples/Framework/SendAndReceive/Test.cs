@@ -33,7 +33,7 @@ namespace SendAndReceive
         /// </summary>
         /// <param name="runtime">The P# runtime.</param>
         /// <param name="mid">Machine to get response from.</param>
-        static async Task GetDataAndPrint(PSharpRuntime runtime, MachineId mid)
+        static async Task GetDataAndPrint(IMachineRuntime runtime, MachineId mid)
         {
             var resp = await GetReponseMachine<M1.Response>.GetResponse(runtime, mid, m => new M1.Get(m));
             Console.WriteLine("Got response: {0}", resp.v);

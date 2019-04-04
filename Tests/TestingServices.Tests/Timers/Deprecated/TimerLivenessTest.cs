@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Deprecated
             config.MaxSchedulingSteps = 300;
             config.SchedulingIterations = 1000;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));

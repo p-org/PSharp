@@ -1,6 +1,6 @@
 Tracking operation groups
 =========================
-For some applications, it is useful to know which machine is processing an event derived from some user request. P# offers the notion of an _operations group_ that can be tracked automatically. The following `PSharpRuntime` APIs take an optional `Guid` parameter.
+For some applications, it is useful to know which machine is processing an event derived from some user request. P# offers the notion of an _operations group_ that can be tracked automatically. The following `IMachineRuntime` APIs take an optional `Guid` parameter.
 
 ```C#
 public MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null);
@@ -13,7 +13,7 @@ When the user passes a non-null operation group, the runtime takes care of propa
 Guid OperationGroupId;
 ```
 
-Additionally one may use the following `PSharpRuntime` API to get the operations group of a machine. However, the user must ensure that `currentMachine` is the currently executing machine (otherwise `PSharpTester` will report an assertion failure).
+Additionally one may use the following `IMachineRuntime` API to get the operations group of a machine. However, the user must ensure that `currentMachine` is the currently executing machine (otherwise `PSharpTester` will report an assertion failure).
 
 ```C#
 public Guid GetCurrentOperationGroupId(MachineId currentMachine);

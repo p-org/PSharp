@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T1));
             });
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         public void TestBasicPeriodicTimerOperation()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T2));
             });
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(100);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T3));
             });
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T4));
             });
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T5));
             });
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T6));
             });
@@ -307,7 +307,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(T8));
             });

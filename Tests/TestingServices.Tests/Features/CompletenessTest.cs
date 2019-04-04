@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestCompleteness1()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(P));
                 r.CreateMachine(typeof(M2));
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestCompleteness2()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.RegisterMonitor(typeof(P));
                 r.CreateMachine(typeof(M1));

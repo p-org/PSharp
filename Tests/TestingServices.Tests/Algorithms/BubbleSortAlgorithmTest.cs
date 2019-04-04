@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestBubbleSortAlgorithm()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(BubbleSortMachine));
             });

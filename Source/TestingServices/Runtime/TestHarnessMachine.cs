@@ -24,12 +24,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The test action.
         /// </summary>
-        private readonly Action<PSharpRuntime> TestAction;
+        private readonly Action<IMachineRuntime> TestAction;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
         /// </summary>
-        internal TestHarnessMachine(MethodInfo testMethod, Action<PSharpRuntime> testAction)
+        internal TestHarnessMachine(MethodInfo testMethod, Action<IMachineRuntime> testAction)
         {
             this.TestMethod = testMethod;
             this.TestAction = testAction;

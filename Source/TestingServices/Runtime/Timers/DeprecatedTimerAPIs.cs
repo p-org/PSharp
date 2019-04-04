@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
 using Microsoft.PSharp.Deprecated.Timers;
 
 namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
@@ -20,7 +18,6 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
     /// <summary>
     /// A timer model, used for testing purposes.
     /// </summary>
-    [Obsolete("The ModelTimerMachine class is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
     public class ModelTimerMachine : Machine
     {
         /// <summary>

@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestOnDroppedCalled1()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestOnDroppedCalled2()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestOnDroppedParams()
         {
             var config = GetConfiguration().WithVerbosityEnabled(2);
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -231,7 +231,7 @@ namespace Microsoft.PSharp.Core.Tests
             var config = GetConfiguration().WithVerbosityEnabled(2);
             config.EnableMonitorsInProduction = true;
 
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
 

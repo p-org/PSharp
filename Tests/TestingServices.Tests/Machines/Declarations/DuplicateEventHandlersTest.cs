@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerDo()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M1));
             });
@@ -178,7 +178,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerGoto()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M2));
             });
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerPush()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M3));
             });
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritanceDo()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M4));
             });
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritanceGoto()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M5));
             });
@@ -228,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerInheritancePush()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M6));
             });
@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestMachineDuplicateEventHandlerMixed()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M7));
             });

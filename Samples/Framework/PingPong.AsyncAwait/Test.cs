@@ -47,9 +47,9 @@ namespace PingPong.AsyncAwait
         /// P# non-determinstic choices) and systematically executes the test method a user
         /// specified number of iterations to detect bugs.
         /// </summary>
-        /// <param name="runtime">PSharpRuntime</param>
+        /// <param name="runtime">The machine runtime.</param>
         [Microsoft.PSharp.Test]
-        public static void Execute(PSharpRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             // This is the root machine to the P# PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).

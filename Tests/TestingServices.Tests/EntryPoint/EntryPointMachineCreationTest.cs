@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestEntryPointMachineCreation()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 MachineId m = r.CreateMachine(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));

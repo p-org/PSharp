@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.SchedulingIterations = 5;
-            var test = new Action<PSharpRuntime>((r) => { r.CreateMachine(typeof(Harness)); });
+            var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Harness)); });
             this.AssertSucceeded(configuration, test);
         }
     }

@@ -50,7 +50,7 @@ Note: Similar scenarios also exist very commonly inside the operating systems su
 To use `PSharpTester` we must tame the `C#` code and work towards exposing the concurrency to P#. First and foremost, _the code must not spawn `Tasks` (same applies to `Threads`)_. This is the most important rule to follow. Creation of `Tasks` will surely make `PSharpTester` unusable. To eliminate `Task` creation, try replacing them with `Machine` creation instead, which should work for the most part. For our running example, we modify our `Test` method to instead create machines:
 ```C#
 [Microsoft.PSharp.Test]
-void Test(PSharpRuntime runtime)
+void Test(IMachineRuntime runtime)
 {
    runtime.CreateMachine(typeof(RunTask), new TaskPayload(async () => await HandleRequest1(...)));
    runtime.CreateMachine(typeof(RunTask), new TaskPayload(async () => await HandleRequest2(...)));

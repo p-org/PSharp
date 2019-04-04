@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestPushSimple()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M1));
             });
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestPushPopSimple()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E());
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestPushStateExit()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M3));
             });
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact]
         public void TestPushBadStateFail()
         {
-            var test = new Action<PSharpRuntime>((r) =>
+            var test = new Action<IMachineRuntime>((r) =>
             {
                 r.CreateMachine(typeof(M4a));
             });
