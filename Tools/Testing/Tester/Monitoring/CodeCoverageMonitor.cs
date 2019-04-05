@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal static void Stop()
         {
-            if (Configuration == null)
+            if (Configuration is null)
             {
                 throw new InvalidOperationException("Process has not been configured.");
             }

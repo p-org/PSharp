@@ -164,7 +164,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private void RewriteIdentifier()
         {
-            if (this.Parent.Machine == null || this.Parent.State == null ||
+            if (this.Parent.Machine is null || this.Parent.State is null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
                 Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) ||
                 this.Parent.Machine.MethodDeclarations.Any(val => val.Identifier.TextUnit.Text.

@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
                 // Translate and write to output file.
                 string errors = string.Empty;
                 var outputString = Translate(inputString, out errors);
-                if (outputString == null)
+                if (outputString is null)
                 {
                     // Replace Program.psharp with the actual file name.
                     errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(inputFileName));

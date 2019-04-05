@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.PSharp.IO
 {
@@ -18,33 +19,50 @@ namespace Microsoft.PSharp.IO
         internal static bool IsEnabled = false;
 
         /// <summary>
-        /// Writes the debugging information to the output stream. The
-        /// print occurs only if debugging is enabled.
+        /// Writes the debugging information, followed by the current line terminator,
+        /// to the output stream. The print occurs only if debugging is enabled.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
-        public static void Write(string format, params object[] args)
+        public static void WriteLine(string format, object arg0)
         {
             if (IsEnabled)
             {
-                string message = Utilities.Format(format, args);
-                Console.Write(message);
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, format, arg0));
             }
         }
 
         /// <summary>
-        /// Writes the debugging information, followed by the current
-        /// line terminator, to the output stream. The print occurs
-        /// only if debugging is enabled.
+        /// Writes the debugging information, followed by the current line terminator,
+        /// to the output stream. The print occurs only if debugging is enabled.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
+        public static void WriteLine(string format, object arg0, object arg1)
+        {
+            if (IsEnabled)
+            {
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, format, arg0, arg1));
+            }
+        }
+
+        /// <summary>
+        /// Writes the debugging information, followed by the current line terminator,
+        /// to the output stream. The print occurs only if debugging is enabled.
+        /// </summary>
+        public static void WriteLine(string format, object arg0, object arg1, object arg2)
+        {
+            if (IsEnabled)
+            {
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, format, arg0, arg1, arg2));
+            }
+        }
+
+        /// <summary>
+        /// Writes the debugging information, followed by the current line terminator,
+        /// to the output stream. The print occurs only if debugging is enabled.
+        /// </summary>
         public static void WriteLine(string format, params object[] args)
         {
             if (IsEnabled)
             {
-                string message = Utilities.Format(format, args);
-                Console.WriteLine(message);
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, format, args));
             }
         }
     }

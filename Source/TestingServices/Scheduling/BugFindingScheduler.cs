@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -112,8 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Get and order the schedulable choices by their id.
             var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
 
-            ISchedulable next = null;
-            if (!this.Strategy.GetNext(out next, choices, current))
+            if (!this.Strategy.GetNext(out ISchedulable next, choices, current))
             {
                 // Checks if the program has livelocked.
                 this.CheckIfProgramHasLivelocked(choices.Select(choice => choice as SchedulableInfo));
@@ -172,14 +172,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            var choice = false;
-            if (!this.Strategy.GetNextBooleanChoice(maxValue, out choice))
+            if (!this.Strategy.GetNextBooleanChoice(maxValue, out bool choice))
             {
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.Stop();
             }
 
-            if (uniqueId == null)
+            if (uniqueId is null)
             {
                 this.Runtime.ScheduleTrace.AddNondeterministicBooleanChoice(choice);
             }
@@ -202,8 +201,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            var choice = 0;
-            if (!this.Strategy.GetNextIntegerChoice(maxValue, out choice))
+            if (!this.Strategy.GetNextIntegerChoice(maxValue, out int choice))
             {
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.Stop();
@@ -434,7 +432,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 string message = "Livelock detected.";
                 for (int i = 0; i < blockedChoices.Count; i++)
                 {
-                    message += IO.Utilities.Format($" '{blockedChoices[i].Name}'");
+                    message += string.Format(CultureInfo.InvariantCulture, " '{0}'", blockedChoices[i].Name);
                     if (i == blockedChoices.Count - 2)
                     {
                         message += " and";
@@ -459,17 +457,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private void CheckIfExternalSynchronizationIsUsed()
         {
             int? taskId = Task.CurrentId;
-            if (taskId == null)
+            if (taskId is null)
             {
-                string message = IO.Utilities.Format("Detected synchronization context " +
-                    "that is not controlled by the P# runtime.");
+                string message = "Detected synchronization context that is not controlled by the P# runtime.";
                 this.NotifyAssertionFailure(message, true);
             }
 
             if (this.ScheduledMachine.TaskId != taskId.Value)
             {
-                string message = IO.Utilities.Format($"Detected task with id '{taskId}' " +
-                    "that is not controlled by the P# runtime.");
+                string message = $"Detected task with id '{taskId}' that is not controlled by the P# runtime.";
                 this.NotifyAssertionFailure(message, true);
             }
         }
@@ -482,17 +478,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
-                var msg = IO.Utilities.Format(
-                    "Scheduling steps bound of {0} reached.",
-                    this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps : this.Runtime.Configuration.MaxUnfairSchedulingSteps);
+                int bound = this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps : this.Runtime.Configuration.MaxUnfairSchedulingSteps;
+                string message = $"Scheduling steps bound of {bound} reached.";
 
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
-                    this.Runtime.Scheduler.NotifyAssertionFailure(msg, true);
+                    this.Runtime.Scheduler.NotifyAssertionFailure(message, true);
                 }
                 else
                 {
-                    Debug.WriteLine($"<ScheduleDebug> {msg}");
+                    Debug.WriteLine($"<ScheduleDebug> {message}");
                     this.Stop();
                 }
             }

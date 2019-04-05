@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             foreach (var variable in varDecl.Variables)
             {
-                if (variable.Initializer == null)
+                if (variable.Initializer is null)
                 {
                     continue;
                 }
@@ -391,7 +391,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
             returnTypes = new HashSet<ITypeSymbol>();
 
             var callSymbol = this.SemanticModel.GetSymbolInfo(call).Symbol;
-            if (callSymbol == null)
+            if (callSymbol is null)
             {
                 return;
             }
@@ -486,7 +486,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             var name = (expr as MemberAccessExpressionSyntax).Name;
             var identifier = AnalysisContext.GetRootIdentifier(expr);
-            if (identifier == null || name == null || name.Equals(identifier))
+            if (identifier is null || name is null || name.Equals(identifier))
             {
                 return;
             }
@@ -500,7 +500,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         private void ResolveMethodParameterAccesses(IdentifierNameSyntax identifier, ISet<Statement> parameterAccesses, IDataFlowNode node)
         {
             var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
-            if (symbol == null)
+            if (symbol is null)
             {
                 return;
             }
@@ -536,13 +536,13 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             var name = (expr as MemberAccessExpressionSyntax).Name;
             var identifier = AnalysisContext.GetRootIdentifier(expr);
-            if (identifier == null || name == null || name.Equals(identifier))
+            if (identifier is null || name is null || name.Equals(identifier))
             {
                 return;
             }
 
             var fieldSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
-            if (fieldSymbol == null)
+            if (fieldSymbol is null)
             {
                 return;
             }
@@ -600,8 +600,8 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             var invocation = call as InvocationExpressionSyntax;
             var objCreation = call as ObjectCreationExpressionSyntax;
-            if (calleeSummary == null ||
-                (invocation == null && objCreation == null))
+            if (calleeSummary is null ||
+                (invocation is null && objCreation is null))
             {
                 return;
             }

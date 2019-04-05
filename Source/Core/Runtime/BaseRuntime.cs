@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -212,9 +213,8 @@ namespace Microsoft.PSharp.Runtime
             [CallerFilePath] string callerFilePath = "",
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            var havocId = string.Format(
-                "Runtime_{0}_{1}_{2}",
-                callerMemberName, callerFilePath, callerLineNumber);
+            var havocId = string.Format("Runtime_{0}_{1}_{2}",
+                callerMemberName, callerFilePath, callerLineNumber.ToString());
             return this.GetFairNondeterministicBooleanChoice(null, havocId);
         }
 
@@ -329,28 +329,29 @@ namespace Microsoft.PSharp.Runtime
         internal abstract void Monitor(Type type, BaseMachine sender, Event e);
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public virtual void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException("Detected an assertion failure.");
-            }
-        }
+        public abstract void Assert(bool predicate);
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public virtual void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException(IO.Utilities.Format(s, args));
-            }
-        }
+        public abstract void Assert(bool predicate, string s, object arg0);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public abstract void Assert(bool predicate, string s, object arg0, object arg1);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public abstract void Assert(bool predicate, string s, object arg0, object arg1, object arg2);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public abstract void Assert(bool predicate, string s, params object[] args);
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
@@ -626,7 +627,7 @@ namespace Microsoft.PSharp.Runtime
         {
             throw (exception is AssertionFailureException)
                 ? exception
-                : new AssertionFailureException(IO.Utilities.Format(s, args), exception);
+                : new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, args), exception);
         }
 
         /// <summary>

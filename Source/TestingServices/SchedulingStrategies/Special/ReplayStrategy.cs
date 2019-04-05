@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     }
 
                     next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
-                    if (next == null)
+                    if (next is null)
                     {
                         this.ErrorText = $"Trace is not reproducible: cannot detect id '{nextStep.ScheduledMachineId}'.";
                         throw new InvalidOperationException(this.ErrorText);
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 catch (InvalidOperationException ex)
                 {
-                    if (this.SuffixStrategy == null)
+                    if (this.SuffixStrategy is null)
                     {
                         if (!this.Configuration.DisableEnvironmentExit)
                         {
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         throw new InvalidOperationException(this.ErrorText);
                     }
 
-                    if (nextStep.BooleanChoice == null)
+                    if (nextStep.BooleanChoice is null)
                     {
                         this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic boolean choice.";
                         throw new InvalidOperationException(this.ErrorText);
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 catch (InvalidOperationException ex)
                 {
-                    if (this.SuffixStrategy == null)
+                    if (this.SuffixStrategy is null)
                     {
                         if (!this.Configuration.DisableEnvironmentExit)
                         {
@@ -219,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         throw new InvalidOperationException(this.ErrorText);
                     }
 
-                    if (nextStep.IntegerChoice == null)
+                    if (nextStep.IntegerChoice is null)
                     {
                         this.ErrorText = "Trace is not reproducible: next step is not a nondeterministic integer choice.";
                         throw new InvalidOperationException(this.ErrorText);
@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 catch (InvalidOperationException ex)
                 {
-                    if (this.SuffixStrategy == null)
+                    if (this.SuffixStrategy is null)
                     {
                         if (!this.Configuration.DisableEnvironmentExit)
                         {

@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             ExpressionSyntax call, Statement statement, StateMachine machine, SemanticModel model, TraceInfo trace)
         {
             ArgumentListSyntax argumentList = AnalysisContext.GetArgumentList(call);
-            if (argumentList == null)
+            if (argumentList is null)
             {
                 return;
             }
@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
             {
                 var argIdentifier = AnalysisContext.GetRootIdentifier(argumentList.Arguments[idx].Expression);
-                if (argIdentifier == null)
+                if (argIdentifier is null)
                 {
                     continue;
                 }

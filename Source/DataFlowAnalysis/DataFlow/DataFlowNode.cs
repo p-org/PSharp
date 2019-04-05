@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
             }
 
             var stmt = item as Statement;
-            if (this.Statement == null ||
+            if (this.Statement is null ||
                 !this.Statement.Equals(stmt))
             {
                 return false;
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         /// </summary>
         public bool IsEmpty()
         {
-            if (this.Statement == null)
+            if (this.Statement is null)
             {
                 return true;
             }

@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.AliveNodes.Add(node);
 
                 if (this.AliveNodes.Count == this.NumberOfReplicas &&
-                    this.FailureTimer == null)
+                    this.FailureTimer is null)
                 {
                     this.FailureTimer = this.CreateMachine(typeof(FailureTimer));
                     this.Send(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
@@ -875,8 +875,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(Environment));
             });
 
-            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'LivenessMonitor.Repairing'.";
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state 'Repairing'.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
 

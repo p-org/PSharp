@@ -358,8 +358,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (this.Configuration.RaceFound)
                 {
-                    string message = IO.Utilities.Format("Found a race");
-                    runtime.Scheduler.NotifyAssertionFailure(message, false);
+                    runtime.Scheduler.NotifyAssertionFailure("Found a race", false);
                     foreach (var report in this.TestReport.BugReports)
                     {
                         runtime.Logger.WriteLine(report);

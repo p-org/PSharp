@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         public bool TryGetCurrentMachineId(out ulong machineId)
         {
             var mid = this.Runtime.GetCurrentMachineId();
-            if (mid == null)
+            if (mid is null)
             {
                 machineId = 0;
                 return false;
@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
             // In case the runtime creates a machine, simply create a machine state
             // for it, with a fresh VC where the appropriate component is incremented.
             // No hb rule needs to be triggered.
-            if (source == null)
+            if (source is null)
             {
                 var newState = new InstrMachineState(target.Value, this.Log, this.Config.EnableRaceDetectorLogging);
                 this.MachineState[target.Value] = newState;
@@ -254,7 +254,7 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
                     }
                     else
                     {
-                        if (varState.VC == null)
+                        if (varState.VC is null)
                         {
                             varState.VC = new VectorClock(Math.Max(rMId, currentMId));
                         }

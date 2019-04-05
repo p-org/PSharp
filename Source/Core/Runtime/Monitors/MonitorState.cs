@@ -97,7 +97,7 @@ namespace Microsoft.PSharp
 
             foreach (var attr in gotoAttributes)
             {
-                if (attr.Action == null)
+                if (attr.Action is null)
                 {
                     this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State));
                 }

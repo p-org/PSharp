@@ -432,7 +432,7 @@ namespace Microsoft.PSharp.Utilities
                 }
             }
 
-            if (this.Configuration.RandomSchedulingSeed == null)
+            if (this.Configuration.RandomSchedulingSeed is null)
             {
                 this.Configuration.RandomSchedulingSeed = DateTime.Now.Millisecond;
             }

@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var availableMachines = new List<StateMachine>(machines);
                     var inheritedMachine = availableMachines.FirstOrDefault(
                         m => AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
-                    if (inheritedMachine == null)
+                    if (inheritedMachine is null)
                     {
                         break;
                     }

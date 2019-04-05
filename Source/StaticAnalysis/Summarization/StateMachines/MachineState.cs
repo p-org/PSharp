@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[0];
                     var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
+                    if (action is null)
                     {
                         continue;
                     }
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[0];
                     var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
+                    if (action is null)
                     {
                         continue;
                     }
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
                     var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
+                    if (action is null)
                     {
                         continue;
                     }
@@ -174,7 +174,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
                     var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
+                    if (action is null)
                     {
                         continue;
                     }
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
                     var action = this.GetActionFromExpression(arg.Expression);
-                    if (action == null)
+                    if (action is null)
                     {
                         continue;
                     }
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
                     var state = this.GetStateFromExpression(arg.Expression, model);
-                    if (state == null)
+                    if (state is null)
                     {
                         continue;
                     }
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
                     var state = this.GetStateFromExpression(arg.Expression, model);
-                    if (state == null)
+                    if (state is null)
                     {
                         continue;
                     }
@@ -235,7 +235,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var action in this.MachineActions)
             {
-                if (action.MethodDeclaration.Body == null)
+                if (action.MethodDeclaration.Body is null)
                 {
                     continue;
                 }
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         var arg = invocation.ArgumentList.Arguments[0];
                         var state = this.GetStateFromExpression(arg.Expression, model);
-                        if (state == null)
+                        if (state is null)
                         {
                             continue;
                         }

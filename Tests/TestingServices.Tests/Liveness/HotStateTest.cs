@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(Master));
             });
 
-            string bugReport = "Monitor 'M' detected liveness bug in hot state 'M.Init' " +
+            string bugReport = "Monitor 'M' detected liveness bug in hot state 'Init' " +
                 "at the end of program execution.";
             this.AssertFailed(configuration, test, bugReport, true);
         }

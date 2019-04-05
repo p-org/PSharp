@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ErrorTrace = new List<ErrorTraceStep>();
             this.CallTrace = new List<CallTraceStep>();
 
-            if (method == null)
+            if (method is null)
             {
                 this.Method = null;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.Method = (method as ConstructorDeclarationSyntax).Identifier.ValueText;
             }
 
-            if (machine == null)
+            if (machine is null)
             {
                 this.Machine = null;
             }
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.Machine = machine.Name;
             }
 
-            if (state == null)
+            if (state is null)
             {
                 this.State = null;
             }
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.State = state.Name;
             }
 
-            if (payload == null)
+            if (payload is null)
             {
                 this.Payload = null;
             }

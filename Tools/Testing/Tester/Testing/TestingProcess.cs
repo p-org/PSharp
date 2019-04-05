@@ -242,7 +242,7 @@ namespace Microsoft.PSharp.TestingServices
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
-            if (this.TestingScheduler == null)
+            if (this.TestingScheduler is null)
             {
                 this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
                     CreateChannel(binding, endpoint);
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.TestingServices
 
             EndpointAddress endpoint = new EndpointAddress(address);
 
-            if (this.TestingScheduler == null)
+            if (this.TestingScheduler is null)
             {
                 this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
                     CreateChannel(binding, endpoint);
@@ -309,7 +309,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Process parent = Process.GetProcesses().FirstOrDefault(val
                 => val.Id == this.Configuration.TestingSchedulerProcessId);
-            if (parent == null || !parent.ProcessName.Equals("PSharpTester"))
+            if (parent is null || !parent.ProcessName.Equals("PSharpTester"))
             {
                 Environment.Exit(1);
             }

@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         }
 
                         next = enabledChoices[idx];
-                        if (next == null)
+                        if (next is null)
                         {
                             this.Logger.WriteLine(">> Unexpected id, please retry ...");
                             continue;

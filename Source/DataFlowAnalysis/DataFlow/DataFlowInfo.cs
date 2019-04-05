@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         internal SymbolDefinition GenerateDefinition(ISymbol symbol)
         {
             var definition = this.GeneratedDefinitions.FirstOrDefault(def => def.Symbol.Equals(symbol));
-            if (definition == null)
+            if (definition is null)
             {
                 definition = new SymbolDefinition(symbol, this.DataFlowNode);
                 this.GeneratedDefinitions.Add(definition);
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         /// </summary>
         internal static void AssignTypesToDefinition(ISet<ITypeSymbol> types, SymbolDefinition definition)
         {
-            if (types.Count > 0 && !types.Any(type => type == null))
+            if (types.Count > 0 && !types.Any(type => type is null))
             {
                 definition.CandidateTypes.Clear();
                 definition.CandidateTypes.UnionWith(types);

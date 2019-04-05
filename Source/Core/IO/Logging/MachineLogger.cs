@@ -52,6 +52,21 @@ namespace Microsoft.PSharp.IO
         public abstract void Write(string value);
 
         /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        public abstract void Write(string format, object arg0);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public abstract void Write(string format, object arg0, object arg1);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public abstract void Write(string format, object arg0, object arg1, object arg2);
+
+        /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
         /// <param name="format">Text</param>
@@ -64,6 +79,24 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="value">Text</param>
         public abstract void WriteLine(string value);
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        public abstract void WriteLine(string format, object arg0);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public abstract void WriteLine(string format, object arg0, object arg1);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public abstract void WriteLine(string format, object arg0, object arg1, object arg2);
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
@@ -371,7 +404,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="creator">Id of the host machine, null otherwise.</param>
         public virtual string FormatOnCreateMachineString(MachineId machineId, MachineId creator)
         {
-            var source = creator == null ? "the runtime" : $"machine '{creator.Name}'";
+            var source = creator is null ? "the runtime" : $"machine '{creator.Name}'";
             return $"<CreateLog> Machine '{machineId}' was created by {source}.";
         }
 
@@ -416,7 +449,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="info">Handle that contains information about the timer.</param>
         public virtual string FormatOnCreateTimerString(TimerInfo info)
         {
-            var source = info.OwnerId == null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
+            var source = info.OwnerId is null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
             if (info.Period.TotalMilliseconds >= 0)
             {
                 return $"<TimerLog> Timer '{info}' (due-time:{info.DueTime.TotalMilliseconds}ms; " +
@@ -446,7 +479,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="info">Handle that contains information about the timer.</param>
         public virtual string FormatOnStopTimerString(TimerInfo info)
         {
-            var source = info.OwnerId == null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
+            var source = info.OwnerId is null ? "the runtime" : $"machine '{info.OwnerId.Name}'";
             return $"<TimerLog> Timer '{info}' was stopped and disposed by {source}.";
         }
 

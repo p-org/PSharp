@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             foreach (var method in this.GetMethodDeclarations())
             {
-                if (method.Body == null ||
+                if (method.Body is null ||
                     this.MethodSummaries.ContainsKey(method))
                 {
                     continue;

@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var invocation = call as InvocationExpressionSyntax;
             var objCreation = call as ObjectCreationExpressionSyntax;
-            if (invocation == null && objCreation == null)
+            if (invocation is null && objCreation is null)
             {
                 return potentialReturnSymbols;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             callTrace.AddErrorTrace(call);
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol == null)
+            if (callSymbol is null)
             {
                 this.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return potentialReturnSymbols;
             }
 
-            if (SymbolFinder.FindSourceDefinitionAsync(callSymbol, this.AnalysisContext.Solution).Result == null)
+            if (SymbolFinder.FindSourceDefinitionAsync(callSymbol, this.AnalysisContext.Solution).Result is null)
             {
                 this.ErrorReporter.ReportExternalInvocation(callTrace);
                 return potentialReturnSymbols;

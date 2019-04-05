@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.PSharp.IO;
@@ -107,7 +108,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void Report(string format, params object[] args)
         {
-            string message = IO.Utilities.Format(format, args);
+            string message = string.Format(CultureInfo.InvariantCulture, format, args);
             this.Report("Error: ", ConsoleColor.Red);
             this.Report(message, ConsoleColor.Yellow);
             this.Logger.WriteLine(string.Empty);
@@ -170,7 +171,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (this.Configuration.ShowWarnings)
             {
-                string message = IO.Utilities.Format(format, args);
+                string message = string.Format(CultureInfo.InvariantCulture, format, args);
                 this.Report("Warning: ", ConsoleColor.Red);
                 this.Report(message, ConsoleColor.Yellow);
                 this.Logger.WriteLine(string.Empty);
@@ -213,15 +214,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportGivenUpOwnershipAccess(TraceInfo trace)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' accesses '{2}' after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' accesses '{3}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
@@ -235,15 +236,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportGivenUpOwnershipFieldAccess(TraceInfo trace, IFieldSymbol fieldSymbol)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' accesses '{2}', via field '{3}', after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' accesses '{3}', via field '{4}', after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
@@ -257,15 +258,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportGivenUpFieldOwnershipError(TraceInfo trace, ISymbol fieldSymbol)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' sends '{2}', which contains data from field '{3}'.",
                     trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' sends '{3}', which contains data from field '{4}'.",
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
@@ -279,15 +280,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace, ISymbol fieldSymbol)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' assigns '{2}' to field '{3}' after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns '{3}' to field '{4}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
@@ -301,15 +302,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportGivenUpOwnershipSending(TraceInfo trace, ISymbol argSymbol)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' sends '{2}', the ownership of which has already been given up.",
                     trace.Method, trace.Machine, argSymbol);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' sends '{3}', the ownership of which has already been given up.",
                     trace.Method, trace.State, trace.Machine, argSymbol);
             }
@@ -324,15 +325,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportExternalInvocation(TraceInfo trace)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' calls a method with unavailable source code, which might be a source of errors.",
                     trace.Method, trace.Machine);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' calls a method with unavailable source code, which might be a source of errors.",
                     trace.Method, trace.State, trace.Machine);
             }
@@ -347,15 +348,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal void ReportUnknownVirtualCall(TraceInfo trace)
         {
             string message;
-            if (trace.State == null)
+            if (trace.State is null)
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' of machine '{1}' calls a virtual method that cannot be further analyzed.",
                     trace.Method, trace.Machine);
             }
             else
             {
-                message = IO.Utilities.Format(
+                message = string.Format(CultureInfo.InvariantCulture,
                     "Method '{0}' in state '{1}' of machine '{2}' calls a virtual method that cannot be further analyzed.",
                     trace.Method, trace.State, trace.Machine);
             }

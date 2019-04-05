@@ -37,6 +37,30 @@ namespace Microsoft.PSharp.Core.Tests
                 this.StringBuilder.Append(value);
             }
 
+            /// <summary>
+            /// Writes the text representation of the specified argument.
+            /// </summary>
+            public override void Write(string format, object arg0)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString());
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified arguments.
+            /// </summary>
+            public override void Write(string format, object arg0, object arg1)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString(), arg1.ToString());
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified arguments.
+            /// </summary>
+            public override void Write(string format, object arg0, object arg1, object arg2)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
+
             public override void Write(string format, params object[] args)
             {
                 this.StringBuilder.AppendFormat(format, args);
@@ -45,6 +69,36 @@ namespace Microsoft.PSharp.Core.Tests
             public override void WriteLine(string value)
             {
                 this.StringBuilder.AppendLine(value);
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified argument, followed by the
+            /// current line terminator.
+            /// </summary>
+            public override void WriteLine(string format, object arg0)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString());
+                this.StringBuilder.AppendLine();
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified arguments, followed by the
+            /// current line terminator.
+            /// </summary>
+            public override void WriteLine(string format, object arg0, object arg1)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString(), arg1.ToString());
+                this.StringBuilder.AppendLine();
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified arguments, followed by the
+            /// current line terminator.
+            /// </summary>
+            public override void WriteLine(string format, object arg0, object arg1, object arg2)
+            {
+                this.StringBuilder.AppendFormat(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                this.StringBuilder.AppendLine();
             }
 
             public override void WriteLine(string format, params object[] args)
@@ -142,18 +196,18 @@ namespace Microsoft.PSharp.Core.Tests
             tcs.Task.Wait();
 
             string expected = @"<CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' was created by the runtime.
-<StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enters state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' invoked action 'InitOnEntry'.
+<StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enters state 'Init'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' invoked action 'InitOnEntry'.
 <CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' was created by machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
-<StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' enters state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N.Init'.
-<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()'.
+<StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' enters state 'Init'.
+<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()'.
 <EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' enqueued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
-<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N.Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N.Init' invoked action 'Act'.
-<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N.Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
+<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' invoked action 'Act'.
+<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
 <EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enqueued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
-<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
-<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M.Init' invoked action 'Act'.
+<DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
+<ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' invoked action 'Act'.
 ";
             string actual = Regex.Replace(logger.ToString(), "[0-9]", string.Empty);
 

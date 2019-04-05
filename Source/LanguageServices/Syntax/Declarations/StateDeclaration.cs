@@ -414,7 +414,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             string getBaseTokenName(string requiredBaseType)
             {
-                if (this.BaseStateToken == null)
+                if (this.BaseStateToken is null)
                 {
                     return requiredBaseType;
                 }
@@ -444,7 +444,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private string InstrumentOnEntryAction(string indent)
         {
-            if (this.EntryDeclaration == null)
+            if (this.EntryDeclaration is null)
             {
                 return string.Empty;
             }
@@ -464,7 +464,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         private string InstrumentOnExitAction(string indent)
         {
-            if (this.ExitDeclaration == null)
+            if (this.ExitDeclaration is null)
             {
                 return string.Empty;
             }

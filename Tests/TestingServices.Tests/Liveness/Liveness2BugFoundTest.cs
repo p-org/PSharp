@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             string bugReport = "Monitor 'WatchDog' detected liveness bug in hot state " +
-                "'WatchDog.CannotGetUserInput' at the end of program execution.";
+                "'CannotGetUserInput' at the end of program execution.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
     }

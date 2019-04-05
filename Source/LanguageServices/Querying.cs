@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsMachine(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsMachineState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsMachineStateGroup(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsEventDeclaration(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsMonitor(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.LanguageServices
         internal static bool IsMonitorState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
-            if (classDecl.BaseList == null)
+            if (classDecl.BaseList is null)
             {
                 return result;
             }

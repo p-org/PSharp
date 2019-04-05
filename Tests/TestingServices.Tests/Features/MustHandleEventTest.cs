@@ -124,8 +124,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             var config = Configuration.Create();
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M1()'.\n";
-            string bugReport2 = "Machine 'M1()' halted before dequeueing must-handle event 'E'.\n";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M1()'.";
+            string bugReport2 = "Machine 'M1()' halted before dequeueing must-handle event 'E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -153,8 +153,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             var config = Configuration.Create().WithNumberOfIterations(100);
 
-            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M2()'.\n";
-            string bugReport2 = "Machine 'M2()' halted before dequeueing must-handle event 'E'.\n";
+            string bugReport1 = "A must-handle event 'E' was sent to the halted machine 'M2()'.";
+            string bugReport2 = "Machine 'M2()' halted before dequeueing must-handle event 'E'.";
             var expectedFunc = new Func<HashSet<string>, bool>(bugReports =>
             {
                 foreach (var report in bugReports)
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             var config = Configuration.Create().WithNumberOfIterations(1);
 
-            string bugReport = "Machine 'M5()' halted before dequeueing must-handle event 'E'.\n";
+            string bugReport = "Machine 'M5()' halted before dequeueing must-handle event 'E'.";
 
             this.AssertFailed(config, test, 1, new HashSet<string> { bugReport }, true);
         }

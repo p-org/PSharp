@@ -83,18 +83,12 @@ namespace Microsoft.PSharp.Runtime
         /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is MachineInfo mid)
             {
-                return false;
+                return this.MachineId == mid.MachineId;
             }
 
-            MachineInfo mid = obj as MachineInfo;
-            if (mid == null)
-            {
-                return false;
-            }
-
-            return this.MachineId == mid.MachineId;
+            return false;
         }
 
         /// <summary>

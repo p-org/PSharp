@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -184,7 +185,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            this.Assert(mid != null, "Cannot pass a null MachineId.");
+            this.Assert(mid != null, "Cannot create a machine using a null machine id.");
             return this.CreateMachine(mid, type, null, e, operationGroupId);
         }
 
@@ -215,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            this.Assert(mid != null, "Cannot pass a null MachineId.");
+            this.Assert(mid != null, "Cannot create a machine using a null machine id.");
             return this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
         }
 
@@ -246,7 +247,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
-            this.Assert(mid != null, "Cannot pass a null MachineId.");
+            this.Assert(mid != null, "Cannot create a machine using a null machine id.");
             return this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
         }
 
@@ -255,11 +256,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public override void SendEvent(MachineId target, Event e, SendOptions options = null)
         {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
             this.SendEvent(target, e, this.GetCurrentMachine(), options);
         }
 
@@ -268,15 +264,8 @@ namespace Microsoft.PSharp.TestingServices
         /// machine was already running. Otherwise blocks until the machine handles the
         /// event and reaches quiescense again.
         /// </summary>
-        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null)
-        {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
-        }
+        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null) =>
+            this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
@@ -382,7 +371,7 @@ namespace Microsoft.PSharp.TestingServices
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
-            this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
+            this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, null, null);
 
             return machine.Id;
@@ -414,8 +403,7 @@ namespace Microsoft.PSharp.TestingServices
             Machine creator, Guid? operationGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
-            this.Assert(
-                creator != null,
+            this.Assert(creator != null,
                 "Only a machine can call 'CreateMachineAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
             this.AssertNoPendingTransitionStatement(creator, "CreateMachine");
 
@@ -426,7 +414,7 @@ namespace Microsoft.PSharp.TestingServices
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
             this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
-            this.BugTrace.AddCreateMachineStep(creator, machine.Id, e == null ? null : new EventInfo(e));
+            this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, creator, null);
 
             // wait until the machine reaches quiescence
@@ -442,13 +430,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
 
-            if (mid == null)
+            if (mid is null)
             {
                 mid = new MachineId(type, machineName, this);
             }
             else
             {
-                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+                this.Assert(mid.Runtime is null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
                 this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
                     mid.Value, mid.Type, type.FullName);
                 mid.Bind(this);
@@ -456,7 +444,6 @@ namespace Microsoft.PSharp.TestingServices
 
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
-
             machine.Initialize(this, mid, new SchedulableInfo(mid));
             machine.InitializeStateInformation();
 
@@ -466,11 +453,9 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.",
-                mid.Value);
+            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.", mid.Value);
 
-            this.Assert(
-                !this.AllCreatedMachineIds.Contains(mid),
+            this.Assert(!this.AllCreatedMachineIds.Contains(mid),
                 "MachineId '{0}' of a previously halted machine cannot be reused to create a new machine of type '{1}'",
                 mid.Value, type.FullName);
             this.AllCreatedMachineIds.Add(mid);
@@ -490,6 +475,17 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
+            if (sender != null)
+            {
+                this.Assert(target != null, "Machine '{0}' is sending to a null machine.", sender.Id);
+                this.Assert(e != null, "Machine '{0}' is sending a null event.", sender.Id);
+            }
+            else
+            {
+                this.Assert(target != null, "Cannot send to a null machine.");
+                this.Assert(e != null, "Cannot send a null event.");
+            }
+
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
             this.Assert(this.AllCreatedMachineIds.Contains(target),
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
@@ -500,14 +496,15 @@ namespace Microsoft.PSharp.TestingServices
 
             if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
             {
-                this.Assert(options == null || !options.MustHandle,
-                    $"A must-handle event '{e.GetType().Name}' was sent to the halted machine '{target}'.\n");
+                this.Assert(options is null || !options.MustHandle,
+                    "A must-handle event '{0}' was sent to the halted machine '{1}'.",
+                    e.GetType().Name, target);
                 this.TryHandleDroppedEvent(e, target);
                 return;
             }
 
             bool runNewHandler = false;
-            if (sender != null && sender is Machine)
+            if (sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
             }
@@ -526,20 +523,22 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override async Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
+            this.Assert(sender is Machine,
+                "Only a machine can call 'SendEventAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
+            this.Assert(target != null, "Machine '{0}' is sending to a null machine.", sender.Id);
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", sender.Id);
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
             this.Assert(this.AllCreatedMachineIds.Contains(target),
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
                 e.GetType().FullName, target.Value, target.Type);
-            this.Assert(sender != null && (sender is Machine),
-                "Only a machine can call 'SendEventAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
 
             this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, target.Value);
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
 
             if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
             {
-                this.Assert(options == null || !options.MustHandle,
-                    $"A must-handle event '{e.GetType().FullName}' was sent to the halted machine '{target}'.\n");
+                this.Assert(options is null || !options.MustHandle,
+                    "A must-handle event '{0}' was sent to the halted machine '{1}'.", e.GetType().FullName, target);
                 this.TryHandleDroppedEvent(e, target);
                 return true;
             }
@@ -552,7 +551,7 @@ namespace Microsoft.PSharp.TestingServices
             // CheckStartEventHandler must have been called.
             this.StartEventHandlerCalled = false;
 
-            if (sender != null && sender is Machine)
+            if (sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
             }
@@ -576,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices
         private EventInfo EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
         {
             EventOriginInfo originInfo = null;
-            if (sender != null && sender is Machine)
+            if (sender is Machine)
             {
                 originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().Name,
                     Machine.GetStateNameForLogging((sender as Machine).CurrentState));
@@ -726,7 +725,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' is not a subclass of Monitor.\n");
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass of Monitor.", type.Name);
 
             MachineId mid = new MachineId(type, null, this);
 
@@ -753,7 +752,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "Monitor");
-            if (sender != null && sender is Machine)
+            if (sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Monitor");
             }
@@ -785,28 +784,57 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate)
         {
             if (!predicate)
             {
-                string message = "Detected an assertion failure.";
-                this.Scheduler.NotifyAssertionFailure(message);
+                this.Scheduler.NotifyAssertionFailure("Detected an assertion failure.");
             }
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0)
+        {
+            if (!predicate)
+            {
+                this.Scheduler.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0, object arg1)
+        {
+            if (!predicate)
+            {
+                this.Scheduler.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
+        {
+            if (!predicate)
+            {
+                this.Scheduler.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString(), arg2.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate, string s, params object[] args)
         {
             if (!predicate)
             {
-                string message = IO.Utilities.Format(s, args);
-                this.Scheduler.NotifyAssertionFailure(message);
+                this.Scheduler.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture, s, args));
             }
         }
 
@@ -816,12 +844,10 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void AssertTransitionStatement(Machine machine)
         {
-            this.Assert(
-                !machine.Info.IsInsideOnExit,
+            this.Assert(!machine.Info.IsInsideOnExit,
                 "Machine '{0}' has called raise, goto, push or pop inside an OnExit method.",
                 machine.Id.Name);
-            this.Assert(
-                !machine.Info.CurrentActionCalledTransitionStatement,
+            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement,
                 "Machine '{0}' has called multiple raise, goto, push or pop in the same action.",
                 machine.Id.Name);
             machine.Info.CurrentActionCalledTransitionStatement = true;
@@ -839,8 +865,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            this.Assert(
-                !machine.Info.CurrentActionCalledTransitionStatement,
+            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement,
                 "Machine '{0}' cannot call '{1}' after calling raise, goto, push or pop in the same action.",
                 machine.Id.Name, calledAPI);
         }
@@ -851,20 +876,19 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void AssertCorrectCallerMachine(Machine callerMachine, string calledAPI)
         {
-            if (callerMachine == null)
+            if (callerMachine is null)
             {
                 return;
             }
 
             var executingMachine = this.GetCurrentMachine();
-            if (executingMachine == null)
+            if (executingMachine is null)
             {
                 return;
             }
 
-            this.Assert(
-                executingMachine.Equals(callerMachine),
-                $"Machine '{executingMachine.Id}' invoked {calledAPI} on behalf of machine '{callerMachine.Id}'.");
+            this.Assert(executingMachine.Equals(callerMachine), "Machine '{0}' invoked {1} on behalf of machine '{2}'.",
+                executingMachine.Id, calledAPI, callerMachine.Id);
         }
 
         /// <summary>
@@ -883,7 +907,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (monitor.IsInHotState(out string stateName))
                 {
-                    string message = IO.Utilities.Format(
+                    string message = string.Format(CultureInfo.InvariantCulture,
                         "Monitor '{0}' detected liveness bug in hot state '{1}' at the end of program execution.",
                         monitor.GetType().Name, stateName);
                     this.Scheduler.NotifyAssertionFailure(message, false);
@@ -897,13 +921,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override bool GetNondeterministicBooleanChoice(BaseMachine caller, int maxValue)
         {
-            if (caller == null)
+            if (caller is null)
             {
                 caller = this.GetCurrentMachine();
             }
 
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
-            if (caller != null && caller is Machine)
+            if (caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
                 (caller as Machine).Info.ProgramCounter++;
@@ -924,13 +948,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override bool GetFairNondeterministicBooleanChoice(BaseMachine caller, string uniqueId)
         {
-            if (caller == null)
+            if (caller is null)
             {
                 caller = this.GetCurrentMachine();
             }
 
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
-            if (caller != null && caller is Machine)
+            if (caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
                 (caller as Machine).Info.ProgramCounter++;
@@ -951,13 +975,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override int GetNondeterministicIntegerChoice(BaseMachine caller, int maxValue)
         {
-            if (caller == null)
+            if (caller is null)
             {
                 caller = this.GetCurrentMachine();
             }
 
             this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
-            if (caller != null && caller is Machine)
+            if (caller is Machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "RandomInteger");
             }
@@ -1151,7 +1175,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
-            if (eventInfoInInbox == null)
+            if (eventInfoInInbox is null)
             {
                 string events = machine.GetEventWaitHandlerNames();
                 this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
@@ -1205,9 +1229,8 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
         {
             var mustHandleEvent = inbox.FirstOrDefault(ev => ev.MustHandle);
-            this.Assert(
-                mustHandleEvent == null,
-                $"Machine '{machine.Id}' halted before dequeueing must-handle event '{mustHandleEvent?.EventName ?? string.Empty}'.\n");
+            this.Assert(mustHandleEvent is null, "Machine '{0}' halted before dequeueing must-handle event '{1}'.",
+                machine.Id, mustHandleEvent?.EventName ?? string.Empty);
 
             this.BugTrace.AddHaltStep(machine.Id, null);
             this.Logger.OnHalt(machine.Id, inbox.Count);
@@ -1264,8 +1287,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void ReportActivityCoverageOfMonitorEvent(BaseMachine sender, Monitor monitor, Event e)
         {
-            string originMachine = (sender == null) ? "Env" : sender.GetType().Name;
-            string originState = (sender == null) ? "Env" :
+            string originMachine = sender is null ? "Env" : sender.GetType().Name;
+            string originState = sender is null ? "Env" :
                 (sender is Machine) ? Machine.GetStateNameForLogging((sender as Machine).CurrentState) :
                 "Env";
 
@@ -1415,7 +1438,7 @@ namespace Microsoft.PSharp.TestingServices
         internal Machine GetCurrentMachine()
         {
             // The current task does not correspond to a machine.
-            if (Task.CurrentId == null)
+            if (Task.CurrentId is null)
             {
                 return null;
             }
@@ -1480,7 +1503,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal override void WrapAndThrowException(Exception exception, string s, params object[] args)
         {
-            string message = IO.Utilities.Format(s, args);
+            string message = string.Format(CultureInfo.InvariantCulture, s, args);
             this.Scheduler.NotifyAssertionFailure(message);
         }
 

@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0)
         {
-            this.Logger.Write(string.Format(format, arg0));
+            this.Logger.Write(string.Format(format, arg0.ToString()));
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1)
         {
-            this.Logger.Write(string.Format(format, arg0, arg1));
+            this.Logger.Write(string.Format(format, arg0.ToString(), arg1.ToString()));
         }
 
         /// <summary>
@@ -128,15 +128,15 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1, object arg2)
         {
-            this.Logger.Write(string.Format(format, arg0, arg1, arg2));
+            this.Logger.Write(string.Format(format, arg0.ToString(), arg1.ToString(), arg2.ToString()));
         }
 
         /// <summary>
         /// Writes the specified input to the runtime logger.
         /// </summary>
-        public override void Write(string format, params object[] arg)
+        public override void Write(string format, params object[] args)
         {
-            this.Logger.Write(string.Format(format, arg));
+            this.Logger.Write(string.Format(format, args));
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0)
         {
-            this.Logger.WriteLine(string.Format(format, arg0));
+            this.Logger.WriteLine(string.Format(format, arg0.ToString()));
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1)
         {
-            this.Logger.WriteLine(string.Format(format, arg0, arg1));
+            this.Logger.WriteLine(string.Format(format, arg0.ToString(), arg1.ToString()));
         }
 
         /// <summary>
@@ -286,16 +286,16 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1, object arg2)
         {
-            this.Logger.WriteLine(string.Format(format, arg0, arg1, arg2));
+            this.Logger.WriteLine(string.Format(format, arg0.ToString(), arg1.ToString(), arg2.ToString()));
         }
 
         /// <summary>
         /// Writes the specified input to the runtime logger,
         /// followed by the current line terminator.
         /// </summary>
-        public override void WriteLine(string format, params object[] arg)
+        public override void WriteLine(string format, params object[] args)
         {
-            this.Logger.Write(string.Format(format, arg));
+            this.Logger.Write(string.Format(format, args));
         }
 
         /// <summary>

@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             this.AssertFailed(configuration, test,
                 "Monitor 'LivenessMonitor' detected liveness bug in hot state " +
-                "'LivenessMonitor.NoTimeoutReceived' at the end of program execution.",
+                "'NoTimeoutReceived' at the end of program execution.",
                 true);
         }
     }
