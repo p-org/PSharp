@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.SharedObjects
 {
@@ -25,9 +25,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedRegister<T>(value);
             }
-            else if (runtime is TestingServices.TestingRuntime)
+            else if (runtime is TestingRuntime testingRuntime)
             {
-                return new MockSharedRegister<T>(value, runtime as TestingRuntime);
+                return new MockSharedRegister<T>(value, testingRuntime);
             }
             else
             {

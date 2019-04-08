@@ -14,9 +14,14 @@ namespace Microsoft.PSharp
     public sealed class Default : Event
     {
         /// <summary>
+        /// Gets an instance of the default event.
+        /// </summary>
+        public static Default Event { get; } = new Default();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Default"/> class.
         /// </summary>
-        public Default()
+        private Default()
             : base()
         {
         }

@@ -16,8 +16,6 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Reports a generic error to the user.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Parameters</param>
         public static void Report(string format, params object[] args)
         {
             string message = string.Format(CultureInfo.InvariantCulture, format, args);
@@ -29,7 +27,6 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Reports a generic error to the user and exits.
         /// </summary>
-        /// <param name="value">Text</param>
         public static void ReportAndExit(string value)
         {
             Write(ConsoleColor.Red, "Error: ");
@@ -41,8 +38,6 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Reports a generic error to the user and exits.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Parameters</param>
         public static void ReportAndExit(string format, params object[] args)
         {
             string message = string.Format(CultureInfo.InvariantCulture, format, args);
@@ -55,8 +50,6 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         ///  Writes the specified string value to the output stream.
         /// </summary>
-        /// <param name="color">ConsoleColor</param>
-        /// <param name="value">Text</param>
         private static void Write(ConsoleColor color, string value)
         {
             var previousForegroundColor = Console.ForegroundColor;

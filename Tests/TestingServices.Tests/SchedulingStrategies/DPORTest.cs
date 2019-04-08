@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDPOR1Reduces()
         {
             var test = new Action<IMachineRuntime>(r =>
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Assert.True(runtime.TestReport.NumOfExploredUnfairSchedules >= 6);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDPOR2NonDet()
         {
             var test = new Action<IMachineRuntime>(r =>
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDPOR3CreatingMany()
         {
             var test = new Action<IMachineRuntime>(r =>
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDPOR4UseReceive()
         {
             var test = new Action<IMachineRuntime>(r =>

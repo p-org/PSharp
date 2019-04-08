@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
-using Microsoft.PSharp.TestingServices.Deprecated.Timers;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
@@ -21,8 +20,9 @@ using Microsoft.PSharp.TestingServices.Timers;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Timers;
+using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// Runtime for systematically testing machines by controlling the scheduler.
@@ -91,11 +91,6 @@ namespace Microsoft.PSharp.TestingServices
         internal readonly int? RootTaskId;
 
         /// <summary>
-        /// Records if a machine was triggered by an enqueue.
-        /// </summary>
-        internal bool StartEventHandlerCalled;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="TestingRuntime"/> class.
         /// </summary>
         internal TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
@@ -118,11 +113,11 @@ namespace Microsoft.PSharp.TestingServices
             if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
             {
                 var reductionStrategy = BasicReductionStrategy.ReductionStrategy.None;
-                if (configuration.ReductionStrategy == Utilities.ReductionStrategy.OmitSchedulingPoints)
+                if (configuration.ReductionStrategy is ReductionStrategy.OmitSchedulingPoints)
                 {
                     reductionStrategy = BasicReductionStrategy.ReductionStrategy.OmitSchedulingPoints;
                 }
-                else if (configuration.ReductionStrategy == Utilities.ReductionStrategy.ForceSchedule)
+                else if (configuration.ReductionStrategy is ReductionStrategy.ForceSchedule)
                 {
                     reductionStrategy = BasicReductionStrategy.ReductionStrategy.ForceSchedule;
                 }
@@ -132,14 +127,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
             {
-                this.Scheduler = new BugFindingScheduler(
-                    this,
+                this.Scheduler = new BugFindingScheduler(this,
                     new CycleDetectionStrategy(configuration, this.StateCache, this.ScheduleTrace, this.Monitors, strategy));
             }
             else if (configuration.EnableLivenessChecking)
             {
-                this.Scheduler = new BugFindingScheduler(
-                    this,
+                this.Scheduler = new BugFindingScheduler(this,
                     new TemperatureCheckingStrategy(configuration, this.Monitors, strategy));
             }
             else
@@ -444,7 +437,7 @@ namespace Microsoft.PSharp.TestingServices
 
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
-            machine.Initialize(this, mid, new SchedulableInfo(mid));
+            machine.Initialize(this, mid, new SchedulableInfo(mid), new MockEventQueue(this, machine));
             machine.InitializeStateInformation();
 
             if (this.Configuration.ReportActivityCoverage && !isMachineTypeCached)
@@ -503,14 +496,13 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            bool runNewHandler = false;
             if (sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
             }
 
-            EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
-            if (runNewHandler)
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, out EventInfo eventInfo);
+            if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
             {
                 this.RunMachineEventHandler(machine, null, false, null, eventInfo);
             }
@@ -543,21 +535,13 @@ namespace Microsoft.PSharp.TestingServices
                 return true;
             }
 
-            bool runNewHandler = false;
-
-            // This is set true by CheckStartEventHandler, called by EnqueueEvent. runNewHandler is not
-            // set to true by EnqueueEvent (even when the machine was previously Idle) when the event
-            // e requires no action by the machine (i.e., it implicitly handles the event). In such a case,
-            // CheckStartEventHandler must have been called.
-            this.StartEventHandlerCalled = false;
-
             if (sender is Machine)
             {
                 this.AssertNoPendingTransitionStatement(sender as Machine, "Send");
             }
 
-            EventInfo eventInfo = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, ref runNewHandler);
-            if (runNewHandler)
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(machine, e, sender, operationGroupId, options?.MustHandle ?? false, out EventInfo eventInfo);
+            if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
             {
                 this.RunMachineEventHandler(machine, null, false, sender as Machine, eventInfo);
 
@@ -566,19 +550,22 @@ namespace Microsoft.PSharp.TestingServices
                 return true;
             }
 
-            return this.StartEventHandlerCalled;
+            // 'EnqueueStatus.EventHandlerNotRunning' is not returned by 'EnqueueEvent' (even when
+            // the machine was previously inactive) when the event 'e' requires no action by the
+            // machine (i.e., it implicitly handles the event).
+            return enqueueStatus is EnqueueStatus.NextEventUnavailable;
         }
 
         /// <summary>
         /// Enqueues an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        private EventInfo EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, bool mustHandle, ref bool runNewHandler)
+        private EnqueueStatus EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, bool mustHandle, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo = null;
             if (sender is Machine)
             {
                 originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().Name,
-                    Machine.GetStateNameForLogging((sender as Machine).CurrentState));
+                    NameResolver.GetStateNameForLogging((sender as Machine).CurrentState));
             }
             else
             {
@@ -586,7 +573,7 @@ namespace Microsoft.PSharp.TestingServices
                 originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
-            EventInfo eventInfo = new EventInfo(e, originInfo, this.Scheduler.ScheduledSteps);
+            eventInfo = new EventInfo(e, originInfo, this.Scheduler.ScheduledSteps);
             eventInfo.SetOperationGroupId(operationGroupId);
             eventInfo.SetMustHandle(mustHandle);
 
@@ -604,9 +591,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            machine.Enqueue(eventInfo, ref runNewHandler);
-
-            return eventInfo;
+            return machine.Enqueue(eventInfo);
         }
 
         /// <summary>
@@ -631,13 +616,12 @@ namespace Microsoft.PSharp.TestingServices
                         await machine.GotoStartState(initialEvent);
                     }
 
-                    await machine.RunEventHandler();
+                    await machine.RunEventHandlerAsync();
 
                     if (syncCaller != null)
                     {
-                        bool runNewHandler = false;
                         var operationGroupId = this.GetNewOperationGroupId(machine, machine.Info.OperationGroupId);
-                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, operationGroupId, false, ref runNewHandler);
+                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, operationGroupId, false, out EventInfo _);
                     }
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{(machine.Info as SchedulableInfo).TaskId}'.");
@@ -679,17 +663,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Checks that a machine can start its event handler. Returns false if the event
-        /// handler should not be started. The bug finding runtime may return false because
-        /// it knows that there are currently no events in the inbox that can be handled.
-        /// </summary>
-        internal override bool CheckStartEventHandler(Machine machine)
-        {
-            this.StartEventHandlerCalled = true;
-            return machine.TryDequeueEvent(true) != null;
-        }
-
-        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         internal void Wait()
@@ -708,11 +681,6 @@ namespace Microsoft.PSharp.TestingServices
             this.MachineMap.TryGetValue(mid, out Machine machine);
             return machine as IMachineTimer;
         }
-
-        /// <summary>
-        /// Returns the timer machine type.
-        /// </summary>
-        internal override Type GetTimerMachineType() => typeof(ModelTimerMachine);
 
         /// <summary>
         /// Tries to create a new monitor of the given type.
@@ -1171,31 +1139,36 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive one or more events.
+        /// Notifies that a machine is waiting to receive an event of the specified type.
         /// </summary>
-        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        internal override void NotifyWaitEvent(Machine machine, Type eventType)
         {
-            if (eventInfoInInbox is null)
-            {
-                string events = machine.GetEventWaitHandlerNames();
-                this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, events);
-                machine.Info.IsWaitingToReceive = true;
-                (machine.Info as SchedulableInfo).IsEnabled = false;
-            }
-            else
-            {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfoInInbox.SendStep;
+            (machine.Info as SchedulableInfo).IsEnabled = false;
 
-                // The event was already in the inbox when we executed a receive action.
-                // We've dequeued it by this point.
-                if (this.Configuration.EnableDataRaceDetection)
+            this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventType.FullName);
+            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+        }
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive an event of one of the specified types.
+        /// </summary>
+        internal override void NotifyWaitEvent(Machine machine, params Type[] eventTypes)
+        {
+            (machine.Info as SchedulableInfo).IsEnabled = false;
+
+            string eventNames = string.Empty;
+            if (eventTypes.Length > 0)
+            {
+                string[] eventNameArray = new string[eventTypes.Length - 1];
+                for (int i = 0; i < eventTypes.Length - 2; i++)
                 {
-                    this.Reporter.RegisterDequeue(eventInfoInInbox.OriginInfo?.SenderMachineId, machine.Id,
-                        eventInfoInInbox.Event, (ulong)eventInfoInInbox.SendStep);
+                    eventNameArray[i] = eventTypes[i].FullName;
                 }
+
+                eventNames = string.Join(", ", eventNameArray) + " or " + eventTypes[eventTypes.Length - 1].FullName;
             }
 
+            this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventNames);
             this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
         }
 
@@ -1205,15 +1178,13 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
 
-            // A subsequent enqueue from m' unblocked the receive action of machine.
+            // A subsequent enqueue unblocked the receive action of machine.
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, eventInfo.Event, (ulong)eventInfo.SendStep);
             }
 
-            machine.Info.IsWaitingToReceive = false;
             (machine.Info as SchedulableInfo).IsEnabled = true;
             (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
 
@@ -1224,25 +1195,29 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Notifies that a machine received an event without waiting because the event
+        /// was already in the inbox when the machine invoked the receive statement.
+        /// </summary>
+        internal override void NotifyReceivedEventWithoutWaiting(Machine machine, EventInfo eventInfo)
+        {
+            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
+
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id,
+                    eventInfo.Event, (ulong)eventInfo.SendStep);
+            }
+
+            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+        }
+
+        /// <summary>
         /// Notifies that a machine has halted.
         /// </summary>
-        internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        internal override void NotifyHalted(Machine machine)
         {
-            var mustHandleEvent = inbox.FirstOrDefault(ev => ev.MustHandle);
-            this.Assert(mustHandleEvent is null, "Machine '{0}' halted before dequeueing must-handle event '{1}'.",
-                machine.Id, mustHandleEvent?.EventName ?? string.Empty);
-
             this.BugTrace.AddHaltStep(machine.Id, null);
-            this.Logger.OnHalt(machine.Id, inbox.Count);
             this.MachineMap.TryRemove(machine.Id, out machine);
-
-            if (this.IsOnEventDroppedHandlerRegistered())
-            {
-                foreach (var evinfo in inbox)
-                {
-                    this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
-                }
-            }
         }
 
         /// <summary>
@@ -1277,7 +1252,7 @@ namespace Microsoft.PSharp.TestingServices
             string originState = eventInfo.OriginInfo.SenderStateName;
             string edgeLabel = eventInfo.EventType.Name;
             string destMachine = machine.GetType().Name;
-            string destState = Machine.GetStateNameForLogging(machine.CurrentState);
+            string destState = NameResolver.GetStateNameForLogging(machine.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1289,12 +1264,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             string originMachine = sender is null ? "Env" : sender.GetType().Name;
             string originState = sender is null ? "Env" :
-                (sender is Machine) ? Machine.GetStateNameForLogging((sender as Machine).CurrentState) :
+                (sender is Machine) ? NameResolver.GetStateNameForLogging((sender as Machine).CurrentState) :
                 "Env";
 
             string edgeLabel = e.GetType().Name;
             string destMachine = monitor.GetType().Name;
-            string destState = Machine.GetStateNameForLogging(monitor.CurrentState);
+            string destState = NameResolver.GetStateNameForLogging(monitor.CurrentState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1353,7 +1328,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfStateTransition(Machine machine, EventInfo eventInfo)
         {
             string originMachine = machine.GetType().Name;
-            string originState = Machine.GetStateNameForLogging(machine.CurrentState);
+            string originState = NameResolver.GetStateNameForLogging(machine.CurrentState);
             string destMachine = machine.GetType().Name;
 
             string edgeLabel = string.Empty;
@@ -1361,23 +1336,23 @@ namespace Microsoft.PSharp.TestingServices
             if (eventInfo.Event is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = Machine.GetStateNameForLogging((eventInfo.Event as GotoStateEvent).State);
+                destState = NameResolver.GetStateNameForLogging((eventInfo.Event as GotoStateEvent).State);
             }
             else if (eventInfo.Event is PushStateEvent)
             {
                 edgeLabel = "push";
-                destState = Machine.GetStateNameForLogging((eventInfo.Event as PushStateEvent).State);
+                destState = NameResolver.GetStateNameForLogging((eventInfo.Event as PushStateEvent).State);
             }
             else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = Machine.GetStateNameForLogging(
+                destState = NameResolver.GetStateNameForLogging(
                     machine.GotoTransitions[eventInfo.EventType].TargetState);
             }
             else if (machine.PushTransitions.ContainsKey(eventInfo.EventType))
             {
                 edgeLabel = eventInfo.EventType.Name;
-                destState = Machine.GetStateNameForLogging(
+                destState = NameResolver.GetStateNameForLogging(
                     machine.PushTransitions[eventInfo.EventType].TargetState);
             }
             else
@@ -1394,10 +1369,10 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfPopTransition(Machine machine, Type fromState, Type toState)
         {
             string originMachine = machine.GetType().Name;
-            string originState = Machine.GetStateNameForLogging(fromState);
+            string originState = NameResolver.GetStateNameForLogging(fromState);
             string destMachine = machine.GetType().Name;
             string edgeLabel = "pop";
-            string destState = Machine.GetStateNameForLogging(toState);
+            string destState = NameResolver.GetStateNameForLogging(toState);
 
             this.CoverageInfo.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -1408,7 +1383,7 @@ namespace Microsoft.PSharp.TestingServices
         private void ReportActivityCoverageOfMonitorTransition(Monitor monitor, Event e)
         {
             string originMachine = monitor.GetType().Name;
-            string originState = Machine.GetStateNameForLogging(monitor.CurrentState);
+            string originState = NameResolver.GetStateNameForLogging(monitor.CurrentState);
             string destMachine = originMachine;
 
             string edgeLabel = string.Empty;
@@ -1416,12 +1391,12 @@ namespace Microsoft.PSharp.TestingServices
             if (e is GotoStateEvent)
             {
                 edgeLabel = "goto";
-                destState = Machine.GetStateNameForLogging((e as GotoStateEvent).State);
+                destState = NameResolver.GetStateNameForLogging((e as GotoStateEvent).State);
             }
             else if (monitor.GotoTransitions.ContainsKey(e.GetType()))
             {
                 edgeLabel = e.GetType().Name;
-                destState = Machine.GetStateNameForLogging(
+                destState = NameResolver.GetStateNameForLogging(
                     monitor.GotoTransitions[e.GetType()].TargetState);
             }
             else

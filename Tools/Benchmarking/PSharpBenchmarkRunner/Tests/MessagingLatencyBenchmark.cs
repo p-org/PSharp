@@ -15,25 +15,27 @@ namespace Microsoft.PSharp.Benchmarking
     [MarkdownExporter, HtmlExporter, CsvExporter, CsvMeasurementsExporter, RPlotExporter]
     public class MessagingLatencyBenchmark
     {
-        private class SetupMasterEvent : Event
+        private class SetupTcsEvent : Event
         {
             public TaskCompletionSource<bool> Tcs;
             public long NumMessages;
 
-            public SetupMasterEvent(TaskCompletionSource<bool> tcs, long numMessages)
+            public SetupTcsEvent(TaskCompletionSource<bool> tcs, long numMessages)
             {
                 this.Tcs = tcs;
                 this.NumMessages = numMessages;
             }
         }
 
-        private class SetupWorkerEvent : Event
+        private class SetupTargetEvent : Event
         {
-            public MachineId Master;
+            public MachineId Target;
+            public long NumMessages;
 
-            internal SetupWorkerEvent(MachineId master)
+            internal SetupTargetEvent(MachineId target, long numMessages)
             {
-                this.Master = master;
+                this.Target = target;
+                this.NumMessages = numMessages;
             }
         }
 
@@ -41,10 +43,10 @@ namespace Microsoft.PSharp.Benchmarking
         {
         }
 
-        private class Master : Machine
+        private class M1 : Machine
         {
             private TaskCompletionSource<bool> Tcs;
-            private MachineId Worker;
+            private MachineId Target;
             private long NumMessages;
             private long Counter = 0;
 
@@ -57,9 +59,9 @@ namespace Microsoft.PSharp.Benchmarking
 
             private void InitOnEntry()
             {
-                this.Tcs = (this.ReceivedEvent as SetupMasterEvent).Tcs;
-                this.NumMessages = (this.ReceivedEvent as SetupMasterEvent).NumMessages;
-                this.Worker = this.CreateMachine(typeof(Worker), new SetupWorkerEvent(this.Id));
+                this.Tcs = (this.ReceivedEvent as SetupTcsEvent).Tcs;
+                this.NumMessages = (this.ReceivedEvent as SetupTcsEvent).NumMessages;
+                this.Target = this.CreateMachine(typeof(M2), new SetupTargetEvent(this.Id, this.NumMessages));
                 this.SendMessage();
             }
 
@@ -72,14 +74,14 @@ namespace Microsoft.PSharp.Benchmarking
                 else
                 {
                     this.Counter++;
-                    this.Send(this.Worker, new Message());
+                    this.Send(this.Target, new Message());
                 }
             }
         }
 
-        private class Worker : Machine
+        private class M2 : Machine
         {
-            private MachineId Master;
+            private MachineId Target;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -90,12 +92,61 @@ namespace Microsoft.PSharp.Benchmarking
 
             private void InitOnEntry()
             {
-                this.Master = (this.ReceivedEvent as SetupWorkerEvent).Master;
+                this.Target = (this.ReceivedEvent as SetupTargetEvent).Target;
             }
 
             private void SendMessage()
             {
-                this.Send(this.Master, new Message());
+                this.Send(this.Target, new Message());
+            }
+        }
+
+        private class M3 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupTcsEvent).Tcs;
+                var numMessages = (this.ReceivedEvent as SetupTcsEvent).NumMessages;
+                var target = this.CreateMachine(typeof(M4), new SetupTargetEvent(this.Id, numMessages));
+
+                var counter = 0;
+                while (counter < numMessages)
+                {
+                    counter++;
+                    this.Send(target, new Message());
+                    await this.Receive(typeof(Message));
+                }
+
+                tcs.SetResult(true);
+            }
+        }
+
+        private class M4 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task InitOnEntry()
+            {
+                var target = (this.ReceivedEvent as SetupTargetEvent).Target;
+                var numMessages = (this.ReceivedEvent as SetupTargetEvent).NumMessages;
+
+                var counter = 0;
+                while (counter < numMessages)
+                {
+                    counter++;
+                    await this.Receive(typeof(Message));
+                    this.Send(target, new Message());
+                }
             }
         }
 
@@ -103,14 +154,28 @@ namespace Microsoft.PSharp.Benchmarking
         public int NumMessages { get; set; }
 
         [Benchmark]
-        public void MeasureMessagingLatency()
+        public void MeasureLatencyMessageExchange()
         {
             var tcs = new TaskCompletionSource<bool>();
 
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
-            runtime.CreateMachine(typeof(Master), null,
-                new SetupMasterEvent(tcs, this.NumMessages),
+            runtime.CreateMachine(typeof(M1), null,
+                new SetupTcsEvent(tcs, this.NumMessages),
+                null);
+
+            tcs.Task.Wait();
+        }
+
+        [Benchmark]
+        public void MeasureLatencyMessageReceive()
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            var configuration = Configuration.Create();
+            var runtime = new ProductionRuntime(configuration);
+            runtime.CreateMachine(typeof(M3), null,
+                new SetupTcsEvent(tcs, this.NumMessages),
                 null);
 
             tcs.Task.Wait();

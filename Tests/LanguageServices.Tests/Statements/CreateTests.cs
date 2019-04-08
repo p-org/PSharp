@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class CreateTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateStatement()
         {
             var test = @"
@@ -59,7 +59,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateNamedMachineStatement()
         {
             var test = @"
@@ -109,7 +109,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateStatementWithSinglePayload()
         {
             var test = @"
@@ -163,7 +163,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateStatementWithDoublePayload()
         {
             var test = @"
@@ -220,7 +220,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateNamedMachineStatementWithSinglePayload()
         {
             var test = @"
@@ -273,7 +273,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateNamedMachineStatementWithDoublePayload()
         {
             var test = @"

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 
 using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;
@@ -11,44 +12,28 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// An implementation of <see cref="ILogger"/> that by default passes all logging commands to the variants
-    /// of the <see cref="Write(string)"/> method if the <see cref="Configuration.Verbose"/> option is set to
-    /// >= <see cref="LoggingVerbosity"/>. This class may be subclassed and its methods overridden.
+    /// An implementation of <see cref="ILogger"/> that by default passes all logging
+    /// commands to the variants of the <see cref="Write(string)"/> method.
     /// </summary>
     public abstract class MachineLogger : ILogger
     {
         /// <summary>
-        /// The configuration that sets the logging verbosity.
+        /// If true, then messages are logged. The default value is false.
         /// </summary>
-        public Configuration Configuration { get; set; }
+        public bool IsVerbose { get; set; } = false;
 
         /// <summary>
-        /// The minimum logging verbosity level. If <see cref="Configuration.Verbose"/> is >=
-        /// <see cref="LoggingVerbosity"/>, then messages are logged (0 logs all messages).
+        /// Initializes a new instance of the <see cref="MachineLogger"/> class.
         /// </summary>
-        public int LoggingVerbosity { get; set; } = 2;
-
-        /// <summary>
-        /// Convenience method to indicate whether <see cref="Configuration.Verbose"/> is at or
-        /// above <see cref="LoggingVerbosity"/>.
-        /// </summary>
-        public bool IsVerbose => this.Configuration.Verbose >= this.LoggingVerbosity;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MachineLogger"/> class. The logger
-        /// will be assigned the runtime <see cref="PSharp.Configuration"/> object when it
-        /// is passed to <see cref="IMachineRuntime.SetLogger(ILogger)"/>.
-        /// </summary>
-        /// <param name="loggingVerbosity">The initial logging verbosity level.</param>
-        public MachineLogger(int loggingVerbosity = 2)
+        /// <param name="isVerbose">If true, then messages are logged. The default value is false.</param>
+        public MachineLogger(bool isVerbose = false)
         {
-            this.LoggingVerbosity = loggingVerbosity;
+            this.IsVerbose = isVerbose;
         }
 
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public abstract void Write(string value);
 
         /// <summary>
@@ -77,7 +62,6 @@ namespace Microsoft.PSharp.IO
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public abstract void WriteLine(string value);
 
         /// <summary>
@@ -314,33 +298,79 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
-        /// Called when a machine enters a wait state.
+        /// Called when a machine waits to receive an event of a specified type.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
-        /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        public virtual void OnWait(MachineId machineId, string currStateName, string eventNames)
+        /// <param name="eventType">The type of the event being waited for.</param>
+        public virtual void OnWait(MachineId machineId, string currStateName, Type eventType)
         {
             if (this.IsVerbose)
             {
-                this.WriteLine(this.FormatOnWaitString(machineId, currStateName, ref eventNames));
+                this.WriteLine(this.FormatOnWaitString(machineId, currStateName, eventType));
             }
         }
 
         /// <summary>
-        /// Returns a string formatted for the <see cref="OnWait"/> event and its parameters.
+        /// Returns a string formatted for the <see cref="OnWait(MachineId, string, Type)"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
-        /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        public virtual string FormatOnWaitString(MachineId machineId, string currStateName, ref string eventNames)
+        /// <param name="eventType">The type of the event being waited for.</param>
+        public virtual string FormatOnWaitString(MachineId machineId, string currStateName, Type eventType) =>
+            $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue an event of type '{eventType.FullName}'.";
+
+        /// <summary>
+        /// Called when a machine waits to receive an event of one of the specified types.
+        /// </summary>
+        /// <param name="machineId">Id of the machine that is entering the wait state.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
+        /// <param name="eventTypes">The types of the events being waited for, if any.</param>
+        public virtual void OnWait(MachineId machineId, string currStateName, params Type[] eventTypes)
         {
-            if (string.IsNullOrEmpty(eventNames))
+            if (this.IsVerbose)
             {
-                eventNames = "[any]";
+                this.WriteLine(this.FormatOnWaitString(machineId, currStateName, eventTypes));
+            }
+        }
+
+        /// <summary>
+        /// Returns a string formatted for the <see cref="OnWait(MachineId, string, Type[])"/> event and its parameters.
+        /// </summary>
+        /// <param name="machineId">Id of the machine that is entering the wait state.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
+        /// <param name="eventTypes">The types of the events being waited for, if any.</param>
+        public virtual string FormatOnWaitString(MachineId machineId, string currStateName, params Type[] eventTypes)
+        {
+            string eventNames = string.Empty;
+            if (eventTypes.Length == 0)
+            {
+                eventNames = "'<missing>'";
+            }
+            else if (eventTypes.Length == 1)
+            {
+                eventNames = "'" + eventTypes[0].FullName + "'";
+            }
+            else if (eventTypes.Length == 2)
+            {
+                eventNames = "'" + eventTypes[0].FullName + "' or '" + eventTypes[1].FullName + "'";
+            }
+            else if (eventTypes.Length == 3)
+            {
+                eventNames = "'" + eventTypes[0].FullName + "', '" + eventTypes[1].FullName + "' or '" + eventTypes[2].FullName + "'";
+            }
+            else
+            {
+                string[] eventNameArray = new string[eventTypes.Length - 1];
+                for (int i = 0; i < eventTypes.Length - 2; i++)
+                {
+                    eventNameArray[i] = eventTypes[i].FullName;
+                }
+
+                eventNames = "'" + string.Join("', '", eventNameArray) + "' or '" + eventTypes[eventTypes.Length - 1].FullName + "'";
             }
 
-            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue one of the events: '{eventNames}'.";
+            return $"<ReceiveLog> Machine '{machineId}' in state '{currStateName}' is waiting to dequeue an event of type {eventNames}.";
         }
 
         /// <summary>

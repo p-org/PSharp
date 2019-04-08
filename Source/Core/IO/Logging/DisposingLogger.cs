@@ -13,22 +13,17 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Logger that disposes all written text.
     /// </summary>
-    internal sealed class DisposingLogger : ILogger
+    public sealed class DisposingLogger : ILogger
     {
         /// <summary>
-        /// The configuration that sets the logging verbosity.
+        /// If true, then messages are logged. This logger ignores
+        /// this value and always disposes any written text.
         /// </summary>
-        public Configuration Configuration { get; set; }
-
-        /// <summary>
-        /// The minimum logging verbosity level (should be >= 0, use 0 to log all messages).
-        /// </summary>
-        public int LoggingVerbosity { get; set; }
+        public bool IsVerbose { get; set; } = false;
 
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public void Write(string value)
         {
         }
@@ -67,7 +62,6 @@ namespace Microsoft.PSharp.IO
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public void WriteLine(string value)
         {
         }
@@ -187,12 +181,22 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
-        /// Called when a machine enters a wait state.
+        /// Called when a machine waits to receive an event of a specified type.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
-        /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        public void OnWait(MachineId machineId, string currStateName, string eventNames)
+        /// <param name="eventType">The type of the event being waited for.</param>
+        public void OnWait(MachineId machineId, string currStateName, Type eventType)
+        {
+        }
+
+        /// <summary>
+        /// Called when a machine waits to receive an event of one of the specified types.
+        /// </summary>
+        /// <param name="machineId">Id of the machine that is entering the wait state.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
+        /// <param name="eventTypes">The types of the events being waited for, if any.</param>
+        public void OnWait(MachineId machineId, string currStateName, params Type[] eventTypes)
         {
         }
 

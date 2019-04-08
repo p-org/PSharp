@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall1Fail()
         {
             var test = @"
@@ -101,12 +102,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 4, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 4, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall2Fail()
         {
             var test = @"
@@ -184,12 +185,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall3Fail()
         {
             var test = @"
@@ -263,12 +264,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall4Fail()
         {
             var test = @"
@@ -342,12 +343,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 3, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall5Fail()
         {
             var test = @"
@@ -417,12 +418,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 6, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 6, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall6Fail()
         {
             var test = @"
@@ -487,12 +488,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 5, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 5, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall7Fail()
         {
             var test = @"
@@ -551,15 +552,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns 'letter' " +
                 "to field 'Foo.OtherClass.Letter' after giving up its ownership.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall8Fail()
         {
             var test = @"
@@ -617,15 +618,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns 'letter' " +
                 "to field 'Foo.OtherClass.Letter' after giving up its ownership.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall9Fail()
         {
             var test = @"
@@ -684,15 +685,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', which contains data from field 'letter'.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall10Fail()
         {
             var test = @"
@@ -752,15 +753,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', which contains data from field 'letter'.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexAccessesInCall11Fail()
         {
             var test = @"
@@ -835,9 +836,9 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 2, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 2, isPSharpProgram: false);
         }
     }
 }

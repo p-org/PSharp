@@ -27,8 +27,7 @@ namespace Microsoft.PSharp.Runtime
         protected internal MachineId Id { get; private set; }
 
         /// <summary>
-        /// Stores machine-related information, which can used
-        /// for scheduling and testing.
+        /// Stores machine-related metadata.
         /// </summary>
         internal MachineInfo Info { get; private set; }
 

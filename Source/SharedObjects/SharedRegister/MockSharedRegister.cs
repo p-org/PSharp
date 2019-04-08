@@ -5,7 +5,7 @@
 
 using System;
 
-using Microsoft.PSharp.TestingServices;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.SharedObjects
 {

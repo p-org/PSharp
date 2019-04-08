@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.Core.Tests
 
         private void AssertSucceeded(Type machine)
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
             });
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.Core.Tests
 
         private void AssertFailed(Type machine)
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -201,31 +201,31 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHaltCalled()
         {
             this.AssertFailed(typeof(M1));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReceiveOnHalt()
         {
             this.AssertFailed(typeof(M2a));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestRaiseOnHalt()
         {
             this.AssertFailed(typeof(M2b));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoOnHalt()
         {
             this.AssertFailed(typeof(M2c));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAPIsOnHalt()
         {
             this.AssertSucceeded(typeof(M3));

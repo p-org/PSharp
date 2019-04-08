@@ -39,7 +39,7 @@ namespace Microsoft.PSharp
             // Creates the compilation context and loads the solution.
             var context = CompilationContext.Create(configuration).LoadSolution();
 
-            ConsoleLogger logger = new ConsoleLogger();
+            ConsoleLogger logger = new ConsoleLogger(true);
             ErrorReporter errorReporter = new ErrorReporter(configuration, logger);
 
             try

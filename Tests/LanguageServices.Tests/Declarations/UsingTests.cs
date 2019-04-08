@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class UsingTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUsingDeclaration()
         {
             var test = @"
@@ -21,14 +21,14 @@ using System.Text;
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIncorrectUsingDeclaration()
         {
             var test = "using System.Text";
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUsingDeclarationWithoutIdentifier()
         {
             var test = "using;";

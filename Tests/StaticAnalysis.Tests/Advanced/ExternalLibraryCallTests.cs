@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternalLibraryCallFail()
         {
             var test = @"
@@ -66,7 +67,7 @@ class M : Machine
                 "   at 'System.Console.WriteLine(letter.Text)' in Program.cs:line 39" +
                 "   --- Source of giving up ownership ---" +
                 "   at 'this.Send(this.Target, new eUnit(letter));' in Program.cs:line 38";
-            this.AssertWarning(test, 1, warning, isPSharpProgram: false);
+            Assert.Warning(test, 1, warning, isPSharpProgram: false);
         }
     }
 }

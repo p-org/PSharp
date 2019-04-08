@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestFieldGivenUpOwnership1Fail()
         {
             var test = @"
@@ -62,15 +63,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns " +
                 "'letter' to field 'Foo.M.Letter' after giving up its ownership.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestFieldGivenUpOwnership2Fail()
         {
             var test = @"
@@ -128,15 +129,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'Letter', which contains data from field 'Foo.M.Letter'.";
-            this.AssertFailed(configuration, test, 1, error, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestFieldAccessAfterGivenUpOwnership1Fail()
         {
             var test = @"
@@ -185,12 +186,12 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 3, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestFieldAccessAfterGivenUpOwnership2Fail()
         {
             var test = @"
@@ -240,9 +241,9 @@ class M : Machine
  }
 }
 }";
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
-            this.AssertFailed(configuration, test, 3, isPSharpProgram: false);
+            Assert.Failed(configuration, test, 3, isPSharpProgram: false);
         }
     }
 }

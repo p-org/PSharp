@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// <summary>
         /// P# semantics test: two machines, monitor instantiation parameter.
         /// </summary>
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReceiveEvent()
         {
             var configuration = GetConfiguration();

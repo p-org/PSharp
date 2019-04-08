@@ -8,8 +8,7 @@ using System;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Stores machine-related information, which is used for various
-    /// internal purposes, including scheduling and testing.
+    /// Stores machine-related metadata.
     /// </summary>
     internal class MachineInfo
     {
@@ -19,9 +18,14 @@ namespace Microsoft.PSharp.Runtime
         protected MachineId MachineId;
 
         /// <summary>
+        /// True if the event handler for the machine is running, else false.
+        /// </summary>
+        internal bool IsEventHandlerRunning;
+
+        /// <summary>
         /// Is the machine halted.
         /// </summary>
-        internal bool IsHalted;
+        internal volatile bool IsHalted;
 
         /// <summary>
         /// Is the machine waiting to receive an event.
@@ -63,24 +67,26 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="MachineInfo"/> class.
         /// </summary>
-        /// <param name="mid">The machine id.</param>
         internal MachineInfo(MachineId mid)
         {
             this.MachineId = mid;
+
+            // The event handler starts in the running state, because when the machine
+            // gets initialized it will always run one iteration of the handler.
+            this.IsEventHandlerRunning = true;
+
             this.IsHalted = false;
             this.IsWaitingToReceive = false;
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
+
             this.OperationGroupId = Guid.Empty;
             this.ProgramCounter = 0;
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
             if (obj is MachineInfo mid)
@@ -94,19 +100,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
-        {
-            return this.MachineId.GetHashCode();
-        }
+        public override int GetHashCode() => this.MachineId.GetHashCode();
 
         /// <summary>
         /// Returns a string that represents this machine.
         /// </summary>
-        /// <returns>string</returns>
-        public override string ToString()
-        {
-            return this.MachineId.Name;
-        }
+        public override string ToString() => this.MachineId.Name;
     }
 }

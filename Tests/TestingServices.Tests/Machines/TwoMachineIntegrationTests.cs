@@ -425,7 +425,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTwoMachineIntegration1()
         {
             var configuration = GetConfiguration();
@@ -439,7 +439,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTwoMachineIntegration2()
         {
             var configuration = GetConfiguration();
@@ -453,7 +453,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTwoMachineIntegration3()
         {
             var configuration = GetConfiguration();
@@ -467,7 +467,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTwoMachineIntegration4()
         {
             var configuration = GetConfiguration();
@@ -481,7 +481,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTwoMachineIntegration5()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -4,9 +4,9 @@
     <id>Microsoft.PSharp</id>
     <version>1.5.1</version>
     <authors>Microsoft</authors>
-    <licenseUrl>https://github.com/p-org/PSharp/blob/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
-    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>P# is a framework for building highly-reliable asynchronous reactive software.</description>
     <releaseNotes>This release contains the 1.5.1 version of the P# framework.</releaseNotes>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>

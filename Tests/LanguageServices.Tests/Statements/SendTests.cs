@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class SendTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendStatement()
         {
             var test = @"
@@ -59,7 +59,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendStatementWithSinglePayload()
         {
             var test = @"
@@ -112,7 +112,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendStatementWithDoublePayload()
         {
             var test = @"

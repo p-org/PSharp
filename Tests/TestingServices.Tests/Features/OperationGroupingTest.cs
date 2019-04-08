@@ -310,7 +310,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineNoSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -321,7 +321,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -343,7 +343,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesCreate()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -354,7 +354,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -365,7 +365,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -387,7 +387,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -398,7 +398,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -312,7 +312,7 @@ namespace Microsoft.PSharp.Core.Tests
 
         private void AssertSucceeded(Type machine)
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -332,55 +332,55 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineNoSend()
         {
             this.AssertSucceeded(typeof(M1));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSend()
         {
             this.AssertSucceeded(typeof(M2));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
             this.AssertSucceeded(typeof(M2S));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesCreate()
         {
             this.AssertSucceeded(typeof(M3));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSend()
         {
             this.AssertSucceeded(typeof(M5));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
             this.AssertSucceeded(typeof(M5S));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
             this.AssertSucceeded(typeof(M7));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
             this.AssertSucceeded(typeof(M7S));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
             this.AssertSucceeded(typeof(M9S));

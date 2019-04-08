@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendAndExecuteNoDeadlockWithReceive()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendAndExecuteDeadlockWithReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(10);

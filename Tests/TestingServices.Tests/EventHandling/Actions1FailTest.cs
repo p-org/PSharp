@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// <summary>
         /// Tests basic semantics of actions and goto transitions.
         /// </summary>
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestActions1Fail()
         {
             var configuration = GetConfiguration();

@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 #pragma warning restore CA1801 // Parameter not used
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMethodCall()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -564,7 +564,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestFailureDetectorLivenessBugWithCycleReplay()
         {
             var configuration = GetConfiguration();

@@ -859,7 +859,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReplicatingStorageLivenessBug()
         {
             var configuration = GetConfiguration();
@@ -879,7 +879,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReplicatingStorageLivenessBugWithCycleReplay()
         {
             var configuration = GetConfiguration();

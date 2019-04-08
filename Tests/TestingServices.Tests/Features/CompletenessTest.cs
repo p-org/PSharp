@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCompleteness1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(config, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCompleteness2()
         {
             var test = new Action<IMachineRuntime>((r) =>

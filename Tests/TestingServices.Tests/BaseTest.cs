@@ -89,7 +89,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 foreach (var expected in expectedOutputs)
                 {
-                    this.TestOutput.WriteLine("expected: " + expected);
                     if (!bugReports.Contains(expected))
                     {
                         return false;
@@ -110,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                this.CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
+                CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -119,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    this.CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
+                    CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
                 }
             }
             catch (Exception ex)
@@ -173,7 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        private void CheckErrors(ITestingEngine engine, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc)
+        private static void CheckErrors(ITestingEngine engine, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc)
         {
             var numErrors = engine.TestReport.NumOfFoundBugs;
             Assert.Equal(numExpectedErrors, numErrors);
@@ -182,7 +181,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             foreach (var bugReport in engine.TestReport.BugReports)
             {
                 var actual = RemoveNonDeterministicValuesFromReport(bugReport);
-                this.TestOutput.WriteLine("actual: " + actual);
                 bugReports.Add(actual);
             }
 

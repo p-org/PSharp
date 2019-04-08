@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
         internal static CompilationContext RunRewriter(string test, bool isPSharpProgram = true, Version csVersion = null)
         {
             var configuration = Configuration.Create();
-            configuration.Verbose = 2;
+            configuration.IsVerbose = true;
             if (csVersion != null)
             {
                 configuration.RewriteCSharpVersion = csVersion;

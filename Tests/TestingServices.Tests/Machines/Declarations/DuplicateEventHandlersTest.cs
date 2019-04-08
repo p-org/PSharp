@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerDo()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerGoto()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerPush()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerInheritanceDo()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerInheritanceGoto()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -225,7 +225,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerInheritancePush()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -238,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDuplicateEventHandlerMixed()
         {
             var test = new Action<IMachineRuntime>((r) =>

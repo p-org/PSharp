@@ -20,11 +20,11 @@ namespace Microsoft.PSharp.Core.Tests
 
         internal class Configure : Event
         {
-            public TaskCompletionSource<bool> TCS;
+            public TaskCompletionSource<bool> Tcs;
 
             public Configure(TaskCompletionSource<bool> tcs)
             {
-                this.TCS = tcs;
+                this.Tcs = tcs;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private async Task InitOnEntry()
             {
-                var tcs = (this.ReceivedEvent as Configure).TCS;
+                var tcs = (this.ReceivedEvent as Configure).Tcs;
 
                 try
                 {
@@ -100,10 +100,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoMemoryLeakAfterHalt()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();

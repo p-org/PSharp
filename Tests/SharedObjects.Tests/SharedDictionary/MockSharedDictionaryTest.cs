@@ -257,7 +257,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary1()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -269,7 +269,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertFailed(config, test, "Detected an assertion failure.");
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary2()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -281,7 +281,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertFailed(config, test, 1);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary3()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -293,7 +293,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary4()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary5()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -318,7 +318,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary6()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);
@@ -331,7 +331,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMockSharedDictionary7()
         {
             var config = Configuration.Create().WithNumberOfIterations(50);

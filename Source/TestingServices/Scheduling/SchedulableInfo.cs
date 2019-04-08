@@ -69,9 +69,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool IsActive;
 
         /// <summary>
-        /// Is the event handler running.
+        /// Is the inbox handler running.
         /// </summary>
-        internal bool IsEventHandlerRunning;
+        internal bool IsInboxHandlerRunning;
 
         /// <summary>
         /// True if it should skip the next receive scheduling point,
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.IsEnabled = false;
             this.IsActive = false;
-            this.IsEventHandlerRunning = false;
+            this.IsInboxHandlerRunning = false;
             this.SkipNextReceiveSchedulingPoint = false;
             this.NextOperationType = OperationType.Start;
             this.NextTargetType = OperationTargetType.Schedulable;
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.IsEnabled = true;
             this.IsWaitingToReceive = false;
             this.IsActive = false;
-            this.IsEventHandlerRunning = false;
+            this.IsInboxHandlerRunning = false;
             this.NextOperationMatchingSendIndex = (ulong)sendIndex;
             this.IsInsideOnExit = false;
             this.CurrentActionCalledTransitionStatement = false;
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal void NotifyEventHandlerCompleted()
         {
             this.IsEnabled = false;
-            this.IsEventHandlerRunning = false;
+            this.IsInboxHandlerRunning = false;
             this.SkipNextReceiveSchedulingPoint = true;
             this.NextOperationMatchingSendIndex = 0;
         }

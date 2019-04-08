@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateExitFail()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -35,7 +35,7 @@ namespace Foo {
     }
 }";
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAllNameofRewriteWithNameof()
         {
             var test = this.NameofTest;
@@ -85,7 +85,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAllNameofRewriteWithoutNameof()
         {
             var test = this.NameofTest;

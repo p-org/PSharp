@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class RewritingTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateStatesAndJump()
         {
             var test = @"

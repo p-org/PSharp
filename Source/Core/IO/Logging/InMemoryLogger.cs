@@ -20,8 +20,9 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Initializes a new instance of the <see cref="InMemoryLogger"/> class.
         /// </summary>
-        public InMemoryLogger()
-            : base(0)
+        /// <param name="isVerbose">If true, then messages are logged.</param>
+        public InMemoryLogger(bool isVerbose)
+            : base(isVerbose)
         {
             this.Writer = new StringWriter();
         }
@@ -29,10 +30,12 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            this.Writer.Write(value);
+            if (this.IsVerbose)
+            {
+                this.Writer.Write(value);
+            }
         }
 
         /// <summary>
@@ -40,7 +43,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0)
         {
-            this.Writer.Write(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.Write(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -48,7 +54,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1)
         {
-            this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -56,7 +65,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1, object arg2)
         {
-            this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
@@ -66,17 +78,22 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            this.Writer.Write(format, args);
+            if (this.IsVerbose)
+            {
+                this.Writer.Write(format, args);
+            }
         }
 
         /// <summary>
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            this.Writer.WriteLine(value);
+            if (this.IsVerbose)
+            {
+                this.Writer.WriteLine(value);
+            }
         }
 
         /// <summary>
@@ -85,7 +102,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0)
         {
-            this.Writer.WriteLine(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.WriteLine(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -94,7 +114,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1)
         {
-            this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -103,7 +126,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1, object arg2)
         {
-            this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
@@ -114,7 +140,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            this.Writer.WriteLine(format, args);
+            if (this.IsVerbose)
+            {
+                this.Writer.WriteLine(format, args);
+            }
         }
 
         /// <summary>

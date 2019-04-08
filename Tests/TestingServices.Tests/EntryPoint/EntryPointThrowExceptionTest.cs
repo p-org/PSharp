@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEntryPointThrowException()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailedWithException(test, typeof(InvalidOperationException), true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEntryPointNoMachinesThrowException()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -232,10 +232,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBasicTimerOperation()
         {
-            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -246,10 +246,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBasicPeriodicTimerOperation()
         {
-            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -260,10 +260,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDropTimeoutsAfterTimerDisposal()
         {
-            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -274,10 +274,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIllegalDueTimeSpecification()
         {
-            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -288,10 +288,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIllegalPeriodSpecification()
         {
-            var configuration = GetConfiguration().WithVerbosityEnabled(2);
+            var configuration = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();

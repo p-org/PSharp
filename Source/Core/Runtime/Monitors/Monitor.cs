@@ -27,21 +27,21 @@ namespace Microsoft.PSharp
         /// Map from monitor types to a set of all
         /// possible states types.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
             new ConcurrentDictionary<Type, HashSet<Type>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap =
             new ConcurrentDictionary<Type, HashSet<MonitorState>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available actions.
         /// </summary>
-        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap =
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap =
             new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
 
         /// <summary>

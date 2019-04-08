@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestActions6Fail()
         {
             var configuration = GetConfiguration();

@@ -22,8 +22,9 @@ namespace Microsoft.PSharp.Tests.Common
         /// Initializes a new instance of the <see cref="TestOutputLogger"/> class.
         /// </summary>
         /// <param name="output">The test output helper.</param>
-        public TestOutputLogger(ITestOutputHelper output)
-            : base(0)
+        /// <param name="isVerbose">If true, then messages are logged. The default value is false.</param>
+        public TestOutputLogger(ITestOutputHelper output, bool isVerbose = false)
+            : base(isVerbose)
         {
             this.TestOutput = output;
         }
@@ -34,7 +35,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            this.TestOutput.WriteLine(value);
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(value);
+            }
         }
 
         /// <summary>
@@ -42,7 +46,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void Write(string format, object arg0)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -50,7 +57,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void Write(string format, object arg0, object arg1)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -58,7 +68,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void Write(string format, object arg0, object arg1, object arg2)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
@@ -68,7 +81,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            this.TestOutput.WriteLine(format, args);
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, args);
+            }
         }
 
         /// <summary>
@@ -78,7 +94,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            this.TestOutput.WriteLine(value);
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(value);
+            }
         }
 
         /// <summary>
@@ -87,7 +106,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void WriteLine(string format, object arg0)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -96,7 +118,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -105,7 +130,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1, object arg2)
         {
-            this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
@@ -116,7 +144,10 @@ namespace Microsoft.PSharp.Tests.Common
         /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            this.TestOutput.WriteLine(format, args);
+            if (this.IsVerbose)
+            {
+                this.TestOutput.WriteLine(format, args);
+            }
         }
 
         /// <summary>

@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionBasicNoBug()
         {
             var configuration = GetConfiguration();
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionBasicBug()
         {
             var configuration = GetConfiguration();

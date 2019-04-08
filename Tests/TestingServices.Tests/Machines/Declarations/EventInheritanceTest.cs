@@ -200,19 +200,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevel()
         {
             MultiPayloadMultiLevelTester.Test();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevelGeneric()
         {
             MultiPayloadMultiLevelGenericTester.Test();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAssertAssume()
         {
             AssertAssumeTester.Test();
@@ -295,7 +295,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventInheritanceRun()
         {
             var tcs = new TaskCompletionSource<bool>();

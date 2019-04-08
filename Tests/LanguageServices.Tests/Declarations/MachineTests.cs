@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MachineTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclaration()
         {
             var test = @"
@@ -37,7 +37,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineInheritanceDeclaration()
         {
             var test = @"
@@ -62,7 +62,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineInheritanceDeclarationWithGenerics1()
         {
             var test = @"
@@ -87,7 +87,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineInheritanceDeclarationWithGenerics2()
         {
             var test = @"
@@ -112,7 +112,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineInheritanceDeclarationWithGenerics3()
         {
             var test = @"
@@ -137,7 +137,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithoutState()
         {
             var test = @"
@@ -148,7 +148,7 @@ machine M {
             LanguageTestUtilities.AssertFailedTestLog("A machine must declare at least one state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithoutIdentifier()
         {
             var test = @"
@@ -158,7 +158,7 @@ machine{}
             LanguageTestUtilities.AssertFailedTestLog("Expected machine identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithTwoBodies()
         {
             var test = @"
@@ -172,7 +172,7 @@ start state S { }
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithoutStartState()
         {
             var test = @"
@@ -184,7 +184,7 @@ state S { }
             LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithoutStartState2()
         {
             var test =
@@ -197,7 +197,7 @@ state S { }
             LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithoutStartState3()
         {
             var test = @"
@@ -212,7 +212,7 @@ state S3 { }
             LanguageTestUtilities.AssertFailedTestLog("A machine must declare a start state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeclarationWithMoreThanOneStartState()
         {
             var test = @"
@@ -227,7 +227,7 @@ start state S3 { }
             LanguageTestUtilities.AssertFailedTestLog("A machine can declare only a single start state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPrivateMachineDeclaration()
         {
             var test = @"
@@ -245,7 +245,7 @@ private machine M { }
             Assert.Equal("A machine cannot be declared as private.", parser.GetParsingErrorLog());
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProtectedMachineDeclaration()
         {
             var test = @"

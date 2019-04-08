@@ -757,7 +757,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -768,7 +768,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -779,7 +779,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration3()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -790,7 +790,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration4()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -801,7 +801,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration5()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -812,7 +812,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration6()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -823,7 +823,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration7()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -834,7 +834,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration8()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -845,7 +845,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration9()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -856,7 +856,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration10()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -867,7 +867,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration11()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -878,7 +878,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration12()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -889,7 +889,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration13()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -900,7 +900,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration14()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -911,7 +911,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration15()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -922,7 +922,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration16()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -933,7 +933,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration17()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -944,7 +944,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration18()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -955,7 +955,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration19()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -966,7 +966,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration20()
         {
             var test = new Action<IMachineRuntime>((r) =>
