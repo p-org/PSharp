@@ -53,6 +53,60 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        public override void Write(string format, object arg0)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.Write(format, arg0.ToString());
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1, object arg2)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
         /// <param name="format">Text</param>
@@ -84,6 +138,63 @@ namespace Microsoft.PSharp.IO
                 lock (this.Lock)
                 {
                     this.Writer.WriteLine(value);
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.WriteLine(format, arg0.ToString());
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // The writer was disposed.
+            }
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1, object arg2)
+        {
+            try
+            {
+                lock (this.Lock)
+                {
+                    this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
                 }
             }
             catch (ObjectDisposedException)

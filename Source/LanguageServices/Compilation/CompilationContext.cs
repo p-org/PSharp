@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 // Find the project specified by the user.
                 var project = this.GetProjectWithName(this.Configuration.ProjectName);
-                if (project == null)
+                if (project is null)
                 {
                     Error.ReportAndExit("Please give a valid project name.");
                 }

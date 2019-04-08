@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -134,11 +135,6 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         public override void SendEvent(MachineId target, Event e, SendOptions options = null)
         {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
             this.SendEvent(target, e, null, options);
         }
 
@@ -146,15 +142,8 @@ namespace Microsoft.PSharp.Runtime
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null)
-        {
-            // If the target machine is null then report an error and exit.
-            this.Assert(target != null, "Cannot send to a null machine.");
-
-            // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
-            return this.SendEventAndExecute(target, e, null, options);
-        }
+        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null) =>
+            this.SendEventAndExecute(target, e, null, options);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
@@ -209,22 +198,30 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         private Machine CreateMachine(MachineId mid, Type type, string machineName)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+            if (!type.IsSubclassOf(typeof(Machine)))
+            {
+                this.Assert(false, "Type '{0}' is not a machine.", type.Name);
+            }
 
-            if (mid == null)
+            if (mid is null)
             {
                 mid = new MachineId(type, machineName, this);
             }
+            else if (mid.Runtime != null && mid.Runtime != this)
+            {
+                this.Assert(false, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
+            }
+            else if (mid.Type != type.FullName)
+            {
+                this.Assert(false, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
+                    mid.Value, mid.Type, type.FullName);
+            }
             else
             {
-                this.Assert(mid.Runtime == null || mid.Runtime == this, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-                this.Assert(mid.Type == type.FullName, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Value, mid.Type, type.FullName);
                 mid.Bind(this);
             }
 
             Machine machine = MachineFactory.Create(type);
-
             machine.Initialize(this, mid, new MachineInfo(mid));
             machine.InitializeStateInformation();
 
@@ -233,7 +230,7 @@ namespace Microsoft.PSharp.Runtime
                 string info = "This typically occurs if either the machine id was created by another runtime instance, " +
                     "or if a machine id from a previous runtime generation was deserialized, but the current runtime " +
                     "has not increased its generation value.";
-                this.Assert(false, $"Machine with id '{mid.Value}' was already created in generation '{mid.Generation}'. {info}");
+                this.Assert(false, "Machine with id '{0}' was already created in generation '{1}'. {2}", mid.Value, mid.Generation, info);
             }
 
             return machine;
@@ -244,6 +241,22 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
+            if (target is null)
+            {
+                string message = sender != null ?
+                    string.Format("Machine '{0}' is sending to a null machine.", sender.Id.ToString()) :
+                    "Cannot send to a null machine.";
+                this.Assert(false, message);
+            }
+
+            if (e is null)
+            {
+                string message = sender != null ?
+                    string.Format("Machine '{0}' is sending a null event.", sender.Id.ToString()) :
+                    "Cannot send a null event.";
+                this.Assert(false, message);
+            }
+
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
             {
@@ -266,6 +279,22 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override async Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
+            if (target is null)
+            {
+                string message = sender != null ?
+                    string.Format("Machine '{0}' is sending to a null machine.", sender.Id.ToString()) :
+                    "Cannot send to a null machine.";
+                this.Assert(false, message);
+            }
+
+            if (e is null)
+            {
+                string message = sender != null ?
+                    string.Format("Machine '{0}' is sending a null event.", sender.Id.ToString()) :
+                    "Cannot send a null event.";
+                this.Assert(false, message);
+            }
+
             var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
             if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
             {
@@ -379,7 +408,7 @@ namespace Microsoft.PSharp.Runtime
                 }
             }
 
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' is not a subclass of Monitor.\n");
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass of Monitor.", type.Name);
 
             MachineId mid = new MachineId(type, null, this);
             Monitor monitor = (Monitor)Activator.CreateInstance(type);
@@ -428,6 +457,61 @@ namespace Microsoft.PSharp.Runtime
                 {
                     monitor.MonitorEvent(e);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException("Detected an assertion failure.");
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0, object arg1)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString(), arg2.ToString()));
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        public override void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, args));
             }
         }
 
@@ -598,7 +682,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
         {
-            if (eventInfoInInbox == null)
+            if (eventInfoInInbox is null)
             {
                 this.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
                 machine.Info.IsWaitingToReceive = true;

@@ -44,8 +44,8 @@ namespace Microsoft.PSharp.DataFlowAnalysis
             var invocation = call as InvocationExpressionSyntax;
             var objCreation = call as ObjectCreationExpressionSyntax;
             var callSymbol = node.Summary.SemanticModel.GetSymbolInfo(call).Symbol;
-            if (callSymbol == null ||
-                (invocation == null && objCreation == null))
+            if (callSymbol is null ||
+                (invocation is null && objCreation is null))
             {
                 return summaries;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             var candidateCallees = new HashSet<MethodDeclarationSyntax>();
             var candidateMethodDeclaration = ResolveMethodDeclaration(invocation, node) as MethodDeclarationSyntax;
-            if (candidateMethodDeclaration == null)
+            if (candidateMethodDeclaration is null)
             {
                 return candidateCallees;
             }
@@ -124,13 +124,13 @@ namespace Microsoft.PSharp.DataFlowAnalysis
             ExpressionSyntax call, IDataFlowNode node)
         {
             var calleeSymbol = node.Summary.SemanticModel.GetSymbolInfo(call).Symbol;
-            if (calleeSymbol == null)
+            if (calleeSymbol is null)
             {
                 return null;
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol, node.Summary.AnalysisContext.Solution).Result as IMethodSymbol;
-            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            if (definition is null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 return null;
             }
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
             method = null;
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(type, node.Summary.AnalysisContext.Solution).Result;
-            if (definition == null)
+            if (definition is null)
             {
                 return false;
             }
@@ -257,7 +257,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         private static IDictionary<int, ISet<ITypeSymbol>> GetCandidateParameterTypes(ArgumentListSyntax argumentList, IDataFlowNode node)
         {
             var candidateTypes = new Dictionary<int, ISet<ITypeSymbol>>();
-            if (argumentList == null)
+            if (argumentList is null)
             {
                 return candidateTypes;
             }

@@ -198,7 +198,7 @@ namespace Microsoft.PSharp.TestingServices
                 var settings = configFile.AppSettings.Settings;
                 foreach (var key in settings.AllKeys)
                 {
-                    if (ConfigurationManager.AppSettings.Get(key) == null)
+                    if (ConfigurationManager.AppSettings.Get(key) is null)
                     {
                         ConfigurationManager.AppSettings.Set(key, settings[key].Value);
                     }
@@ -716,7 +716,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="logger">ILogger</param>
         public void SetLogger(IO.ILogger logger)
         {
-            if (logger == null)
+            if (logger is null)
             {
                 throw new InvalidOperationException("Cannot install a null logger.");
             }

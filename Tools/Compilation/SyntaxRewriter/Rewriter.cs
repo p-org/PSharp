@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
 
         public bool Execute()
         {
-            if (this.InputFiles == null)
+            if (this.InputFiles is null)
             {
                 // Target was included but no .psharp files are present in the project. Skip
                 // execution.

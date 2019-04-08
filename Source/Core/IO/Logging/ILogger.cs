@@ -28,29 +28,56 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         void Write(string value);
+
+        /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        void Write(string format, object arg0);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        void Write(string format, object arg0, object arg1);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        void Write(string format, object arg0, object arg1, object arg2);
 
         /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         void Write(string format, params object[] args);
 
         /// <summary>
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         void WriteLine(string value);
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        void WriteLine(string format, object arg0);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        void WriteLine(string format, object arg0, object arg1);
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        void WriteLine(string format, object arg0, object arg1, object arg2);
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
         /// followed by the current line terminator.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         void WriteLine(string format, params object[] args);
 
         /// <summary>

@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             this.VisitNextPSharpIntraGroupDeclaration(node);
 
-            if (groupNode == null)
+            if (groupNode is null)
             {
                 parentNode.StateGroupDeclarations.Add(node);
             }

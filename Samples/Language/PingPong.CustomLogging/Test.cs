@@ -76,6 +76,30 @@ namespace PingPong.CustomLogging
         }
 
         /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        public override void Write(string format, object arg0)
+        {
+            Console.Write($"MyLogger: {format}", arg0);
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1)
+        {
+            Console.Write($"MyLogger: {format}", arg0, arg1);
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1, object arg2)
+        {
+            Console.Write($"MyLogger: {format}", arg0, arg1, arg2);
+        }
+
+        /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
         /// <param name="format">Text</param>
@@ -93,6 +117,33 @@ namespace PingPong.CustomLogging
         public override void WriteLine(string value)
         {
             Console.WriteLine($"MyLogger: {value}");
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0)
+        {
+            Console.WriteLine($"MyLogger: {format}", arg0);
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1)
+        {
+            Console.WriteLine($"MyLogger: {format}", arg0, arg1);
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1, object arg2)
+        {
+            Console.WriteLine($"MyLogger: {format}", arg0, arg1, arg2);
         }
 
         /// <summary>

@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             IdentifierNameSyntax identifier = null;
             ExpressionSyntax exprToParse = expr;
-            while (identifier == null)
+            while (identifier is null)
             {
                 if (exprToParse is IdentifierNameSyntax)
                 {
@@ -222,7 +222,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             IdentifierNameSyntax identifier = null;
             ExpressionSyntax exprToParse = expr;
-            while (identifier == null)
+            while (identifier is null)
             {
                 if (exprToParse is IdentifierNameSyntax)
                 {
@@ -310,7 +310,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             string result = string.Empty;
 
-            if (syntaxNode == null)
+            if (syntaxNode is null)
             {
                 return result;
             }

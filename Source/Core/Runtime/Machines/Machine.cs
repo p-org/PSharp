@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.Timers;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -25,31 +27,28 @@ namespace Microsoft.PSharp
     public abstract class Machine : BaseMachine
     {
         /// <summary>
-        /// Is the machine state cached yet?
-        /// </summary>
-        private static ConcurrentDictionary<Type, bool> MachineStateCached =
-            new ConcurrentDictionary<Type, bool>();
-
-        /// <summary>
-        /// Map from machine types to a set of all
-        /// possible states types.
+        /// Map from machine types to a set of all possible states types.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
             new ConcurrentDictionary<Type, HashSet<Type>>();
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// available states.
+        /// Map from machine types to a set of all available states.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap =
             new ConcurrentDictionary<Type, HashSet<MachineState>>();
 
         /// <summary>
-        /// Map from machine types to a set of all
-        /// available actions.
+        /// Map from machine types to a set of all available actions.
         /// </summary>
         private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap =
             new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
+
+        /// <summary>
+        /// Checks if the machine state is cached.
+        /// </summary>
+        private static ConcurrentDictionary<Type, bool> MachineStateCached =
+            new ConcurrentDictionary<Type, bool>();
 
         /// <summary>
         /// A stack of machine states. The state on the top of
@@ -167,15 +166,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the name of the current state.
         /// </summary>
-        internal string CurrentStateName
-        {
-            get
-            {
-                return this.CurrentState == null
-                    ? string.Empty
-                    : $"{this.CurrentState.DeclaringType}.{StateGroup.GetQualifiedStateName(this.CurrentState)}";
-            }
-        }
+        internal string CurrentStateName => NameResolver.GetQualifiedStateName(this.CurrentState);
 
         /// <summary>
         /// Gets the latest received <see cref="Event"/>, or null if
@@ -269,11 +260,6 @@ namespace Microsoft.PSharp
         /// <param name="options">Optional send parameters.</param>
         protected void Send(MachineId mid, Event e, SendOptions options = null)
         {
-            // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{this.Id}' is sending to a null machine.");
-
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
             this.Runtime.SendEvent(mid, e, this, options);
         }
 
@@ -294,8 +280,7 @@ namespace Microsoft.PSharp
         /// <param name="e">The event to send.</param>
         protected void Monitor(Type type, Event e)
         {
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is sending a null event.");
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.Id);
             this.Runtime.Monitor(type, this, e);
         }
 
@@ -320,11 +305,9 @@ namespace Microsoft.PSharp
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Goto while halted.");
-
-            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Goto while halted.", this.Id);
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
-                $"Machine '{this.Id}' is trying to transition to non-existing state '{s.Name}'.");
+                "Machine '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -349,11 +332,9 @@ namespace Microsoft.PSharp
         [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
         protected void Push(Type s)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Push while halted.");
-
-            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Push while halted.", this.Id);
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
-                $"Machine '{this.Id}' is trying to transition to non-existing state '{s.Name}'.");
+                "Machine '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
             this.Raise(new PushStateEvent(s));
         }
 
@@ -363,10 +344,8 @@ namespace Microsoft.PSharp
         /// <param name="e">The event to raise.</param>
         protected void Raise(Event e)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Raise while halted.");
-
-            // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{this.Id}' is raising a null event.");
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
+            this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
 
             var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, GetStateNameForLogging(this.CurrentState));
             this.RaisedEvent = new EventInfo(e, eventOrigin);
@@ -380,7 +359,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(params Type[] eventTypes)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -404,7 +383,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -424,7 +403,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Assert(!this.Info.IsHalted, $"Machine '{this.Id}' invoked Receive while halted.");
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
 
             lock (this.Inbox)
@@ -461,7 +440,7 @@ namespace Microsoft.PSharp
         protected TimerInfo StartTimer(TimeSpan dueTime, object payload = null)
         {
             // The specified due time and period must be valid.
-            this.Assert(dueTime.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a timer with a negative due time.");
+            this.Assert(dueTime.TotalMilliseconds >= 0, "Machine '{0}' registered a timer with a negative due time.", this.Id);
             return this.RegisterTimer(dueTime, Timeout.InfiniteTimeSpan, payload);
         }
 
@@ -478,8 +457,8 @@ namespace Microsoft.PSharp
         protected TimerInfo StartPeriodicTimer(TimeSpan dueTime, TimeSpan period, object payload = null)
         {
             // The specified due time and period must be valid.
-            this.Assert(dueTime.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a periodic timer with a negative due time.");
-            this.Assert(period.TotalMilliseconds >= 0, $"Machine '{this.Id}' registered a periodic timer with a negative period.");
+            this.Assert(dueTime.TotalMilliseconds >= 0, "Machine '{0}' registered a periodic timer with a negative due time.", this.Id);
+            this.Assert(period.TotalMilliseconds >= 0, "Machine '{0}' registered a periodic timer with a negative period.", this.Id);
             return this.RegisterTimer(dueTime, period, payload);
         }
 
@@ -527,8 +506,8 @@ namespace Microsoft.PSharp
             [CallerFilePath] string callerFilePath = "",
             [CallerLineNumber] int callerLineNumber = 0)
         {
-            var havocId = string.Format("{0}_{1}_{2}_{3}_{4}", this.Id.Name, this.CurrentStateName,
-                callerMemberName, callerFilePath, callerLineNumber);
+            var havocId = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_{2}_{3}_{4}",
+                this.Id.Name, this.CurrentStateName, callerMemberName, callerFilePath, callerLineNumber.ToString());
             return this.Runtime.GetFairNondeterministicBooleanChoice(this, havocId);
         }
 
@@ -545,17 +524,39 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws
-        /// an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+       /// </summary>
         protected void Assert(bool predicate)
         {
             this.Runtime.Assert(predicate);
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws
-        /// an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        protected void Assert(bool predicate, string s, object arg0)
+        {
+            this.Runtime.Assert(predicate, s, arg0);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        protected void Assert(bool predicate, string s, object arg0, object arg1)
+        {
+            this.Runtime.Assert(predicate, s, arg0, arg1);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        protected void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
+        {
+            this.Runtime.Assert(predicate, s, arg0, arg1, arg2);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, params object[] args)
         {
@@ -593,14 +594,16 @@ namespace Microsoft.PSharp
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
                     this.Assert(eventCount <= eventInfo.Event.Assert,
-                        $"There are more than {eventInfo.Event.Assert} instances of '{eventInfo.EventName}' in the input queue of machine '{this}'");
+                        "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
+                        eventInfo.Event.Assert, eventInfo.EventName, this);
                 }
 
                 if (eventInfo.Event.Assume >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
                     this.Assert(eventCount <= eventInfo.Event.Assume,
-                        $"There are more than {eventInfo.Event.Assume} instances of '{eventInfo.EventName}' in the input queue of machine '{this}'");
+                        "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
+                        eventInfo.Event.Assume, eventInfo.EventName, this);
                 }
 
                 if (!this.IsRunning && this.Runtime.CheckStartEventHandler(this))
@@ -744,7 +747,7 @@ namespace Microsoft.PSharp
                 // have priority over the events in the inbox.
                 EventInfo nextEventInfo = this.TryGetRaisedEvent();
 
-                if (nextEventInfo == null)
+                if (nextEventInfo is null)
                 {
                     var hasDefaultHandler = this.HasDefaultHandler();
                     if (hasDefaultHandler)
@@ -758,14 +761,14 @@ namespace Microsoft.PSharp
                         nextEventInfo = this.TryDequeueEvent();
                         dequeued = nextEventInfo != null;
 
-                        if (nextEventInfo == null && hasDefaultHandler)
+                        if (nextEventInfo is null && hasDefaultHandler)
                         {
                             // Else, get the default event.
                             nextEventInfo = this.GetDefaultEvent();
                             defaultHandling = true;
                         }
 
-                        if (nextEventInfo == null)
+                        if (nextEventInfo is null)
                         {
                             completed = true;
                             this.IsRunning = false;
@@ -813,7 +816,7 @@ namespace Microsoft.PSharp
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
 
-                if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
+                if (this.RaisedEvent is null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
                 {
                     // Inform the user that the machine is done handling the current event.
                     // The machine will either go idle or dequeue its next event.
@@ -835,7 +838,7 @@ namespace Microsoft.PSharp
 
             while (true)
             {
-                if (this.CurrentState == null)
+                if (this.CurrentState is null)
                 {
                     // If the stack of states is empty and the event
                     // is halt, then terminate the machine.
@@ -854,7 +857,7 @@ namespace Microsoft.PSharp
                     else
                     {
                         // If the event cannot be handled then report an error and exit.
-                        this.Assert(false, $"Machine '{this.Id}' received event '{e.GetType().FullName}' that cannot be handled.");
+                        this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.", this.Id, e.GetType().FullName);
                     }
                 }
 
@@ -1156,12 +1159,11 @@ namespace Microsoft.PSharp
             this.Runtime.Logger.OnPop(this.Id, prevStateName, this.CurrentStateName);
 
             // Watch out for an extra pop.
-            this.Assert(this.CurrentState != null, $"Machine '{this.Id}' popped with no matching push.");
+            this.Assert(this.CurrentState != null, "Machine '{0}' popped with no matching push.", this.Id);
         }
 
         /// <summary>
-        /// Configures the state transitions of the machine
-        /// when a state is pushed on to the stack.
+        /// Configures the state transitions of the machine when a state is pushed into the stack.
         /// </summary>
         private void DoStatePush(MachineState state)
         {
@@ -1169,7 +1171,7 @@ namespace Microsoft.PSharp
             this.PushTransitions = state.PushTransitions;
 
             // Gets existing map for actions.
-            var eventHandlerMap = this.CurrentActionHandlerMap == null ?
+            var eventHandlerMap = this.CurrentActionHandlerMap is null ?
                 new Dictionary<Type, EventActionHandler>() :
                 new Dictionary<Type, EventActionHandler>(this.CurrentActionHandlerMap);
 
@@ -1200,20 +1202,32 @@ namespace Microsoft.PSharp
             }
 
             // Updates the map with ignores.
-            foreach (var ignoreEvent in state.IgnoredEvents)
+            foreach (var ignoredEvent in state.IgnoredEvents)
             {
-                if (ignoreEvent.Equals(typeof(WildCardEvent)))
+                if (ignoredEvent.Equals(typeof(WildCardEvent)))
                 {
                     eventHandlerMap.Clear();
-                    eventHandlerMap[ignoreEvent] = new IgnoreAction();
+                    eventHandlerMap[ignoredEvent] = new IgnoreAction();
                     break;
                 }
 
-                eventHandlerMap[ignoreEvent] = new IgnoreAction();
+                eventHandlerMap[ignoredEvent] = new IgnoreAction();
             }
 
-            // Removes the ones on which transitions are defined.
-            foreach (var eventType in this.GotoTransitions.Keys.Union(this.PushTransitions.Keys))
+            // Removes the events on which push transitions are defined.
+            foreach (var eventType in this.PushTransitions.Keys)
+            {
+                if (eventType.Equals(typeof(WildCardEvent)))
+                {
+                    eventHandlerMap.Clear();
+                    break;
+                }
+
+                eventHandlerMap.Remove(eventType);
+            }
+
+            // Removes the events on which goto transitions are defined.
+            foreach (var eventType in this.GotoTransitions.Keys)
             {
                 if (eventType.Equals(typeof(WildCardEvent)))
                 {
@@ -1480,7 +1494,7 @@ namespace Microsoft.PSharp
                         }
                         catch (InvalidOperationException ex)
                         {
-                            this.Assert(false, $"Machine '{this.Id}' {ex.Message} in state '{state}'.");
+                            this.Assert(false, "Machine '{0}' {1} in state '{2}'.", this.Id, ex.Message, state);
                         }
 
                         StateMap[machineType].Add(state);
@@ -1556,10 +1570,10 @@ namespace Microsoft.PSharp
             }
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, $"Machine '{this.Id}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Machine '{this.Id}' can not declare more than one start states.");
+            this.Assert(initialStates.Count != 0, "Machine '{0}' must declare a start state.", this.Id);
+            this.Assert(initialStates.Count == 1, "Machine '{0}' can not declare more than one start states.", this.Id);
 
-            this.DoStatePush(initialStates.Single());
+            this.DoStatePush(initialStates[0]);
 
             this.AssertStateValidity();
         }
@@ -1639,7 +1653,7 @@ namespace Microsoft.PSharp
                         BindingFlags.DeclaredOnly))
                     {
                         this.Assert(t.IsSubclassOf(typeof(StateGroup)) || t.IsSubclassOf(typeof(MachineState)),
-                            $"'{t.Name}' is neither a group of states nor a state.");
+                            "'{0}' is neither a group of states nor a state.", t.Name);
                         stack.Push(t);
                     }
                 }
@@ -1662,7 +1676,7 @@ namespace Microsoft.PSharp
                     Type.DefaultBinder, Array.Empty<Type>(), null);
                 machineType = machineType.BaseType;
             }
-            while (method == null && machineType != typeof(Machine));
+            while (method is null && machineType != typeof(Machine));
 
             this.Assert(method != null, "Cannot detect action declaration '{0}' in machine '{1}'.", actionName, this.GetType().Name);
             this.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine '{1}' must have 0 formal parameters.",
@@ -1686,20 +1700,19 @@ namespace Microsoft.PSharp
         /// Returns the state name to be used for logging purposes.
         /// </summary>
         internal static string GetStateNameForLogging(Type state) =>
-            state == null ? "None" : StateGroup.GetQualifiedStateName(state);
+            state is null ? "None" : NameResolver.GetQualifiedStateName(state);
 
         /// <summary>
         /// Returns the set of all states in the machine (for code coverage).
         /// </summary>
         internal override HashSet<string> GetAllStates()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Machine '{this.Id}' hasn't populated its states yet.");
+            this.Assert(StateMap.ContainsKey(this.GetType()), "Machine '{0}' hasn't populated its states yet.", this.Id);
 
             var allStates = new HashSet<string>();
             foreach (var state in StateMap[this.GetType()])
             {
-                allStates.Add(StateGroup.GetQualifiedStateName(state.GetType()));
+                allStates.Add(NameResolver.GetQualifiedStateName(state.GetType()));
             }
 
             return allStates;
@@ -1710,25 +1723,24 @@ namespace Microsoft.PSharp
         /// </summary>
         internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()),
-                $"Machine '{this.Id}' hasn't populated its states yet.");
+            this.Assert(StateMap.ContainsKey(this.GetType()), "Machine '{0}' hasn't populated its states yet.", this.Id);
 
             var pairs = new HashSet<Tuple<string, string>>();
             foreach (var state in StateMap[this.GetType()])
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), binding.Key.Name));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), transition.Key.Name));
                 }
 
                 foreach (var pushtransition in state.PushTransitions)
                 {
-                    pairs.Add(Tuple.Create(StateGroup.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
                 }
             }
 
@@ -1740,8 +1752,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{this.Id}' must have one or more states.");
-            this.Assert(this.StateStack.Peek() != null, $"Machine '{this.Id}' must not have a null current state.");
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, "Machine '{0}' must have one or more states.", this.Id);
+            this.Assert(this.StateStack.Peek() != null, "Machine '{0}' must not have a null current state.", this.Id);
         }
 
         /// <summary>

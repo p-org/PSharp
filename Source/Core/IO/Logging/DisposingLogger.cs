@@ -34,6 +34,27 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        public void Write(string format, object arg0)
+        {
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public void Write(string format, object arg0, object arg1)
+        {
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public void Write(string format, object arg0, object arg1, object arg2)
+        {
+        }
+
+        /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
         /// <param name="format">Text</param>
@@ -48,6 +69,30 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         /// <param name="value">Text</param>
         public void WriteLine(string value)
+        {
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        public void WriteLine(string format, object arg0)
+        {
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public void WriteLine(string format, object arg0, object arg1)
+        {
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public void WriteLine(string format, object arg0, object arg1, object arg2)
         {
         }
 

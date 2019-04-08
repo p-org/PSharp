@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
 
             ISchedulable highestEnabled = this.GetPrioritizedChoice(enabledChoices, current);
-            if (next == null)
+            if (next is null)
             {
                 next = highestEnabled;
             }

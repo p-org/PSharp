@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
             IDictionary<int, ISet<ITypeSymbol>> parameterTypes)
         {
-            if (method.Body == null)
+            if (method.Body is null)
             {
                 return null;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         {
             var calleeSummaries = new HashSet<MethodSummary>();
 
-            if (callSymbol == null || statement == null ||
+            if (callSymbol is null || statement is null ||
                 !statement.Summary.DataFlowGraph.TryGetNodeContaining(statement, out IDataFlowNode node) ||
                 !node.MethodSummaryCache.ContainsKey(callSymbol))
             {

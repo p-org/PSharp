@@ -68,13 +68,13 @@ namespace Microsoft.PSharp.DataFlowAnalysis
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 return false;
             }
 
             Statement stmt = obj as Statement;
-            if (stmt == null)
+            if (stmt is null)
             {
                 return false;
             }

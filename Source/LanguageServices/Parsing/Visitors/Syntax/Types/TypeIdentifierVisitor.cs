@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     this.TokenStream.Swap(new Token(new TextUnit("MachineId", this.TokenStream.Peek().TextUnit.Line), TokenType.MachineDecl));
                 }
 
-                if (textUnit == null)
+                if (textUnit is null)
                 {
                     textUnit = new TextUnit(this.TokenStream.Peek().TextUnit.Text, line);
                 }

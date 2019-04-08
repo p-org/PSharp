@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.PSharp.IO
 {
@@ -19,7 +20,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Parameters</param>
         public static void Report(string format, params object[] args)
         {
-            string message = Utilities.Format(format, args);
+            string message = string.Format(CultureInfo.InvariantCulture, format, args);
             Write(ConsoleColor.Red, "Error: ");
             Write(ConsoleColor.Yellow, message);
             Console.Error.WriteLine(string.Empty);
@@ -44,7 +45,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Parameters</param>
         public static void ReportAndExit(string format, params object[] args)
         {
-            string message = Utilities.Format(format, args);
+            string message = string.Format(CultureInfo.InvariantCulture, format, args);
             Write(ConsoleColor.Red, "Error: ");
             Write(ConsoleColor.Yellow, message);
             Console.Error.WriteLine(string.Empty);

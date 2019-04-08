@@ -560,8 +560,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(Driver), new Driver.Config(2));
             });
 
-            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'LivenessMonitor.Wait'.";
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state 'Wait'.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
 

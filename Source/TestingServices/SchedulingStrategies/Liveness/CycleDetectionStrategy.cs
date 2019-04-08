@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.ScheduledMachineId);
 
                 next = enabledChoices.FirstOrDefault(choice => choice.Id == nextStep.ScheduledMachineId);
-                if (next == null)
+                if (next is null)
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: cannot detect machine with id '{0}'.", nextStep.ScheduledMachineId);
                     this.EscapeUnfairCycle();
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.IsReplayingCycle)
             {
                 ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex];
-                if ((nextStep.Type == ScheduleStepType.SchedulingChoice) || nextStep.BooleanChoice == null)
+                if ((nextStep.Type == ScheduleStepType.SchedulingChoice) || nextStep.BooleanChoice is null)
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not a nondeterministic boolean choice.");
                     this.EscapeUnfairCycle();
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex];
                 if (nextStep.Type != ScheduleStepType.NondeterministicChoice ||
-                    nextStep.IntegerChoice == null)
+                    nextStep.IntegerChoice is null)
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not a nondeterministic integer choice.");
                     this.EscapeUnfairCycle();

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Runtime.Serialization;
 using System.Threading;
 
@@ -96,7 +97,8 @@ namespace Microsoft.PSharp
             }
             else
             {
-                this.Name = string.Format("{0}({1})", string.IsNullOrEmpty(machineName) ? this.Type : machineName, this.Value);
+                this.Name = string.Format(CultureInfo.InvariantCulture, "{0}({1})",
+                    string.IsNullOrEmpty(machineName) ? this.Type : machineName, this.Value.ToString());
             }
         }
 

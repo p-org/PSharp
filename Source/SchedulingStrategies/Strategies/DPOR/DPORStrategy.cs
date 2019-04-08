@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             this.StepLimit = stepLimit;
             this.Stack = new Stack(rand, this.Contract);
             this.Dpor = dpor ? new DPORAlgorithm(this.Contract) : null;
-            this.UseSleepSets = rand == null && useSleepSets;
+            this.UseSleepSets = rand is null && useSleepSets;
             this.RaceReversalIterationsLimit = raceReversalIterationsLimit;
             this.Reset();
         }
@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             bool added = this.Stack.Push(choices);
             ThreadEntryList top = this.Stack.GetTop();
 
-            this.Contract.Assert(next == null || added, "DPOR: Forced choice implies we should have added to stack.");
+            this.Contract.Assert(next is null || added, "DPOR: Forced choice implies we should have added to stack.");
 
             if (added)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     SleepSets.UpdateSleepSets(this.Stack, this.Contract);
                 }
 
-                if (this.Dpor == null)
+                if (this.Dpor is null)
                 {
                     top.SetAllEnabledToBeBacktracked(this.Contract);
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
                     {
                         top.AddToBacktrack((int)next.Id, this.Contract);
                     }
-                    else if (this.Rand == null)
+                    else if (this.Rand is null)
                     {
                         top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId, this.Contract);
                     }

@@ -109,7 +109,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Declares goto event handlers, if there are any.
         /// </summary>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InstallGotoTransitions(HashSet<Type> handledEvents)
         {
             var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
@@ -119,7 +118,7 @@ namespace Microsoft.PSharp
             {
                 CheckEventHandlerAlreadyDeclared(attr.Event, handledEvents);
 
-                if (attr.Action == null)
+                if (attr.Action is null)
                 {
                     this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State));
                 }
@@ -137,8 +136,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Inherits goto event handlers from a base state, if there is one.
         /// </summary>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InheritGotoTransitions(Type baseState, HashSet<Type> handledEvents)
         {
             if (!baseState.IsSubclassOf(typeof(MachineState)))
@@ -159,7 +156,7 @@ namespace Microsoft.PSharp
 
                 CheckEventHandlerAlreadyInherited(attr.Event, baseState, handledEvents);
 
-                if (attr.Action == null)
+                if (attr.Action is null)
                 {
                     gotoTransitionsInherited.Add(attr.Event, new GotoStateTransition(attr.State));
                 }
@@ -182,7 +179,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Declares push event handlers, if there are any.
         /// </summary>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InstallPushTransitions(HashSet<Type> handledEvents)
         {
             var pushAttributes = this.GetType().GetCustomAttributes(typeof(OnEventPushStateAttribute), false)
@@ -202,8 +198,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Inherits push event handlers from a base state, if there is one.
         /// </summary>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InheritPushTransitions(Type baseState, HashSet<Type> handledEvents)
         {
             if (!baseState.IsSubclassOf(typeof(MachineState)))
@@ -239,7 +233,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Declares action event handlers, if there are any.
         /// </summary>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InstallActionHandlers(HashSet<Type> handledEvents)
         {
             var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
@@ -259,8 +252,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Inherits action event handlers from a base state, if there is one.
         /// </summary>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InheritActionHandlers(Type baseState, HashSet<Type> handledEvents)
         {
             if (!baseState.IsSubclassOf(typeof(MachineState)))
@@ -296,7 +287,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Declares ignore event handlers, if there are any.
         /// </summary>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InstallIgnoreHandlers(HashSet<Type> handledEvents)
         {
             var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
@@ -318,8 +308,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Inherits ignore event handlers from a base state, if there is one.
         /// </summary>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InheritIgnoreHandlers(Type baseState, HashSet<Type> handledEvents)
         {
             if (!baseState.IsSubclassOf(typeof(MachineState)))
@@ -351,7 +339,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Declares defer event handlers, if there are any.
         /// </summary>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InstallDeferHandlers(HashSet<Type> handledEvents)
         {
             var deferEventsAttribute = this.GetType().GetCustomAttribute(typeof(DeferEventsAttribute), false) as DeferEventsAttribute;
@@ -372,8 +359,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Inherits defer event handlers from a base state, if there is one.
         /// </summary>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private void InheritDeferHandlers(Type baseState, HashSet<Type> handledEvents)
         {
             if (!baseState.IsSubclassOf(typeof(MachineState)))
@@ -404,8 +389,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if an event handler has been already declared.
         /// </summary>
-        /// <param name="e">Event.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private static void CheckEventHandlerAlreadyDeclared(Type e, HashSet<Type> handledEvents)
         {
             if (handledEvents.Contains(e))
@@ -417,9 +400,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if an event handler has been already inherited.
         /// </summary>
-        /// <param name="e">Event.</param>
-        /// <param name="baseState">Base state.</param>
-        /// <param name="handledEvents">Set of handled events.</param>
         private static void CheckEventHandlerAlreadyInherited(Type e, Type baseState, HashSet<Type> handledEvents)
         {
             if (handledEvents.Contains(e))

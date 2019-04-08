@@ -887,8 +887,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(ClusterManager));
             });
 
-            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'LivenessMonitor.Requested'.";
+            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state 'Requested'.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
 

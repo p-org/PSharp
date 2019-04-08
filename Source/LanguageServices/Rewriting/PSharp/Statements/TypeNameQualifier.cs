@@ -55,21 +55,21 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             // Gets containing method.
             var methoddecl = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (methoddecl == null)
+            if (methoddecl is null)
             {
                 return false;
             }
 
             // Gets containing class.
             var classdecl = methoddecl.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if (classdecl == null)
+            if (classdecl is null)
             {
                 return false;
             }
 
             // Gets containing namespace.
             var namespacedecl = classdecl.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
-            if (namespacedecl == null)
+            if (namespacedecl is null)
             {
                 return false;
             }
@@ -88,8 +88,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             if (rewrittenMethods.Count > 1)
             {
                 throw new RewritingException(
-                    string.Format(
-                        "Multiple definitions of the same method {0} in namespace {1}, machine {2}",
+                    string.Format("Multiple definitions of the same method {0} in namespace {1}, machine {2}",
                       methoddecl.Identifier.ValueText,
                       namespacedecl.Name.ToString(),
                       classdecl.Identifier.ValueText));

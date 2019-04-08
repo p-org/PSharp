@@ -36,6 +36,30 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Writes the text representation of the specified argument.
+        /// </summary>
+        public override void Write(string format, object arg0)
+        {
+            this.Writer.Write(format, arg0.ToString());
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1)
+        {
+            this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments.
+        /// </summary>
+        public override void Write(string format, object arg0, object arg1, object arg2)
+        {
+            this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+        }
+
+        /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
         /// <param name="format">Text</param>
@@ -53,6 +77,33 @@ namespace Microsoft.PSharp.IO
         public override void WriteLine(string value)
         {
             this.Writer.WriteLine(value);
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified argument, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0)
+        {
+            this.Writer.WriteLine(format, arg0.ToString());
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1)
+        {
+            this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+        }
+
+        /// <summary>
+        /// Writes the text representation of the specified arguments, followed by the
+        /// current line terminator.
+        /// </summary>
+        public override void WriteLine(string format, object arg0, object arg1, object arg2)
+        {
+            this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
         }
 
         /// <summary>

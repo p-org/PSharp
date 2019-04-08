@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
                 "A DFS DPOR exploration of int nondeterminstic choices " +
                 "is not currently supported because this won't scale.");
 
-            if (this.NondetChoices == null)
+            if (this.NondetChoices is null)
             {
                 this.NondetChoices = new List<NonDetChoice>();
             }
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
             NonDetChoice ndc = new NonDetChoice
             {
                 IsBoolChoice = isBoolChoice,
-                Choice = rand == null ? 0 : (isBoolChoice ? rand.Next(2) : rand.Next())
+                Choice = rand is null ? 0 : (isBoolChoice ? rand.Next(2) : rand.Next())
             };
             this.NondetChoices.Add(ndc);
             ++this.NextNondetChoiceIndex;
@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies.DPOR
         /// </summary>
         public bool BacktrackNondetChoices(IContract contract)
         {
-            if (this.NondetChoices == null)
+            if (this.NondetChoices is null)
             {
                 return false;
             }

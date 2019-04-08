@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -12,27 +10,5 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class StateGroup
     {
-        /// <summary>
-        /// Returns the qualified (<see cref="StateGroup"/>) name of a <see cref="MachineState"/>.
-        /// </summary>
-        /// <param name="state">The machine state.</param>
-        /// <returns>Qualified state name.</returns>
-        internal static string GetQualifiedStateName(Type state)
-        {
-            var name = state.Name;
-
-            while (state.DeclaringType != null)
-            {
-                if (!state.DeclaringType.IsSubclassOf(typeof(StateGroup)))
-                {
-                    break;
-                }
-
-                name = string.Format("{0}.{1}", state.DeclaringType.Name, name);
-                state = state.DeclaringType;
-            }
-
-            return name;
-        }
     }
 }

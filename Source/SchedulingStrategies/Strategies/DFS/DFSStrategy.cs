@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
 
             nextChoice = scs.FirstOrDefault(val => !val.IsDone);
-            if (nextChoice == null)
+            if (nextChoice is null)
             {
                 next = null;
                 return false;
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             nextChoice.IsDone = true;
             this.SchIndex++;
 
-            if (next == null)
+            if (next is null)
             {
                 return false;
             }
@@ -147,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
-            if (nextChoice == null)
+            if (nextChoice is null)
             {
                 next = false;
                 return false;
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
-            if (nextChoice == null)
+            if (nextChoice is null)
             {
                 next = 0;
                 return false;
