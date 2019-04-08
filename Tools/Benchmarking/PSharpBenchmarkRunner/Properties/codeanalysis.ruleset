@@ -56,6 +56,7 @@
     <Rule Id="IDE0008" Action="None" />
     <Rule Id="IDE0018" Action="Error" />
     <Rule Id="IDE0034" Action="Error" />
+    <Rule Id="IDE0043" Action="Error" />
     <Rule Id="IDE0044" Action="Error" />
     <Rule Id="IDE0047" Action="Error" />
   </Rules>
