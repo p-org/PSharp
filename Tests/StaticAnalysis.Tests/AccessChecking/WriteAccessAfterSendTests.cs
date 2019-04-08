@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSend1Fail()
         {
             var test = @"
@@ -62,10 +63,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSend2Fail()
         {
             var test = @"
@@ -112,10 +113,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSend3Fail()
         {
             var test = @"
@@ -163,10 +164,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSend4Fail()
         {
             var test = @"
@@ -215,10 +216,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSend5Fail()
         {
             var test = @"
@@ -267,10 +268,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendLoadFromFieldFail()
         {
             var test = @"
@@ -318,10 +319,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInCallee1Fail()
         {
             var test = @"
@@ -373,10 +374,10 @@ class M : Machine
 }";
             var error = "Error: Method 'Foo' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInCallee2Fail()
         {
             var test = @"
@@ -429,10 +430,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInCallee3Fail()
         {
             var test = @"
@@ -490,10 +491,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 7, isPSharpProgram: false);
+            Assert.Failed(test, 7, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInCallee4Fail()
         {
             var test = @"
@@ -550,10 +551,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInCallee5Fail()
         {
             var test = @"
@@ -610,7 +611,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
     }
 }

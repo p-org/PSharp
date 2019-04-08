@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAliasAccessAfterSendFail()
         {
             var test = @"
@@ -64,7 +65,7 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
     }
 }

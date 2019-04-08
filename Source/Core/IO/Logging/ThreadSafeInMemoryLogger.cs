@@ -26,8 +26,9 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadSafeInMemoryLogger"/> class.
         /// </summary>
-        public ThreadSafeInMemoryLogger()
-            : base(0)
+        /// <param name="isVerbose">If true, then messages are logged.</param>
+        public ThreadSafeInMemoryLogger(bool isVerbose)
+            : base(isVerbose)
         {
             this.Writer = new StringWriter();
             this.Lock = new object();
@@ -36,19 +37,21 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.Write(value);
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(value);
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -57,16 +60,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.Write(format, arg0.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -75,16 +81,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -93,16 +102,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1, object arg2)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -113,16 +125,19 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.Write(format, args);
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, args);
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -130,19 +145,21 @@ namespace Microsoft.PSharp.IO
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.WriteLine(value);
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(value);
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -152,16 +169,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.WriteLine(format, arg0.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -171,16 +191,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -190,16 +213,19 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1, object arg2)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -211,16 +237,19 @@ namespace Microsoft.PSharp.IO
         /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            try
+            if (this.IsVerbose)
             {
-                lock (this.Lock)
+                try
                 {
-                    this.Writer.WriteLine(format, args);
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, args);
+                    }
                 }
-            }
-            catch (ObjectDisposedException)
-            {
-                // The writer was disposed.
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 

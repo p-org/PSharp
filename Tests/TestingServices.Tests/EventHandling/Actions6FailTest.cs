@@ -25,7 +25,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public MachineId Id;
 
             public Config(MachineId id)
-                : base(-1, -1)
             {
                 this.Id = id;
             }
@@ -33,10 +32,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E1 : Event
         {
-            public E1()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E2 : Event
@@ -44,7 +39,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public int Value;
 
             public E2(int value)
-                : base(1, -1)
             {
                 this.Value = value;
             }
@@ -52,26 +46,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E3 : Event
         {
-            public E3()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E4 : Event
         {
-            public E4()
-                : base(1, -1)
-            {
-            }
         }
 
         private class Unit : Event
         {
-            public Unit()
-                : base(1, -1)
-            {
-            }
         }
 
         private class Real : Machine
@@ -101,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.GhostMachine, new E1());
+                this.Send(this.GhostMachine, new E1(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -117,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void Action1()
             {
-                this.Send(this.GhostMachine, new E3());
+                this.Send(this.GhostMachine, new E3(), new SendOptions(assert: 1));
             }
         }
 
@@ -145,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.RealMachine, new E2(100));
+                this.Send(this.RealMachine, new E2(100), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -155,11 +137,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS2()
             {
-                this.Send(this.RealMachine, new E4());
+                this.Send(this.RealMachine, new E4(), new SendOptions(assert: 1));
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestActions6Fail()
         {
             var configuration = GetConfiguration();

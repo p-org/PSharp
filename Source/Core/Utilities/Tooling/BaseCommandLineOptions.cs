@@ -73,16 +73,18 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.OutputFilePath = option.Substring(3);
             }
+            else if (IsMatch(option, @"^[\/|-]v$"))
+            {
+                this.Configuration.IsVerbose = true;
+            }
             else if (IsMatch(option, @"^[\/|-]v:") && option.Length > 3)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
+                if (!int.TryParse(option.Substring(3), out int i) && i > 0 && i <= 3)
                 {
-                    Error.ReportAndExit("Please give a valid verbosity level " +
-                        "'-v:[x]', where 1 <= [x] <= 3.");
+                    Error.ReportAndExit("This option is deprecated; please use '-v'.");
                 }
 
-                this.Configuration.Verbose = i;
+                this.Configuration.IsVerbose = i > 0;
             }
             else if (IsMatch(option, @"^[\/|-]debug$"))
             {
@@ -95,8 +97,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (IsMatch(option, @"^[\/|-]timeout:") && option.Length > 9)
             {
-                int i = 0;
-                if (!int.TryParse(option.Substring(9), out i) &&
+                if (!int.TryParse(option.Substring(9), out int i) &&
                     i > 0)
                 {
                     Error.ReportAndExit("Please give a valid timeout '-timeout:[x]', where [x] > 0 seconds.");

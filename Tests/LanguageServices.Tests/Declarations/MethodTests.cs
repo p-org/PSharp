@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MethodTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestVoidMethodDeclaration()
         {
             var test = @"
@@ -38,7 +38,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestVoidMethodDeclaration2()
         {
             var test = @"
@@ -64,7 +64,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPublicMethodDeclaration()
         {
             var test = @"
@@ -77,7 +77,7 @@ public void Foo() { }
             LanguageTestUtilities.AssertFailedTestLog("A machine method cannot be public.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestInternalMethodDeclaration()
         {
             var test = @"
@@ -90,7 +90,7 @@ internal void Foo() { }
             LanguageTestUtilities.AssertFailedTestLog("A machine method cannot be internal.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMethodDeclarationWithoutBrackets()
         {
             var test = @"

@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId3()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, "Cannot bind machine id '' of type 'M3' to a machine of type 'M2'.", true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId4()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, "Machine with id '' is already bound to an existing machine.", true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId5()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 "previously bound to a machine of type 'M2'", true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId6()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCreateMachineWithId7()
         {
             var test = new Action<IMachineRuntime>((r) =>

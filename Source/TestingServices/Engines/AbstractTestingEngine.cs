@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -263,7 +264,7 @@ namespace Microsoft.PSharp.TestingServices
         private void Initialize(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.Logger = new ConsoleLogger();
+            this.Logger = new ConsoleLogger(true);
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
 
@@ -282,7 +283,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new InteractiveStrategy(this.Configuration, this.Logger);
                 this.Configuration.SchedulingIterations = 1;
                 this.Configuration.PerformFullExploration = false;
-                this.Configuration.Verbose = 2;
+                this.Configuration.IsVerbose = true;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {

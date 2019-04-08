@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Deprecated.Timers;
 using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.Runtime
@@ -200,7 +199,7 @@ namespace Microsoft.PSharp.Runtime
         {
             if (!type.IsSubclassOf(typeof(Machine)))
             {
-                this.Assert(false, "Type '{0}' is not a machine.", type.Name);
+                this.Assert(false, "Type '{0}' is not a machine.", type.FullName);
             }
 
             if (mid is null)
@@ -222,7 +221,7 @@ namespace Microsoft.PSharp.Runtime
             }
 
             Machine machine = MachineFactory.Create(type);
-            machine.Initialize(this, mid, new MachineInfo(mid));
+            machine.Initialize(this, mid, new MachineInfo(mid), new EventQueue(this, machine));
             machine.InitializeStateInformation();
 
             if (!this.MachineMap.TryAdd(mid, machine))
@@ -257,25 +256,27 @@ namespace Microsoft.PSharp.Runtime
                 this.Assert(false, message);
             }
 
-            var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
-            if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
+            if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
             {
+                this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+                    e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
                 this.TryHandleDroppedEvent(e, target);
                 return;
             }
 
-            bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
-            if (runNewHandler)
+            this.Logger.OnSend(targetMachine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+                e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
+
+            EnqueueStatus enqueueStatus = targetMachine.Enqueue(e, null);
+            if (enqueueStatus == EnqueueStatus.EventHandlerNotRunning)
             {
-                this.RunMachineEventHandler(machine, null, false);
+                this.RunMachineEventHandler(targetMachine, null, false);
             }
         }
 
         /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
-        /// if the target machine was already running. Otherwise blocks until the machine handles
-        /// the event and reaches quiescense again.
+        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
+        /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
         internal override async Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
@@ -295,37 +296,25 @@ namespace Microsoft.PSharp.Runtime
                 this.Assert(false, message);
             }
 
-            var operationGroupId = this.GetNewOperationGroupId(sender, options?.OperationGroupId);
-            if (!this.GetTargetMachine(target, e, sender, operationGroupId, out Machine machine))
+            if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
             {
+                this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+                    e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
                 this.TryHandleDroppedEvent(e, target);
                 return true;
             }
 
-            bool runNewHandler = false;
-            this.EnqueueEvent(machine, e, sender, operationGroupId, ref runNewHandler);
-            if (runNewHandler)
+            this.Logger.OnSend(targetMachine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+                e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
+
+            EnqueueStatus enqueueStatus = targetMachine.Enqueue(e, null);
+            if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
             {
-                await this.RunMachineEventHandlerAsync(machine, null, false);
+                await this.RunMachineEventHandlerAsync(targetMachine, null, false);
                 return true;
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Enqueues an asynchronous <see cref="Event"/> to a machine.
-        /// </summary>
-        private void EnqueueEvent(Machine machine, Event e, BaseMachine sender, Guid operationGroupId, ref bool runNewHandler)
-        {
-            EventInfo eventInfo = new EventInfo(e, null);
-            eventInfo.SetOperationGroupId(operationGroupId);
-
-            var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-            this.Logger.OnSend(machine.Id, sender?.Id, senderState,
-                e.GetType().FullName, operationGroupId, isTargetHalted: false);
-
-            machine.Enqueue(eventInfo, ref runNewHandler);
         }
 
         /// <summary>
@@ -343,7 +332,7 @@ namespace Microsoft.PSharp.Runtime
                         await machine.GotoStartState(initialEvent);
                     }
 
-                    await machine.RunEventHandler();
+                    await machine.RunEventHandlerAsync();
                 }
                 catch (Exception ex)
                 {
@@ -365,7 +354,7 @@ namespace Microsoft.PSharp.Runtime
                     await machine.GotoStartState(initialEvent);
                 }
 
-                await machine.RunEventHandler();
+                await machine.RunEventHandlerAsync();
             }
             catch (Exception ex)
             {
@@ -379,14 +368,6 @@ namespace Microsoft.PSharp.Runtime
         /// Creates a new timer that sends a <see cref="Timers.TimerElapsedEvent"/> to its owner machine.
         /// </summary>
         internal override IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner) => new MachineTimer(info, owner);
-
-        /// <summary>
-        /// Returns the timer machine type.
-        /// </summary>
-        internal override Type GetTimerMachineType()
-        {
-            return typeof(ProductionTimerMachine);
-        }
 
         /// <summary>
         /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
@@ -408,7 +389,7 @@ namespace Microsoft.PSharp.Runtime
                 }
             }
 
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass of Monitor.", type.Name);
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass of Monitor.", type.FullName);
 
             MachineId mid = new MachineId(type, null, this);
             Monitor monitor = (Monitor)Activator.CreateInstance(type);
@@ -421,7 +402,7 @@ namespace Microsoft.PSharp.Runtime
                 this.Monitors.Add(monitor);
             }
 
-            this.Logger.OnCreateMonitor(type.Name, monitor.Id);
+            this.Logger.OnCreateMonitor(type.FullName, monitor.Id);
 
             monitor.GotoStartState();
         }
@@ -562,12 +543,10 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyEnteredState(Machine machine)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: true);
             }
-
-            this.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: true);
         }
 
         /// <summary>
@@ -575,13 +554,11 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyEnteredState(Monitor monitor)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                string monitorState = monitor.CurrentStateNameWithTemperature;
+                this.Logger.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, true, monitor.GetHotState());
             }
-
-            string monitorState = monitor.CurrentStateNameWithTemperature;
-            this.Logger.OnMonitorState(monitor.GetType().Name, monitor.Id, monitorState, true, monitor.GetHotState());
         }
 
         /// <summary>
@@ -589,12 +566,10 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyExitedState(Machine machine)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
             }
-
-            this.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
         }
 
         /// <summary>
@@ -602,13 +577,11 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyExitedState(Monitor monitor)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                string monitorState = monitor.CurrentStateNameWithTemperature;
+                this.Logger.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, false, monitor.GetHotState());
             }
-
-            string monitorState = monitor.CurrentStateNameWithTemperature;
-            this.Logger.OnMonitorState(monitor.GetType().Name, monitor.Id, monitorState, false, monitor.GetHotState());
         }
 
         /// <summary>
@@ -616,12 +589,10 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
             }
-
-            this.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
         }
 
         /// <summary>
@@ -629,95 +600,52 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMonitorAction(monitor.GetType().FullName, monitor.Id, action.Name, monitor.CurrentStateName);
             }
-
-            this.Logger.OnMonitorAction(monitor.GetType().Name, monitor.Id, action.Name, monitor.CurrentStateName);
         }
 
         /// <summary>
         /// Notifies that a machine raised an <see cref="Event"/>.
         /// </summary>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyRaisedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            eventInfo.SetOperationGroupId(this.GetNewOperationGroupId(machine, null));
-
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMachineEvent(machine.Id, machine.CurrentStateName, e.GetType().FullName);
             }
-
-            this.Logger.OnMachineEvent(machine.Id, machine.CurrentStateName, eventInfo.EventName);
         }
 
         /// <summary>
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
-        internal override void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
+        internal override void NotifyRaisedEvent(Monitor monitor, Event e, EventInfo eventInfo)
         {
-            if (this.Configuration.Verbose <= 1)
+            if (this.Configuration.IsVerbose)
             {
-                return;
+                this.Logger.OnMonitorEvent(monitor.GetType().FullName, monitor.Id, monitor.CurrentStateName,
+                    e.GetType().FullName, isProcessing: false);
             }
-
-            this.Logger.OnMonitorEvent(monitor.GetType().Name, monitor.Id, monitor.CurrentStateName,
-                eventInfo.EventName, isProcessing: false);
         }
 
         /// <summary>
         /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
-        internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            // The machine inherits the operation group id of the dequeued event.
-            machine.Info.OperationGroupId = eventInfo.OperationGroupId;
-
-            this.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
-        }
-
-        /// <summary>
-        /// Notifies that a machine is waiting to receive one or more events.
-        /// </summary>
-        internal override void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
-        {
-            if (eventInfoInInbox is null)
+            if (this.Configuration.IsVerbose)
             {
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, string.Empty);
-                machine.Info.IsWaitingToReceive = true;
-            }
-        }
-
-        /// <summary>
-        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
-        /// </summary>
-        internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
-        {
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, eventInfo.EventName, wasBlocked: true);
-
-            lock (machine)
-            {
-                System.Threading.Monitor.Pulse(machine);
-                machine.Info.IsWaitingToReceive = false;
+                this.Logger.OnDequeue(machine.Id, machine.CurrentStateName, e.GetType().FullName);
             }
         }
 
         /// <summary>
         /// Notifies that a machine has halted.
         /// </summary>
-        internal override void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        internal override void NotifyHalted(Machine machine)
         {
-            this.Logger.OnHalt(machine.Id, inbox.Count);
-            this.MachineMap.TryRemove(machine.Id, out machine);
-
-            if (this.IsOnEventDroppedHandlerRegistered())
-            {
-                foreach (var evinfo in inbox)
-                {
-                    this.TryHandleDroppedEvent(evinfo.Event, machine.Id);
-                }
-            }
+            this.MachineMap.TryRemove(machine.Id, out Machine _);
         }
 
         /// <summary>

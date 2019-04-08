@@ -73,7 +73,7 @@ namespace Microsoft.PSharp
         public static string Translate(string text, out string errors)
         {
             var configuration = Configuration.Create();
-            configuration.Verbose = 2;
+            configuration.IsVerbose = true;
             errors = null;
 
             var context = CompilationContext.Create(configuration).LoadSolution(text);

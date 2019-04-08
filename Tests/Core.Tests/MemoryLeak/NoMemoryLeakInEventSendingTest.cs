@@ -20,18 +20,18 @@ namespace Microsoft.PSharp.Core.Tests
 
         internal class Configure : Event
         {
-            public TaskCompletionSource<bool> TCS;
+            public TaskCompletionSource<bool> Tcs;
 
             public Configure(TaskCompletionSource<bool> tcs)
             {
-                this.TCS = tcs;
+                this.Tcs = tcs;
             }
         }
 
         internal class E : Event
         {
             public MachineId Id;
-            private int[] LargeArray;
+            private readonly int[] LargeArray;
 
             public E(MachineId id)
                 : base()
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private async Task InitOnEntry()
             {
-                var tcs = (this.ReceivedEvent as Configure).TCS;
+                var tcs = (this.ReceivedEvent as Configure).Tcs;
 
                 try
                 {
@@ -93,10 +93,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=10000)]
         public void TestNoMemoryLeakInEventSending()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();

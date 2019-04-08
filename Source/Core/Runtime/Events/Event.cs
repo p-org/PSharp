@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
@@ -14,52 +15,27 @@ namespace Microsoft.PSharp
     public abstract class Event
     {
         /// <summary>
-        /// Specifies that there must not be more than k instances
-        /// of e in the input queue of any machine.
+        /// Optional operation group id associated with this event.
+        /// By default it is <see cref="Guid.Empty"/>.
         /// </summary>
-        protected internal int Assert { get; private set; }
-
-        /// <summary>
-        /// Speciﬁes that during testing, an execution that increases
-        /// the cardinality of e beyond k in some queue must not be
-        /// generated.
-        /// </summary>
-        protected internal int Assume { get; private set; }
-
-        /// <summary>
-        /// User-defined hash of the event payload. Override to improve the
-        /// accuracy of liveness checking when state-caching is enabled.
-        /// </summary>
-        public virtual int HashedState => 0;
+        public Guid OperationGroupId { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Event"/> class.
         /// </summary>
         protected Event()
         {
-            this.Assert = -1;
-            this.Assume = -1;
+            this.OperationGroupId = Guid.Empty;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Event"/> class.
+        /// Initializes a new instance of the <see cref="Event"/> class
+        /// with the specified operation group id.
         /// </summary>
-        /// <param name="assert">Assert</param>
-        /// <param name="assume">Assume</param>
-        protected Event(int assert, int assume)
+        /// <param name="operationGroupId">The operation group id associated with this event.</param>
+        protected Event(Guid operationGroupId)
         {
-            this.SetCardinalityConstraints(assert, assume);
-        }
-
-        /// <summary>
-        /// Allows override of constructor cardinality constraints.
-        /// </summary>
-        /// <param name="assert">Assert</param>
-        /// <param name="assume">Assume</param>
-        protected void SetCardinalityConstraints(int assert, int assume)
-        {
-            this.Assert = assert;
-            this.Assume = assume;
+            this.OperationGroupId = operationGroupId;
         }
     }
 }

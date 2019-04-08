@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExceptionSuppressed1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -352,7 +352,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExceptionSuppressed2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -363,7 +363,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExceptionSuppressed3()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -374,7 +374,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExceptionSuppressed4()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -385,7 +385,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExceptionNotSuppressed()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -396,7 +396,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestRaiseOnException()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendOnException()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -418,7 +418,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineHalt1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -430,7 +430,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineHalt2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -443,7 +443,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendOnUnhandledEventException()
         {
             var test = new Action<IMachineRuntime>((r) =>

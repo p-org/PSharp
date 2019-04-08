@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionCounterNoBug()
         {
             var configuration = GetConfiguration();
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionCounterBug()
         {
             var configuration = GetConfiguration();
@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionCounterResetBug()
         {
             var configuration = GetConfiguration();

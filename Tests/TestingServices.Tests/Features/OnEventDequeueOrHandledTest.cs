@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnProcessingCalled()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnProcessingNotCalledOnHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -278,7 +278,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnProcessingCanGoto()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnProcessingCanHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>

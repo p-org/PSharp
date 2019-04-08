@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// <summary>
         /// P# semantics test: testing for ignore of a raised event.
         /// </summary>
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIgnoreRaisedEventHandled()
         {
             var configuration = GetConfiguration();

@@ -28,7 +28,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            public E(MachineId id)
+            public E(Guid operationGroupId)
+                : base(operationGroupId)
+            {
+            }
+
+            public E(MachineId id, Guid operationGroupId)
+                : base(operationGroupId)
             {
                 this.Id = id;
             }
@@ -81,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Runtime.SendEvent(this.Id, new E(), OperationGroup1);
+                this.Runtime.SendEvent(this.Id, new E(OperationGroup1));
             }
 
             private void CheckEvent()
@@ -161,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnEntry()
             {
                 var target = this.CreateMachine(typeof(M6S));
-                this.Runtime.SendEvent(target, new E(), OperationGroup1);
+                this.Runtime.SendEvent(target, new E(OperationGroup1));
             }
         }
 
@@ -192,7 +198,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnEntry()
             {
                 var target = this.CreateMachine(typeof(M8));
-                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
             }
 
             private void CheckEvent()
@@ -230,7 +236,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnEntry()
             {
                 var target = this.CreateMachine(typeof(M8S));
-                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
             }
 
             private void CheckEvent()
@@ -252,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 var id = (this.Info as ISchedulable).NextOperationGroupId;
                 this.Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(), OperationGroup2);
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
             }
         }
 
@@ -268,7 +274,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnEntry()
             {
                 var target = this.CreateMachine(typeof(M10S));
-                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
             }
 
             private void CheckEvent()
@@ -291,7 +297,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var target = this.CreateMachine(typeof(M11S));
                 var id = (this.Info as ISchedulable).NextOperationGroupId;
                 this.Assert(id == OperationGroup1, $"NextOperationGroupId is not '{OperationGroup1}', but {id}.");
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(), OperationGroup2);
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
             }
         }
 
@@ -310,7 +316,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineNoSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -321,7 +327,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -332,7 +338,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingSingleMachineSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -343,7 +349,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesCreate()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -354,7 +360,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSend()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -365,7 +371,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -376,7 +382,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBack()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -387,7 +393,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingTwoMachinesSendBackStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -398,7 +404,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOperationGroupingThreeMachinesSendStarter()
         {
             var test = new Action<IMachineRuntime>((r) =>

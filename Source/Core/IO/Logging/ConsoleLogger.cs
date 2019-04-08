@@ -10,15 +10,26 @@ namespace Microsoft.PSharp.IO
     /// <summary>
     /// Logger that writes text to the console.
     /// </summary>
-    internal sealed class ConsoleLogger : MachineLogger
+    public sealed class ConsoleLogger : MachineLogger
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConsoleLogger"/> class.
+        /// </summary>
+        /// <param name="isVerbose">If true, then messages are logged.</param>
+        public ConsoleLogger(bool isVerbose)
+            : base(isVerbose)
+        {
+        }
+
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void Write(string value)
         {
-            Console.Write(value);
+            if (this.IsVerbose)
+            {
+                Console.Write(value);
+            }
         }
 
         /// <summary>
@@ -26,7 +37,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0)
         {
-            Console.Write(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                Console.Write(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -34,7 +48,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1)
         {
-            Console.Write(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                Console.Write(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -42,27 +59,33 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void Write(string format, object arg0, object arg1, object arg2)
         {
-            Console.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                Console.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
         /// Writes the text representation of the specified array of objects.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         public override void Write(string format, params object[] args)
         {
-            Console.Write(format, args);
+            if (this.IsVerbose)
+            {
+                Console.Write(format, args);
+            }
         }
 
         /// <summary>
         /// Writes the specified string value, followed by the
         /// current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public override void WriteLine(string value)
         {
-            Console.WriteLine(value);
+            if (this.IsVerbose)
+            {
+                Console.WriteLine(value);
+            }
         }
 
         /// <summary>
@@ -71,7 +94,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0)
         {
-            Console.WriteLine(format, arg0.ToString());
+            if (this.IsVerbose)
+            {
+                Console.WriteLine(format, arg0.ToString());
+            }
         }
 
         /// <summary>
@@ -80,7 +106,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1)
         {
-            Console.WriteLine(format, arg0.ToString(), arg1.ToString());
+            if (this.IsVerbose)
+            {
+                Console.WriteLine(format, arg0.ToString(), arg1.ToString());
+            }
         }
 
         /// <summary>
@@ -89,18 +118,22 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override void WriteLine(string format, object arg0, object arg1, object arg2)
         {
-            Console.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            if (this.IsVerbose)
+            {
+                Console.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+            }
         }
 
         /// <summary>
         /// Writes the text representation of the specified array of objects,
         /// followed by the current line terminator.
         /// </summary>
-        /// <param name="format">Text</param>
-        /// <param name="args">Arguments</param>
         public override void WriteLine(string format, params object[] args)
         {
-            Console.WriteLine(format, args);
+            if (this.IsVerbose)
+            {
+                Console.WriteLine(format, args);
+            }
         }
 
         /// <summary>

@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAllNameofWithNameof()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Assert.Equal(11111, WithNameofValue);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAllNameofWithoutNameof()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.PSharp.Runtime;
 
-namespace Microsoft.PSharp.Benchmarking
+namespace Microsoft.PSharp.Benchmarking.Creation
 {
     [ClrJob(baseline: true), CoreJob]
     [MemoryDiagnoser]
     [MinColumn, MaxColumn, MeanColumn, Q1Column, Q3Column, RankColumn]
     [MarkdownExporter, HtmlExporter, CsvExporter, CsvMeasurementsExporter, RPlotExporter]
-    public class MachineCreationBenchmark
+    public class MachineCreationThroughputBenchmark
     {
         private class SetupEvent : Event
         {
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Benchmarking
         public bool DoHalt { get; set; }
 
         [Benchmark]
-        public void MeasureMachineCreation()
+        public void MeasureThroughputMachineCreation()
         {
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);

@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class StateGroupTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateGroupDeclaration()
         {
             var test = @"
@@ -42,7 +42,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineEntryDeclaration()
         {
             var test = @"
@@ -79,7 +79,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineExitDeclaration()
         {
             var test = @"
@@ -117,7 +117,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineEntryAndExitDeclaration()
         {
             var test = @"
@@ -160,7 +160,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateDeclaration()
         {
             var test = @"
@@ -202,7 +202,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateDeclaration2()
         {
             var test = @"
@@ -249,7 +249,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -287,7 +287,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnSimpleGenericEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -325,7 +325,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDoActionDeclaration()
         {
             var test = @"
@@ -360,7 +360,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDoActionDeclarationWithBody()
         {
             var test = @"
@@ -398,7 +398,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnSimpleGenericEventDoActionDeclarationWithBody()
         {
             var test = @"
@@ -436,7 +436,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateAndDoActionDeclaration()
         {
             var test = @"
@@ -473,7 +473,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineNestedGroup()
         {
             var test = @"
@@ -512,7 +512,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineNestedGroup2()
         {
             var test = @"
@@ -556,7 +556,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMultipleGroups()
         {
             var test = @"
@@ -604,7 +604,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMultipleGroups2()
         {
             var test = @"
@@ -679,7 +679,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineNestedGroups()
         {
             var test = @"
@@ -737,7 +737,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorStateGroupDeclaration()
         {
             var test = @"
@@ -770,7 +770,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorEntryDeclaration()
         {
             var test = @"
@@ -807,7 +807,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorExitDeclaration()
         {
             var test = @"
@@ -845,7 +845,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorEntryAndExitDeclaration()
         {
             var test = @"
@@ -888,7 +888,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateDeclaration()
         {
             var test = @"
@@ -930,7 +930,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateDeclaration2()
         {
             var test = @"
@@ -977,7 +977,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -1015,7 +1015,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventDoActionDeclaration()
         {
             var test = @"
@@ -1050,7 +1050,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventDoActionDeclarationWithBody()
         {
             var test = @"
@@ -1088,7 +1088,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateAndDoActionDeclaration()
         {
             var test = @"
@@ -1125,7 +1125,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorNestedGroup()
         {
             var test = @"
@@ -1164,7 +1164,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorNestedGroup2()
         {
             var test = @"
@@ -1208,7 +1208,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorMultipleGroups()
         {
             var test = @"
@@ -1256,7 +1256,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorMultipleGroups2()
         {
             var test = @"
@@ -1331,7 +1331,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorNestedGroups()
         {
             var test = @"
@@ -1389,7 +1389,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateDeclarationWithMoreThanOneEntry()
         {
             var test = @"
@@ -1407,7 +1407,7 @@ entry{}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate entry declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateDeclarationWithMoreThanOneExit()
         {
             var test = @"
@@ -1425,7 +1425,7 @@ exit {}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate exit declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = @"
@@ -1442,7 +1442,7 @@ entry Bar {}
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1459,7 +1459,7 @@ on e goto S2
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventGotoStateDeclarationWithoutState()
         {
             var test = @"
@@ -1477,7 +1477,7 @@ on e goto;
             LanguageTestUtilities.AssertFailedTestLog("Expected state identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1492,7 +1492,7 @@ on e do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
@@ -1509,7 +1509,7 @@ on e do;
             LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDoActionDeclarationWithoutAsyncAction()
         {
             var test = @"
@@ -1526,7 +1526,7 @@ on e do async;
             LanguageTestUtilities.AssertFailedTestLog("Expected action identifier or opening curly bracket.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineOnEventDeclarationWithoutHandler()
         {
             var test = @"
@@ -1543,7 +1543,7 @@ on e;
             LanguageTestUtilities.AssertFailedTestLog("Expected \"do\", \"goto\" or \"push\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineIgnoreEventDeclarationWithoutComma()
         {
             var test = @"
@@ -1560,7 +1560,7 @@ ignore e1 e2;
             LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineIgnoreEventDeclarationWithExtraComma()
         {
             var test = @"
@@ -1577,7 +1577,7 @@ ignore e1,e2,;
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeferEventDeclarationWithoutComma()
         {
             var test = @"
@@ -1594,7 +1594,7 @@ defer e1 e2;
             LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineDeferEventDeclarationWithExtraComma()
         {
             var test = @"
@@ -1611,7 +1611,7 @@ defer e1,e2,;
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineGroupInsideState()
         {
             var test = @"
@@ -1625,7 +1625,7 @@ group G { }
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineEmptyGroup()
         {
             var test = @"
@@ -1637,7 +1637,7 @@ group G { }
             LanguageTestUtilities.AssertFailedTestLog("A state group must declare at least one state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineEmptyNestedGroup()
         {
             var test = @"
@@ -1651,7 +1651,7 @@ group G2 { }
             LanguageTestUtilities.AssertFailedTestLog("A state group must declare at least one state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMethodInsideGroup()
         {
             var test = @"
@@ -1665,7 +1665,7 @@ void Bar() { }
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token 'void'.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStartGroup()
         {
             var test = @"
@@ -1677,7 +1677,7 @@ start group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be marked start.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineColdGroup()
         {
             var test = @"
@@ -1689,7 +1689,7 @@ cold group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be cold.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineHotGroup()
         {
             var test = @"
@@ -1701,7 +1701,7 @@ hot group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be hot.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineGroupName()
         {
             var test = @"
@@ -1713,7 +1713,7 @@ group G.G2 { }
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorStateDeclarationWithMoreThanOneEntry()
         {
             var test = @"
@@ -1731,7 +1731,7 @@ entry{}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate entry declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorStateDeclarationWithMoreThanOneExit()
         {
             var test = @"
@@ -1749,7 +1749,7 @@ exit {}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate exit declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = @"
@@ -1766,7 +1766,7 @@ entry Bar {}
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1783,7 +1783,7 @@ on e goto S2
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventGotoStateDeclarationWithoutState()
         {
             var test = @"
@@ -1801,7 +1801,7 @@ on e goto;
             LanguageTestUtilities.AssertFailedTestLog("Expected state identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1816,7 +1816,7 @@ on e do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
@@ -1833,7 +1833,7 @@ on e do;
             LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorOnEventDeclarationWithoutHandler()
         {
             var test = @"
@@ -1851,7 +1851,7 @@ on e;
             LanguageTestUtilities.AssertFailedTestLog("Expected \"do\", \"goto\" or \"push\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorIgnoreEventDeclarationWithoutComma()
         {
             var test = @"
@@ -1868,7 +1868,7 @@ ignore e1 e2;
             LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorIgnoreEventDeclarationWithExtraComma()
         {
             var test = @"
@@ -1885,7 +1885,7 @@ ignore e1,e2,;
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorGroupInsideState()
         {
             var test = @"
@@ -1900,7 +1900,7 @@ group G { }
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorEmptyGroup()
         {
             var test = @"
@@ -1912,7 +1912,7 @@ group G { }
             LanguageTestUtilities.AssertFailedTestLog("A state group must declare at least one state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorEmptyNestedGroup()
         {
             var test = @"
@@ -1927,7 +1927,7 @@ group G2 { }
             LanguageTestUtilities.AssertFailedTestLog("A state group must declare at least one state.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorMethodInsideGroup()
         {
             var test = @"
@@ -1942,7 +1942,7 @@ void Bar() { }
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token 'void'.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorStartGroup()
         {
             var test = @"
@@ -1954,7 +1954,7 @@ start group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be marked start.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorColdGroup()
         {
             var test = @"
@@ -1966,7 +1966,7 @@ cold group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be cold.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorHotGroup()
         {
             var test = @"
@@ -1978,7 +1978,7 @@ hot group G { }
             LanguageTestUtilities.AssertFailedTestLog("A machine state group cannot be hot.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMonitorGroupName()
         {
             var test = @"

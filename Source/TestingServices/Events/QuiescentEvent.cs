@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
@@ -22,8 +23,9 @@ namespace Microsoft.PSharp
         /// Initializes a new instance of the <see cref="QuiescentEvent"/> class.
         /// </summary>
         /// <param name="mid">The id of the machine that has reached quiescence.</param>
-        public QuiescentEvent(MachineId mid)
-            : base()
+        /// <param name="operationGroupId">The operation group id associated with this event.</param>
+        public QuiescentEvent(MachineId mid, Guid operationGroupId)
+            : base(operationGroupId)
         {
             this.MachineId = mid;
         }

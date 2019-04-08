@@ -22,11 +22,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             public MachineId Id;
 
-            public E()
-            {
-            }
-
-            public E(MachineId id)
+            public E(MachineId id, Guid operationGroup)
+                : base(operationGroup)
             {
                 this.Id = id;
             }
@@ -58,7 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Runtime.SendEvent(this.Id, new E(this.Id), OperationGroup);
+                this.Runtime.SendEvent(this.Id, new E(this.Id, OperationGroup));
             }
 
             private void CheckEvent()
@@ -91,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGetOperationGroupIdNotSet()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -102,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGetOperationGroupIdSet()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -113,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGetOperationGroupIdOfNotCurrentMachine()
         {
             var test = new Action<IMachineRuntime>((r) =>

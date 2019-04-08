@@ -122,7 +122,7 @@ namespace Microsoft.PSharp
         public static string Translate(string text, out string errors, Version csVersion)
         {
             var configuration = Configuration.Create();
-            configuration.Verbose = 2;
+            configuration.IsVerbose = true;
             configuration.RewriteCSharpVersion = csVersion;
             errors = null;
 

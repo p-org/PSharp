@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// <summary>
         /// P# semantics test: current state must be of the expected type.
         /// </summary>
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCurrentState()
         {
             var configuration = GetConfiguration();

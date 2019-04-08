@@ -23,7 +23,7 @@ namespace CacheCoherence
         public static void Main(string[] args)
         {
             // Optional: increases verbosity level to see the P# runtime log.
-            var configuration = Configuration.Create().WithVerbosityEnabled(2);
+            var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new P# runtime instance, and passes an optional configuration.
             var runtime = PSharpRuntime.Create(configuration);

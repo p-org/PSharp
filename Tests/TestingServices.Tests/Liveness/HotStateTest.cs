@@ -23,7 +23,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public MachineId Id;
 
             public Config(MachineId id)
-                : base(-1, -1)
             {
                 this.Id = id;
             }
@@ -34,7 +33,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public List<MachineId> Ids;
 
             public MConfig(List<MachineId> ids)
-                : base(-1, -1)
             {
                 this.Ids = ids;
             }
@@ -174,7 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHotStateMonitor()
         {
             var configuration = GetConfiguration();

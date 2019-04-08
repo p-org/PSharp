@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Item = default(T);
+                this.Item = default;
                 this.Goto<Active>();
             }
 
@@ -47,14 +47,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericMachine1()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(M<int>)); });
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericMachine2()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(N)); });

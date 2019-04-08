@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MachineStateInheritanceTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAbstractBaseStateWithOnEventDeclaration()
         {
             var test = @"
@@ -62,7 +62,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseStateWithOnEventDeclaration()
         {
             var test = @"
@@ -125,7 +125,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseAndDerivedOnEntry()
         {
             var test = @"
@@ -195,7 +195,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseAndDerivedEachWithOnEntryAndDoAction()
         {
             var test = @"
@@ -268,7 +268,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestThirdUnderivedState()
         {
             var test = @"
@@ -323,7 +323,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNestedDerivedState()
         {
             var test = @"
@@ -390,7 +390,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseAsyncEntryDeclaration()
         {
             var test = @"
@@ -433,7 +433,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDerivedAsyncEntryDeclaration()
         {
             var test = @"
@@ -476,7 +476,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseAndDerivedAsyncEntryDeclaration()
         {
             var test = @"
@@ -519,7 +519,7 @@ namespace Foo
             this.AssertWithEntryExitReplacement(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestInheritedOnEventGotoStateDeclaration()
         {
             var test = @"
@@ -557,7 +557,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnlyOneStartState()
         {
             var test = @"

@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class StateTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestStateDeclaration()
         {
             var test = @"
@@ -39,7 +39,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEntryDeclaration()
         {
             var test = @"
@@ -71,7 +71,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncEntryDeclaration()
         {
             var test = @"
@@ -103,7 +103,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExitDeclaration()
         {
             var test = @"
@@ -135,7 +135,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncExitDeclaration()
         {
             var test = @"
@@ -167,7 +167,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEntryAndExitDeclaration()
         {
             var test = @"
@@ -204,7 +204,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncEntryAndExitDeclaration()
         {
             var test = @"
@@ -241,7 +241,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclaration()
         {
             var test = @"
@@ -270,7 +270,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclaration2()
         {
             var test = @"
@@ -301,7 +301,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnSimpleGenericEventGotoStateDeclaration()
         {
             var test = @"
@@ -330,7 +330,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnComplexGenericEventGotoStateDeclaration()
         {
             var test = @"
@@ -361,7 +361,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnQualifiedEventGotoStateDeclaration()
         {
             var test = @"
@@ -390,7 +390,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -422,7 +422,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithAsyncBody()
         {
             var test = @"
@@ -454,7 +454,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnSimpleGenericEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -486,7 +486,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnComplexGenericEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -518,7 +518,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOMultipleGenericEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -560,7 +560,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclaration()
         {
             var test = @"
@@ -589,7 +589,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclaration2()
         {
             var test = @"
@@ -620,7 +620,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnSimpleGenericEventDoActionDeclaration()
         {
             var test = @"
@@ -649,7 +649,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnComplexGenericEventDoActionDeclaration()
         {
             var test = @"
@@ -680,7 +680,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnQualifiedEventDoActionDeclaration()
         {
             var test = @"
@@ -709,7 +709,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithBody()
         {
             var test = @"
@@ -741,7 +741,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithAsyncBody()
         {
             var test = @"
@@ -773,7 +773,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateAndDoActionDeclaration()
         {
             var test = @"
@@ -804,7 +804,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIgnoreEventDeclaration()
         {
             var test = @"
@@ -833,7 +833,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIgnoreEventDeclaration2()
         {
             var test = @"
@@ -862,7 +862,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIgnoreEventDeclarationQualifiedComplex()
         {
             var test = @"
@@ -891,7 +891,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDeferEventDeclaration()
         {
             var test = @"
@@ -920,7 +920,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDeferEventDeclaration2()
         {
             var test = @"
@@ -949,7 +949,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDeferEventDeclarationQualifiedComplex()
         {
             var test = @"
@@ -978,7 +978,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDefaultEvent()
         {
             var test = @"
@@ -1007,7 +1007,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHaltEvent()
         {
             var test = @"
@@ -1036,7 +1036,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWildcardEventDefer()
         {
             var test = @"
@@ -1065,7 +1065,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWildcardEventAction()
         {
             var test = @"
@@ -1097,7 +1097,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultipleEventsSameAnonymousDo()
         {
             var test = @"
@@ -1145,7 +1145,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultipleEventsSameNamedDo()
         {
             var test = @"
@@ -1184,7 +1184,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestStateDeclarationWithMoreThanOneEntry()
         {
             var test = @"
@@ -1200,7 +1200,7 @@ entry{}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate entry declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestStateDeclarationWithMoreThanOneExit()
         {
             var test = @"
@@ -1216,7 +1216,7 @@ exit {}
             LanguageTestUtilities.AssertFailedTestLog("Duplicate exit declaration.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = @"
@@ -1231,7 +1231,7 @@ entry Bar {}
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithoutEvent()
         {
             var test = @"
@@ -1246,7 +1246,7 @@ on goto S2
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithCommaError()
         {
             var test = @"
@@ -1261,7 +1261,7 @@ on e, goto S2
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1276,7 +1276,7 @@ on e goto S2
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithoutState()
         {
             var test = @"
@@ -1291,7 +1291,7 @@ on e goto;
             LanguageTestUtilities.AssertFailedTestLog("Expected state identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithGenericError1()
         {
             var test = @"
@@ -1306,7 +1306,7 @@ on <> goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithGenericError2()
         {
             var test = @"
@@ -1321,7 +1321,7 @@ on e> goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventGotoStateDeclarationWithGenericError3()
         {
             var test = @"
@@ -1336,7 +1336,7 @@ on e<List<int>>> goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithoutEvent()
         {
             var test = @"
@@ -1351,7 +1351,7 @@ on do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithCommaError()
         {
             var test = @"
@@ -1366,7 +1366,7 @@ on e, do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -1381,7 +1381,7 @@ on e do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionNamedHandlerWithAwaitedAction()
         {
             var test = @"
@@ -1396,7 +1396,7 @@ on e do await foo;
             LanguageTestUtilities.AssertFailedTestLog("'await' should not be used on actions.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionAnonymousHandlerWithAwaitedAction()
         {
             var test = @"
@@ -1411,7 +1411,7 @@ on e do await {}
             LanguageTestUtilities.AssertFailedTestLog("'await' should not be used on actions.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncOnMachine()
         {
             var test = @"
@@ -1426,7 +1426,7 @@ on e do {}
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncOnState()
         {
             var test = @"
@@ -1441,7 +1441,7 @@ on e do {}
             LanguageTestUtilities.AssertFailedTestLog("A machine state cannot be async.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncInWrongDoLocation()
         {
             var test = @"
@@ -1456,7 +1456,7 @@ async on e do {}
             LanguageTestUtilities.AssertFailedTestLog("'async' was used in an incorrect context.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncInWrongEntryLocation()
         {
             var test = @"
@@ -1471,7 +1471,7 @@ state S1
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAsyncInWrongExitLocation()
         {
             var test = @"
@@ -1486,7 +1486,7 @@ state S1
             LanguageTestUtilities.AssertFailedTestLog("Expected \"{\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
@@ -1501,7 +1501,7 @@ on e do;
             LanguageTestUtilities.AssertFailedTestLog("Expected async keyword, action identifier, or opening curly bracket.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithIncorrectWildcardUse()
         {
             var test = @"
@@ -1516,7 +1516,7 @@ on e.* do Bar
             LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithGenericError1()
         {
             var test = @"
@@ -1531,7 +1531,7 @@ on <> do Bar;
             LanguageTestUtilities.AssertFailedTestLog("Expected event identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithGenericError2()
         {
             var test = @"
@@ -1546,7 +1546,7 @@ on e> do Bar;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDoActionDeclarationWithGenericError3()
         {
             var test = @"
@@ -1561,7 +1561,7 @@ on e<List<int>>> do Bar;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnEventDeclarationWithoutHandler()
         {
             var test = @"
@@ -1576,7 +1576,7 @@ on e;
             LanguageTestUtilities.AssertFailedTestLog("Expected \"do\", \"goto\" or \"push\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIgnoreEventDeclarationWithoutComma()
         {
             var test = @"
@@ -1591,7 +1591,7 @@ ignore e1 e2;
             LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDeferEventDeclarationWithoutComma()
         {
             var test = @"
@@ -1606,7 +1606,7 @@ defer e1 e2;
             LanguageTestUtilities.AssertFailedTestLog("Expected \",\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestQualifiedHaltEvent()
         {
             var test = @"
@@ -1621,7 +1621,7 @@ on Foo.halt goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestQualifiedDefaultEvent()
         {
             var test = @"
@@ -1636,7 +1636,7 @@ on Foo.default goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Expected identifier.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericHaltEvent()
         {
             var test = @"
@@ -1651,7 +1651,7 @@ on halt<int> goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericDefaultEvent()
         {
             var test = @"
@@ -1666,7 +1666,7 @@ on default<int> goto S2;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIncorrectGenericEvent()
         {
             var test = @"

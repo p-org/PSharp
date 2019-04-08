@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class FieldTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIntFieldDeclaration()
         {
             var test = @"
@@ -37,7 +37,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestListFieldDeclaration()
         {
             var test = @"
@@ -66,7 +66,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineFieldDeclaration()
         {
             var test = @"
@@ -94,7 +94,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineArrayFieldDeclaration()
         {
             var test = @"
@@ -126,7 +126,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPublicFieldDeclaration()
         {
             var test = @"
@@ -139,7 +139,7 @@ start state S { }
             LanguageTestUtilities.AssertFailedTestLog("A machine field cannot be public.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestInternalFieldDeclaration()
         {
             var test = @"
@@ -152,7 +152,7 @@ start state S { }
             LanguageTestUtilities.AssertFailedTestLog("A machine field cannot be internal.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIntFieldDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -165,7 +165,7 @@ start state S { }
             LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineFieldDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -178,7 +178,7 @@ start state S { }
             LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
         {
             var test = @"

@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionRingOfNodesNoBug()
         {
             var configuration = GetConfiguration();
@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCycleDetectionRingOfNodesBug()
         {
             var configuration = GetConfiguration();

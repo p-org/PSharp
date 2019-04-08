@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMemberVisibility()
         {
             var test = @"
@@ -34,10 +35,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPublicFieldVisibility()
         {
             var test = @"
@@ -60,10 +61,10 @@ class M : Machine
 }";
             var error = "Warning: Field 'int Num' of machine 'Foo.M' is declared as " +
                 "'public'.   at 'public int Num;' in Program.cs:line 7";
-            this.AssertWarning(test, 1, error, isPSharpProgram: false);
+            Assert.Warning(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPublicMethodVisibility()
         {
             var test = @"
@@ -86,7 +87,7 @@ class M : Machine
 }";
             var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' is " +
                 "declared as 'public'.   at 'FirstOnEntryAction' in Program.cs:line 13";
-            this.AssertWarning(test, 1, error, isPSharpProgram: false);
+            Assert.Warning(test, 1, error, isPSharpProgram: false);
         }
     }
 }

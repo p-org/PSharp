@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Item = default(T);
+                this.Item = default;
                 this.Goto<Active>();
             }
 
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericMonitor()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPushSimple()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -147,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPushPopSimple()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPushStateExit()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPushBadStateFail()
         {
             var test = new Action<IMachineRuntime>((r) =>

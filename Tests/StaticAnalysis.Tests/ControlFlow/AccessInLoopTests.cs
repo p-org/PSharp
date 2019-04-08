@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop1()
         {
             var test = @"
@@ -66,10 +67,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop2()
         {
             var test = @"
@@ -120,10 +121,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop3()
         {
             var test = @"
@@ -173,10 +174,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop1Fail()
         {
             var test = @"
@@ -227,10 +228,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop2Fail()
         {
             var test = @"
@@ -281,10 +282,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop3Fail()
         {
             var test = @"
@@ -334,10 +335,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop4Fail()
         {
             var test = @"
@@ -389,10 +390,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop5Fail()
         {
             var test = @"
@@ -443,10 +444,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop6Fail()
         {
             var test = @"
@@ -499,10 +500,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop7Fail()
         {
             var test = @"
@@ -554,10 +555,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop8Fail()
         {
             var test = @"
@@ -609,10 +610,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
+            Assert.FailedAndWarning(test, 2, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop9Fail()
         {
             var test = @"
@@ -663,10 +664,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailedAndWarning(test, 2, 1, isPSharpProgram: false);
+            Assert.FailedAndWarning(test, 2, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop10Fail()
         {
             var test = @"
@@ -718,10 +719,10 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
                 "accesses 'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestWriteAccessAfterSendInLoop11Fail()
         {
             var test = @"
@@ -772,7 +773,7 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
     }
 }

@@ -113,13 +113,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMustHandleFail1()
         {
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M1));
-                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
             });
 
             var config = Configuration.Create();
@@ -141,14 +141,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(config, test, 1, expectedFunc, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMustHandleFail2()
         {
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E());
-                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
             });
 
             var config = Configuration.Create().WithNumberOfIterations(100);
@@ -170,14 +170,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(config, test, 1, expectedFunc, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMustHandleFail3()
         {
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M5));
                 r.SendEvent(m, new Halt());
-                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
                 r.SendEvent(m, new E1());
             });
 
@@ -188,13 +188,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(config, test, 1, new HashSet<string> { bugReport }, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMustHandleSuccess()
         {
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M3));
-                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
                 r.SendEvent(m, new Halt());
             });
 
@@ -202,13 +202,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMustHandleDeferFail()
         {
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var m = r.CreateMachine(typeof(M4));
-                r.SendEvent(m, new E(), new SendOptions { MustHandle = true });
+                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
                 r.SendEvent(m, new Halt());
             });
 

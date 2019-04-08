@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateSends1Fail()
         {
             var test = @"
@@ -63,10 +64,10 @@ class M : Machine
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateSends2Fail()
         {
             var test = @"
@@ -119,10 +120,10 @@ class M : Machine
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateSends3Fail()
         {
             var test = @"
@@ -169,10 +170,10 @@ class M : Machine
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateSends4Fail()
         {
             var test = @"
@@ -220,10 +221,10 @@ class M : Machine
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDuplicateSends5Fail()
         {
             var test = @"
@@ -276,7 +277,7 @@ class M : Machine
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'letter', the ownership of which has already been given up.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
     }
 }

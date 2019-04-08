@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement1()
         {
             var test = @"
@@ -85,10 +86,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement2()
         {
             var test = @"
@@ -160,10 +161,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement1Fail()
         {
             var test = @"
@@ -233,10 +234,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement2Fail()
         {
             var test = @"
@@ -302,10 +303,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement3Fail()
         {
             var test = @"
@@ -375,10 +376,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement4Fail()
         {
             var test = @"
@@ -448,10 +449,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement5Fail()
         {
             var test = @"
@@ -518,10 +519,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement6Fail()
         {
             var test = @"
@@ -588,10 +589,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement7Fail()
         {
             var test = @"
@@ -668,10 +669,10 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 1, isPSharpProgram: false);
+            Assert.Failed(test, 1, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIfStatement8Fail()
         {
             var test = @"
@@ -744,7 +745,7 @@ class M : Machine
  }
 }
 }";
-            this.AssertFailed(test, 2, isPSharpProgram: false);
+            Assert.Failed(test, 2, isPSharpProgram: false);
         }
     }
 }

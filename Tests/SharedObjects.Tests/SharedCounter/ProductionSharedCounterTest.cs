@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProductionSharedCounter1()
         {
             var runtime = PSharpRuntime.Create();
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             Assert.False(failed);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProductionSharedCounter2()
         {
             var runtime = PSharpRuntime.Create();

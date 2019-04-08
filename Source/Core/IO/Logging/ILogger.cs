@@ -16,14 +16,9 @@ namespace Microsoft.PSharp.IO
     public interface ILogger : IDisposable
     {
         /// <summary>
-        /// The configuration that sets the logging verbosity.
+        /// If true, then messages are logged.
         /// </summary>
-        Configuration Configuration { get; set; }
-
-        /// <summary>
-        /// The minimum logging verbosity level (should be >= 0, use 0 to log all messages).
-        /// </summary>
-        int LoggingVerbosity { get; set; }
+        bool IsVerbose { get; set; }
 
         /// <summary>
         /// Writes the specified string value.
@@ -146,12 +141,20 @@ namespace Microsoft.PSharp.IO
         void OnReceive(MachineId machineId, string currStateName, string eventName, bool wasBlocked);
 
         /// <summary>
-        /// Called when a machine enters a wait state.
+        /// Called when a machine waits to receive an event of a specified type.
         /// </summary>
         /// <param name="machineId">Id of the machine that is entering the wait state.</param>
         /// <param name="currStateName">The name of the current state of the machine, if any.</param>
-        /// <param name="eventNames">The names of the specific events being waited for, if any.</param>
-        void OnWait(MachineId machineId, string currStateName, string eventNames);
+        /// <param name="eventType">The type of the event being waited for.</param>
+        void OnWait(MachineId machineId, string currStateName, Type eventType);
+
+        /// <summary>
+        /// Called when a machine waits to receive an event of one of the specified types.
+        /// </summary>
+        /// <param name="machineId">Id of the machine that is entering the wait state.</param>
+        /// <param name="currStateName">The name of the current state of the machine, if any.</param>
+        /// <param name="eventTypes">The types of the events being waited for, if any.</param>
+        void OnWait(MachineId machineId, string currStateName, params Type[] eventTypes);
 
         /// <summary>
         /// Called when an event is sent to a target machine.

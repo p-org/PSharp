@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternalTaskSendingEvent()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(M)); });
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternalTaskInvokingRandom()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(N)); });

@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class NamespaceTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNamespaceDeclaration()
         {
             var test = @"
@@ -23,7 +23,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNamespaceDeclaration2()
         {
             var test = @"
@@ -42,7 +42,7 @@ namespace Bar
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNamespaceDeclarationCompact()
         {
             var test = @"
@@ -56,14 +56,14 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnexpectedTokenWithoutNamespace()
         {
             var test = "private";
             LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
             var test = "namespace { }";
