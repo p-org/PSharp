@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBasicTimerOperation()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBasicPeriodicTimerOperation()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
@@ -147,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDropTimeoutsAfterTimerDisposal()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(100);
@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIllegalDueTimeSpecification()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestIllegalPeriodSpecification()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
@@ -258,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestTimerDisposedByNonOwner()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExplicitHaltWithTimer()
         {
             var configuration = Configuration.Create().WithNumberOfIterations(1000);

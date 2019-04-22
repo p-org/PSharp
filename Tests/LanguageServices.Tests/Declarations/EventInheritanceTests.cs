@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class EventInheritanceTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void NoPayloadOnEither()
         {
             var test = @"
@@ -54,7 +54,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoPayloadInMachine()
         {
             var test = @"
@@ -111,7 +111,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoPayloadOnOtherNamespace()
         {
             var test = @"
@@ -151,7 +151,7 @@ namespace Bar
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoPayloadOnEitherGeneric()
         {
             var test = @"
@@ -196,7 +196,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoPayloadOnBase()
         {
             var test = @"
@@ -247,7 +247,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNoPayloadOnDerived()
         {
             var test = @"
@@ -295,7 +295,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPayloadOnBoth()
         {
             var test = @"
@@ -349,7 +349,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevel()
         {
             var test = @"
@@ -425,7 +425,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevelGeneric()
         {
             // Some generic type params in derived classes are not specified in the same order
@@ -503,7 +503,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAssumeAssertInheritance()
         {
             var test = @"
@@ -585,7 +585,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseEventClassNotDeclared()
         {
             var test = @"
@@ -595,7 +595,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Could not find definition or extern declaration of base event E1.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternOutsideNamespace()
         {
             var test = @"
@@ -606,7 +606,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Must be declared inside a namespace or machine.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternAfterDefinition()
         {
             var test = @"
@@ -618,7 +618,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Event E1 has already been defined earlier in this file.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestDefinitionAfterExtern()
         {
             var test = @"
@@ -630,7 +630,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Event E1 has already been declared \"extern\" earlier in this file.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternWithModifiers()
         {
             var test = @"
@@ -641,7 +641,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("\"extern\" applies only to events and can have no access modifiers.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternWithAssert()
         {
             var test = @"
@@ -652,7 +652,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("\"extern\" cannot have an Assert or Assume specification.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestExternWithAssume()
         {
             var test = @"
@@ -663,7 +663,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("\"extern\" cannot have an Assert or Assume specification.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestBaseGenericButNotReference()
         {
             var test = @"
@@ -674,7 +674,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Mismatch in number of generic type arguments for base event E1.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReferenceGenericButNotBase()
         {
             var test = @"
@@ -685,7 +685,7 @@ namespace Foo {
             LanguageTestUtilities.AssertFailedTestLog("Mismatch in number of generic type arguments for base event E1.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericTypeCountMismatch()
         {
             var test = @"

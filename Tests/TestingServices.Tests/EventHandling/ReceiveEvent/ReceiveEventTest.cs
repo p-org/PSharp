@@ -23,7 +23,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public MachineId Id;
 
             public Config(MachineId id)
-                : base(-1, -1)
             {
                 this.Id = id;
             }
@@ -121,7 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         /// <summary>
         /// P# semantics test: two machines, monitor instantiation parameter.
         /// </summary>
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReceiveEvent()
         {
             var configuration = GetConfiguration();

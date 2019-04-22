@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var e = new E1();
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N1));
-                await this.Runtime.SendEventAndExecute(m, e);
+                await this.Runtime.SendEventAndExecuteAsync(m, e);
                 this.Assert(e.Value == 1);
                 tcs.SetResult(true);
             }
@@ -121,10 +121,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSyncSendBlocks()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N2), new E2(this.Id));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E3());
+                var handled = await this.Runtime.SendEventAndExecuteAsync(m, new E3());
                 this.Assert(handled);
                 tcs.SetResult(true);
             }
@@ -175,15 +175,15 @@ namespace Microsoft.PSharp.Core.Tests
             private async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E2).Id;
-                var handled = await this.Id.Runtime.SendEventAndExecute(creator, new E3());
+                var handled = await this.Id.Runtime.SendEventAndExecuteAsync(creator, new E3());
                 this.Assert(!handled);
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendCycleDoesNotDeadlock()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N3));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E3());
+                var handled = await this.Runtime.SendEventAndExecuteAsync(m, new E3());
                 this.Monitor<SafetyMonitor>(new SE_Returns());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
@@ -273,10 +273,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineHaltsOnSendExec()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             config.EnableMonitorsInProduction = true;
 
             var test = new Action<IMachineRuntime>((r) =>
@@ -311,7 +311,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = (this.ReceivedEvent as Config2).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N4), this.ReceivedEvent);
-                var handled = await this.Runtime.SendEventAndExecute(m, new E3());
+                var handled = await this.Runtime.SendEventAndExecuteAsync(m, new E3());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -350,10 +350,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHandledExceptionOnSendExec()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -373,10 +373,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnHandledExceptionOnSendExec()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -415,7 +415,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N5));
-                var handled = await this.Runtime.SendEventAndExecute(m, new E3());
+                var handled = await this.Runtime.SendEventAndExecuteAsync(m, new E3());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -429,10 +429,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnhandledEventOnSendExec()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;

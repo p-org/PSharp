@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -324,9 +325,9 @@ namespace Microsoft.PSharp.TestingServices
 
                 // If verbosity is turned off, then intercept the program log, and also dispose
                 // the standard output and error streams.
-                if (this.Configuration.Verbose < 2)
+                if (!this.Configuration.IsVerbose)
                 {
-                    runtimeLogger = new InMemoryLogger();
+                    runtimeLogger = new InMemoryLogger(true);
                     runtime.SetLogger(runtimeLogger);
 
                     // Sets the scheduling strategy logger to the in-memory logger.
@@ -393,7 +394,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             finally
             {
-                if (this.Configuration.Verbose < 2)
+                if (!this.Configuration.IsVerbose)
                 {
                     // Restores the standard output and error streams.
                     Console.SetOut(stdOut);

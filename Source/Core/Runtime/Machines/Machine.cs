@@ -29,25 +29,25 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from machine types to a set of all possible states types.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
             new ConcurrentDictionary<Type, HashSet<Type>>();
 
         /// <summary>
         /// Map from machine types to a set of all available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<MachineState>> StateMap =
             new ConcurrentDictionary<Type, HashSet<MachineState>>();
 
         /// <summary>
         /// Map from machine types to a set of all available actions.
         /// </summary>
-        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap =
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap =
             new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
 
         /// <summary>
         /// Checks if the machine state is cached.
         /// </summary>
-        private static ConcurrentDictionary<Type, bool> MachineStateCached =
+        private static readonly ConcurrentDictionary<Type, bool> MachineStateCached =
             new ConcurrentDictionary<Type, bool>();
 
         /// <summary>
@@ -79,41 +79,15 @@ namespace Microsoft.PSharp
         private readonly Dictionary<string, CachedAction> ActionMap;
 
         /// <summary>
-        /// Inbox of the state-machine. Incoming events are
-        /// queued here. Events are dequeued to be processed.
+        /// The inbox of the machine. Incoming events are enqueued here.
+        /// Events are dequeued to be processed.
         /// </summary>
-        private readonly LinkedList<EventInfo> Inbox;
-
-        /// <summary>
-        /// Gets the raised event. If no event has been raised
-        /// this will return null.
-        /// </summary>
-        private EventInfo RaisedEvent;
-
-        /// <summary>
-        /// A list of event wait handlers. They denote the types of events that
-        /// the machine is currently waiting to arrive. Each handler contains an
-        /// optional predicate and an optional action. If the predicate evaluates
-        /// to false, then the received event is deferred. The optional action
-        /// executes when the event is received.
-        /// </summary>
-        private readonly List<EventWaitHandler> EventWaitHandlers;
+        private IEventQueue Inbox;
 
         /// <summary>
         /// Map that contains the active timers.
         /// </summary>
         private readonly Dictionary<TimerInfo, IMachineTimer> Timers;
-
-        /// <summary>
-        /// Completion source that contains the event obtained
-        /// using the receive statement.
-        /// </summary>
-        private TaskCompletionSource<Event> ReceiveCompletionSource;
-
-        /// <summary>
-        /// Is the machine running.
-        /// </summary>
-        private bool IsRunning;
 
         /// <summary>
         /// Is pop invoked in the current action.
@@ -199,16 +173,22 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Machine()
         {
-            this.Inbox = new LinkedList<EventInfo>();
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
-            this.EventWaitHandlers = new List<EventWaitHandler>();
             this.Timers = new Dictionary<TimerInfo, IMachineTimer>();
 
-            this.IsRunning = true;
             this.IsPopInvoked = false;
             this.OnExceptionRequestedGracefulHalt = false;
+        }
+
+        /// <summary>
+        /// Initializes this machine.
+        /// </summary>
+        internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info, IEventQueue inbox)
+        {
+            this.Initialize(runtime, mid, info);
+            this.Inbox = inbox;
         }
 
         /// <summary>
@@ -260,28 +240,72 @@ namespace Microsoft.PSharp
         /// <param name="options">Optional send parameters.</param>
         protected void Send(MachineId mid, Event e, SendOptions options = null)
         {
+            if (e.OperationGroupId == Guid.Empty)
+            {
+                // The event inherits the current machine operation group id,
+                // because the user did not specify a value.
+                e.OperationGroupId = this.Info.OperationGroupId;
+            }
+
             this.Runtime.SendEvent(mid, e, this, options);
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
-        /// <typeparam name="T">Type of the monitor.</typeparam>
-        /// <param name="e">The event to send.</param>
-        protected void Monitor<T>(Event e)
+        /// <param name="e">The event to raise.</param>
+        protected void Raise(Event e)
         {
-            this.Monitor(typeof(T), e);
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
+            this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
+
+            if (e.OperationGroupId == Guid.Empty)
+            {
+                // The event inherits the current machine operation group id,
+                // because the user did not specify a value.
+                e.OperationGroupId = this.Info.OperationGroupId;
+            }
+
+            this.Inbox.Raise(e);
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the specified event.
+        /// Waits to receive an <see cref="Event"/> of the specified type
+        /// that satisfies an optional predicate.
         /// </summary>
-        /// <param name="type">Type of the monitor.</param>
-        /// <param name="e">The event to send.</param>
-        protected void Monitor(Type type, Event e)
+        /// <param name="eventType">The event type.</param>
+        /// <param name="predicate">The optional predicate.</param>
+        /// <returns>The received event.</returns>
+        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate = null)
         {
-            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.Id);
-            this.Runtime.Monitor(type, this, e);
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Runtime.NotifyReceiveCalled(this);
+            return this.Inbox.ReceiveAsync(eventType, predicate);
+        }
+
+        /// <summary>
+        /// Waits to receive an <see cref="Event"/> of the specified types.
+        /// </summary>
+        /// <param name="eventTypes">The event types to wait for.</param>
+        /// <returns>The received event.</returns>
+        protected internal Task<Event> Receive(params Type[] eventTypes)
+        {
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Runtime.NotifyReceiveCalled(this);
+            return this.Inbox.ReceiveAsync(eventTypes);
+        }
+
+        /// <summary>
+        /// Waits to receive an <see cref="Event"/> of the specified types
+        /// that satisfy the specified predicates.
+        /// </summary>
+        /// <param name="events">Event types and predicates.</param>
+        /// <returns>The received event.</returns>
+        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        {
+            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Runtime.NotifyReceiveCalled(this);
+            return this.Inbox.ReceiveAsync(events);
         }
 
         /// <summary>
@@ -336,86 +360,6 @@ namespace Microsoft.PSharp
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
                 "Machine '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
             this.Raise(new PushStateEvent(s));
-        }
-
-        /// <summary>
-        /// Raises an <see cref="Event"/> internally at the end of the current action.
-        /// </summary>
-        /// <param name="e">The event to raise.</param>
-        protected void Raise(Event e)
-        {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
-            this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
-
-            var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, GetStateNameForLogging(this.CurrentState));
-            this.RaisedEvent = new EventInfo(e, eventOrigin);
-            this.Runtime.NotifyRaisedEvent(this, this.RaisedEvent);
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types.
-        /// </summary>
-        /// <param name="eventTypes">The event types to wait for.</param>
-        /// <returns>The received event.</returns>
-        protected internal Task<Event> Receive(params Type[] eventTypes)
-        {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
-            this.Runtime.NotifyReceiveCalled(this);
-
-            lock (this.Inbox)
-            {
-                this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
-                foreach (var type in eventTypes)
-                {
-                    this.EventWaitHandlers.Add(new EventWaitHandler(type));
-                }
-            }
-
-            return this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified type
-        /// that satisfies the specified predicate.
-        /// </summary>
-        /// <param name="eventType">The event type.</param>
-        /// <param name="predicate">The used predicate.</param>
-        /// <returns>The received event.</returns>
-        protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate)
-        {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
-            this.Runtime.NotifyReceiveCalled(this);
-
-            lock (this.Inbox)
-            {
-                this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
-                this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
-            }
-
-            return this.WaitOnEvent();
-        }
-
-        /// <summary>
-        /// Waits to receive an <see cref="Event"/> of the specified types
-        /// that satisfy the specified predicates.
-        /// </summary>
-        /// <param name="events">Event types and predicates.</param>
-        /// <returns>The received event.</returns>
-        protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
-        {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
-            this.Runtime.NotifyReceiveCalled(this);
-
-            lock (this.Inbox)
-            {
-                this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
-                foreach (var e in events)
-                {
-                    this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
-                }
-            }
-
-            return this.WaitOnEvent();
         }
 
         /// <summary>
@@ -524,8 +468,29 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Invokes the specified monitor with the specified <see cref="Event"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the monitor.</typeparam>
+        /// <param name="e">The event to send.</param>
+        protected void Monitor<T>(Event e)
+        {
+            this.Monitor(typeof(T), e);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the specified event.
+        /// </summary>
+        /// <param name="type">Type of the monitor.</param>
+        /// <param name="e">The event to send.</param>
+        protected void Monitor(Type type, Event e)
+        {
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.Id);
+            this.Runtime.Monitor(type, this, e);
+        }
+
+        /// <summary>
         /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-       /// </summary>
+        /// </summary>
         protected void Assert(bool predicate)
         {
             this.Runtime.Assert(predicate);
@@ -564,249 +529,72 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Enqueues the specified <see cref="EventInfo"/>.
+        /// Enqueues the specified event and its optional metadata.
         /// </summary>
-        internal void Enqueue(EventInfo eventInfo, ref bool runNewHandler)
+        internal EnqueueStatus Enqueue(Event e, EventInfo info)
         {
-            lock (this.Inbox)
+            if (this.Info.IsHalted)
             {
-                if (this.Info.IsHalted)
-                {
-                    return;
-                }
-
-                EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                    val => val.EventType == eventInfo.EventType &&
-                           val.Predicate(eventInfo.Event));
-                if (eventWaitHandler != null)
-                {
-                    this.EventWaitHandlers.Clear();
-                    this.Runtime.NotifyReceivedEvent(this, eventInfo);
-                    this.ReceiveCompletionSource.SetResult(eventInfo.Event);
-                    return;
-                }
-
-                this.Runtime.Logger.OnEnqueue(this.Id, eventInfo.EventName);
-
-                this.Inbox.AddLast(eventInfo);
-
-                if (eventInfo.Event.Assert >= 0)
-                {
-                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assert,
-                        "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
-                        eventInfo.Event.Assert, eventInfo.EventName, this);
-                }
-
-                if (eventInfo.Event.Assume >= 0)
-                {
-                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
-                    this.Assert(eventCount <= eventInfo.Event.Assume,
-                        "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
-                        eventInfo.Event.Assume, eventInfo.EventName, this);
-                }
-
-                if (!this.IsRunning && this.Runtime.CheckStartEventHandler(this))
-                {
-                    this.IsRunning = true;
-                    runNewHandler = true;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Dequeues the next available <see cref="EventInfo"/> from the
-        /// inbox if there is one available, else returns null.
-        /// </summary>
-        /// <param name="checkOnly">Only check if event can get dequeued, do not modify inbox.</param>
-        internal EventInfo TryDequeueEvent(bool checkOnly = false)
-        {
-            EventInfo nextAvailableEventInfo = null;
-
-            // Iterates through the events in the inbox.
-            var node = this.Inbox.First;
-            while (node != null)
-            {
-                var nextNode = node.Next;
-                var currentEventInfo = node.Value;
-                if (currentEventInfo.EventType.IsGenericType)
-                {
-                    var genericTypeDefinition = currentEventInfo.EventType.GetGenericTypeDefinition();
-                    var ignored = false;
-                    foreach (var tup in this.CurrentActionHandlerMap)
-                    {
-                        if (!(tup.Value is IgnoreAction))
-                        {
-                            continue;
-                        }
-
-                        if (tup.Key.IsGenericType && tup.Key.GetGenericTypeDefinition().Equals(
-                            genericTypeDefinition.GetGenericTypeDefinition()))
-                        {
-                            ignored = true;
-                            break;
-                        }
-                    }
-
-                    if (ignored)
-                    {
-                        if (!checkOnly)
-                        {
-                            // Removes an ignored event.
-                            this.Inbox.Remove(node);
-                        }
-
-                        node = nextNode;
-                        continue;
-                    }
-                }
-
-                if (this.IsIgnored(currentEventInfo))
-                {
-                    if (!checkOnly)
-                    {
-                        // Removes an ignored event.
-                        this.Inbox.Remove(node);
-                    }
-
-                    node = nextNode;
-                    continue;
-                }
-
-                // Skips a deferred event.
-                if (!this.IsDeferred(currentEventInfo.EventType))
-                {
-                    nextAvailableEventInfo = currentEventInfo;
-                    if (!checkOnly)
-                    {
-                        this.Inbox.Remove(node);
-                    }
-
-                    break;
-                }
-
-                node = nextNode;
+                return EnqueueStatus.Dropped;
             }
 
-            return nextAvailableEventInfo;
-        }
-
-        /// <summary>
-        /// Returns the raised <see cref="EventInfo"/> if
-        /// there is one available, else returns null.
-        /// </summary>
-        private EventInfo TryGetRaisedEvent()
-        {
-            EventInfo raisedEventInfo = null;
-            if (this.RaisedEvent != null)
-            {
-                raisedEventInfo = this.RaisedEvent;
-                this.RaisedEvent = null;
-
-                // Checks if the raised event is ignored.
-                if (this.IsIgnored(raisedEventInfo))
-                {
-                    raisedEventInfo = null;
-                }
-            }
-
-            return raisedEventInfo;
-        }
-
-        /// <summary>
-        /// Returns the default <see cref="EventInfo"/>.
-        /// </summary>
-        private EventInfo GetDefaultEvent()
-        {
-            this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
-
-            var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, GetStateNameForLogging(this.CurrentState));
-            return new EventInfo(new Default(), eventOrigin);
+            return this.Inbox.Enqueue(e, info);
         }
 
         /// <summary>
         /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        internal async Task<bool> RunEventHandler()
+        internal async Task RunEventHandlerAsync()
         {
             if (this.Info.IsHalted)
             {
-                return true;
+                return;
             }
 
-            bool completed = false;
-            Event previouslyDequeuedEvent = null;
-
+            Event lastDequeuedEvent = null;
             while (!this.Info.IsHalted && this.Runtime.IsRunning)
             {
-                var defaultHandling = false;
-                var dequeued = false;
-
-                // Try to get the raised event, if there is one. Raised events
-                // have priority over the events in the inbox.
-                EventInfo nextEventInfo = this.TryGetRaisedEvent();
-
-                if (nextEventInfo is null)
+                (DequeueStatus status, Event e, EventInfo info) = this.Inbox.Dequeue();
+                if (status is DequeueStatus.Success)
                 {
-                    var hasDefaultHandler = this.HasDefaultHandler();
-                    if (hasDefaultHandler)
-                    {
-                        this.Runtime.NotifyDefaultEventHandlerCheck(this);
-                    }
+                    // The machine inherits the operation group id of the dequeued event.
+                    this.Info.OperationGroupId = e.OperationGroupId;
 
-                    lock (this.Inbox)
-                    {
-                        // Try to dequeue the next event, if there is one.
-                        nextEventInfo = this.TryDequeueEvent();
-                        dequeued = nextEventInfo != null;
-
-                        if (nextEventInfo is null && hasDefaultHandler)
-                        {
-                            // Else, get the default event.
-                            nextEventInfo = this.GetDefaultEvent();
-                            defaultHandling = true;
-                        }
-
-                        if (nextEventInfo is null)
-                        {
-                            completed = true;
-                            this.IsRunning = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (dequeued)
-                {
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
-                    this.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    this.Runtime.NotifyDequeuedEvent(this, e, info);
                 }
-                else if (defaultHandling)
+                else if (status is DequeueStatus.Raised)
                 {
+                    this.Runtime.NotifyHandleRaisedEvent(this, e);
+                }
+                else if (status is DequeueStatus.Default)
+                {
+                    this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
+
                     // If the default event was handled, then notify the runtime.
                     // This is only used during bug-finding, because the runtime
                     // has to schedule a machine between default handlers.
                     this.Runtime.NotifyDefaultHandlerFired(this);
                 }
-                else
+                else if (status is DequeueStatus.NotAvailable)
                 {
-                    this.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
+                    break;
                 }
 
                 // Assigns the received event.
-                this.ReceivedEvent = nextEventInfo.Event;
+                this.ReceivedEvent = e;
 
-                if (dequeued)
+                if (status is DequeueStatus.Success)
                 {
                     // Inform the user of a successful dequeue once ReceivedEvent is set.
-                    previouslyDequeuedEvent = nextEventInfo.Event;
-                    await this.OnEventDequeueAsync(previouslyDequeuedEvent);
+                    lastDequeuedEvent = e;
+                    await this.OnEventDequeueAsync(lastDequeuedEvent);
                 }
 
-                if (nextEventInfo.Event is TimerElapsedEvent timeoutEvent &&
+                if (e is TimerElapsedEvent timeoutEvent &&
                     timeoutEvent.Info.Period.TotalMilliseconds < 0)
                 {
                     // If the timer is not periodic, then dispose it.
@@ -814,18 +602,16 @@ namespace Microsoft.PSharp
                 }
 
                 // Handles next event.
-                await this.HandleEvent(nextEventInfo.Event);
+                await this.HandleEvent(e);
 
-                if (this.RaisedEvent is null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
+                if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.Info.IsHalted)
                 {
                     // Inform the user that the machine is done handling the current event.
                     // The machine will either go idle or dequeue its next event.
-                    await this.OnEventHandledAsync(previouslyDequeuedEvent);
-                    previouslyDequeuedEvent = null;
+                    await this.OnEventHandledAsync(lastDequeuedEvent);
+                    lastDequeuedEvent = null;
                 }
             }
-
-            return completed;
         }
 
         /// <summary>
@@ -1105,7 +891,7 @@ namespace Microsoft.PSharp
         private async Task GotoState(Type s, string onExitActionName)
         {
             this.Logger.OnGoto(this.Id, this.CurrentStateName,
-                $"{s.DeclaringType}.{GetStateNameForLogging(s)}");
+                $"{s.DeclaringType}.{NameResolver.GetStateNameForLogging(s)}");
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
@@ -1264,68 +1050,49 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Waits for an event to arrive.
+        /// Checks if the specified event is ignored in the current machine state.
         /// </summary>
-        private Task<Event> WaitOnEvent()
+        internal bool IsEventIgnoredInCurrentState(Event e)
         {
-            // Dequeues the first event that the machine waits
-            // to receive, if there is one in the inbox.
-            EventInfo eventInfoInInbox = null;
-            lock (this.Inbox)
-            {
-                var node = this.Inbox.First;
-                while (node != null)
-                {
-                    var nextNode = node.Next;
-                    var currentEventInfo = node.Value;
-
-                    EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                        val => val.EventType == currentEventInfo.EventType &&
-                               val.Predicate(currentEventInfo.Event));
-
-                    if (eventWaitHandler != null)
-                    {
-                        this.Runtime.Logger.OnReceive(this.Id, this.CurrentStateName, currentEventInfo.EventName, wasBlocked: false);
-                        this.EventWaitHandlers.Clear();
-                        this.ReceiveCompletionSource.SetResult(currentEventInfo.Event);
-                        eventInfoInInbox = currentEventInfo;
-                        this.Inbox.Remove(node);
-                        break;
-                    }
-
-                    node = nextNode;
-                }
-            }
-
-            this.Runtime.NotifyWaitEvents(this, eventInfoInInbox);
-
-            return this.ReceiveCompletionSource.Task;
-        }
-
-        /// <summary>
-        /// Checks if the specified event should be ignored.
-        /// </summary>
-        private bool IsIgnored(EventInfo eventInfo)
-        {
-            if (eventInfo.Event is TimerElapsedEvent timeoutEvent &&
-                !this.Timers.ContainsKey(timeoutEvent.Info))
+            if (e is TimerElapsedEvent timeoutEvent && !this.Timers.ContainsKey(timeoutEvent.Info))
             {
                 // The timer that created this timeout event is not active.
                 return true;
             }
 
+            Type eventType = e.GetType();
+
+            if (eventType.IsGenericType)
+            {
+                var genericTypeDefinition = eventType.GetGenericTypeDefinition();
+                foreach (var kvp in this.CurrentActionHandlerMap)
+                {
+                    if (!(kvp.Value is IgnoreAction))
+                    {
+                        continue;
+                    }
+
+                    // TODO: make sure this logic and/or simplify.
+                    if (kvp.Key.IsGenericType && kvp.Key.GetGenericTypeDefinition().Equals(
+                        genericTypeDefinition.GetGenericTypeDefinition()))
+                    {
+                        return true;
+                    }
+                }
+            }
+
             // If a transition is defined, then the event is not ignored.
-            if (this.GotoTransitions.ContainsKey(eventInfo.EventType) ||
-                this.PushTransitions.ContainsKey(eventInfo.EventType) ||
+            if (this.GotoTransitions.ContainsKey(eventType) ||
+                this.PushTransitions.ContainsKey(eventType) ||
                 this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
                 this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
             {
                 return false;
             }
 
-            if (this.CurrentActionHandlerMap.ContainsKey(eventInfo.EventType))
+            if (this.CurrentActionHandlerMap.ContainsKey(eventType))
             {
-                return this.CurrentActionHandlerMap[eventInfo.EventType] is IgnoreAction;
+                return this.CurrentActionHandlerMap[eventType] is IgnoreAction;
             }
 
             if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent)) &&
@@ -1338,21 +1105,23 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the specified event should be deferred.
+        /// Checks if the specified event is deferred in the current machine state.
         /// </summary>
-        private bool IsDeferred(Type e)
+        internal bool IsEventDeferredInCurrentState(Event e)
         {
-            // if transition is defined, then no
-            if (this.GotoTransitions.ContainsKey(e) || this.PushTransitions.ContainsKey(e) ||
+            Type eventType = e.GetType();
+
+            // If a transition is defined, then the event is not deferred.
+            if (this.GotoTransitions.ContainsKey(eventType) || this.PushTransitions.ContainsKey(eventType) ||
                 this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
                 this.PushTransitions.ContainsKey(typeof(WildCardEvent)))
             {
                 return false;
             }
 
-            if (this.CurrentActionHandlerMap.ContainsKey(e))
+            if (this.CurrentActionHandlerMap.ContainsKey(eventType))
             {
-                return this.CurrentActionHandlerMap[e] is DeferAction;
+                return this.CurrentActionHandlerMap[eventType] is DeferAction;
             }
 
             if (this.CurrentActionHandlerMap.ContainsKey(typeof(WildCardEvent)) &&
@@ -1365,14 +1134,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine has a default handler.
+        /// Checks if a default handler is installed in current state.
         /// </summary>
-        private bool HasDefaultHandler()
-        {
-            return this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
+        internal bool IsDefaultHandlerInstalledInCurrentState() =>
+            this.CurrentActionHandlerMap.ContainsKey(typeof(Default)) ||
                 this.GotoTransitions.ContainsKey(typeof(Default)) ||
                 this.PushTransitions.ContainsKey(typeof(Default));
-        }
 
         /// <summary>
         /// Returns the cached state of this machine.
@@ -1385,30 +1152,21 @@ namespace Microsoft.PSharp
 
                 hash = (hash * 31) + this.GetType().GetHashCode();
                 hash = (hash * 31) + this.Id.Value.GetHashCode();
-                hash = (hash * 31) + this.IsRunning.GetHashCode();
-
+                hash = (hash * 31) + this.Info.IsEventHandlerRunning.GetHashCode();
                 hash = (hash * 31) + this.Info.IsHalted.GetHashCode();
                 hash = (hash * 31) + this.Info.ProgramCounter;
-
-                if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
-                {
-                    // Adds the user-defined hashed machine state.
-                    hash = (hash * 31) + this.HashedState;
-                }
 
                 foreach (var state in this.StateStack)
                 {
                     hash = (hash * 31) + state.GetType().GetHashCode();
                 }
 
-                foreach (var e in this.Inbox)
+                hash = (hash * 31) + this.Inbox.GetCachedState();
+
+                if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
                 {
-                    hash = (hash * 31) + e.EventType.GetHashCode();
-                    if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
-                    {
-                        // Adds the user-defined hashed event state.
-                        hash = (hash * 31) + e.Event.HashedState;
-                    }
+                    // Adds the user-defined hashed machine state.
+                    hash = (hash * 31) + this.HashedState;
                 }
 
                 return hash;
@@ -1571,7 +1329,7 @@ namespace Microsoft.PSharp
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, "Machine '{0}' must declare a start state.", this.Id);
-            this.Assert(initialStates.Count == 1, "Machine '{0}' can not declare more than one start states.", this.Id);
+            this.Assert(initialStates.Count is 1, "Machine '{0}' can not declare more than one start states.", this.Id);
 
             this.DoStatePush(initialStates[0]);
 
@@ -1603,21 +1361,6 @@ namespace Microsoft.PSharp
             this.Logger.OnStopTimer(info);
             this.Timers.Remove(info);
             timer.Dispose();
-        }
-
-        /// <summary>
-        /// Returns the names of the events that the machine
-        /// is waiting to receive. This is not thread safe.
-        /// </summary>
-        internal string GetEventWaitHandlerNames()
-        {
-            string events = string.Empty;
-            foreach (var ewh in this.EventWaitHandlers)
-            {
-                events += " '" + ewh.EventType.FullName + "'";
-            }
-
-            return events;
         }
 
         /// <summary>
@@ -1670,8 +1413,7 @@ namespace Microsoft.PSharp
 
             do
             {
-                method = machineType.GetMethod(
-                    actionName,
+                method = machineType.GetMethod(actionName,
                     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy,
                     Type.DefaultBinder, Array.Empty<Type>(), null);
                 machineType = machineType.BaseType;
@@ -1679,7 +1421,7 @@ namespace Microsoft.PSharp
             while (method is null && machineType != typeof(Machine));
 
             this.Assert(method != null, "Cannot detect action declaration '{0}' in machine '{1}'.", actionName, this.GetType().Name);
-            this.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine '{1}' must have 0 formal parameters.",
+            this.Assert(method.GetParameters().Length is 0, "Action '{0}' in machine '{1}' must have 0 formal parameters.",
                 method.Name, this.GetType().Name);
 
             if (method.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)
@@ -1695,12 +1437,6 @@ namespace Microsoft.PSharp
 
             return method;
         }
-
-        /// <summary>
-        /// Returns the state name to be used for logging purposes.
-        /// </summary>
-        internal static string GetStateNameForLogging(Type state) =>
-            state is null ? "None" : NameResolver.GetQualifiedStateName(state);
 
         /// <summary>
         /// Returns the set of all states in the machine (for code coverage).
@@ -1883,27 +1619,23 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HaltMachine()
         {
-            // Dispose any active timers.
+            this.Info.IsHalted = true;
+            this.ReceivedEvent = null;
+
+            // Close the inbox, which will stop any subsequent enqueues.
+            this.Inbox.Close();
+
+            this.Logger.OnHalt(this.Id, this.Inbox.Size);
+            this.Runtime.NotifyHalted(this);
+
+            // Dispose any held resources.
+            this.Inbox.Dispose();
             foreach (var timer in this.Timers.Keys.ToList())
             {
                 this.UnregisterTimer(timer);
             }
 
-            var inboxContents = new LinkedList<EventInfo>();
-
-            lock (this.Inbox)
-            {
-                this.Info.IsHalted = true;
-                inboxContents = new LinkedList<EventInfo>(this.Inbox);
-
-                this.Inbox.Clear();
-                this.EventWaitHandlers.Clear();
-                this.ReceivedEvent = null;
-            }
-
-            this.Runtime.NotifyHalted(this, inboxContents);
-
-            // Invoke user callback outside the lock.
+            // Invoke user callback.
             this.OnHalt();
         }
     }

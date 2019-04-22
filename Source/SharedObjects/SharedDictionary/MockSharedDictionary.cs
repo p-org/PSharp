@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 
-using Microsoft.PSharp.TestingServices;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.SharedObjects
 {

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUsingStatementFail()
         {
             var test = @"
@@ -67,7 +68,7 @@ class M : Machine
 }";
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
                 "'letter' after giving up its ownership.";
-            this.AssertFailed(test, 1, error, isPSharpProgram: false);
+            Assert.Failed(test, 1, error, isPSharpProgram: false);
         }
     }
 }

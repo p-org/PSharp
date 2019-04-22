@@ -198,10 +198,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnExceptionCalledOnce1()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -225,10 +225,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnExceptionCalledOnce2()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -250,10 +250,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnExceptionCalledOnceAsync1()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -277,10 +277,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnExceptionCalledOnceAsync2()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -302,10 +302,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnExceptionCanHalt()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -327,10 +327,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnHandledEventCanHalt()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;

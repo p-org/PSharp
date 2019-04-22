@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHandledExceptionOnSendExec()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnHandledExceptionOnSendExec()
         {
             var test = new Action<IMachineRuntime>((r) =>

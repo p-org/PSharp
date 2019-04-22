@@ -387,10 +387,10 @@ namespace Microsoft.PSharp
         public string RemoteApplicationFilePath;
 
         /// <summary>
-        /// Verbosity level.
+        /// If true, then messages are logged.
         /// </summary>
         [DataMember]
-        public int Verbose;
+        public bool IsVerbose;
 
         /// <summary>
         /// Shows warnings.
@@ -505,7 +505,7 @@ namespace Microsoft.PSharp
             this.NumberOfContainers = 1;
             this.RemoteApplicationFilePath = string.Empty;
 
-            this.Verbose = 1;
+            this.IsVerbose = false;
             this.ShowWarnings = false;
             this.EnableDebugging = false;
             this.EnableProfiling = false;
@@ -529,11 +529,22 @@ namespace Microsoft.PSharp
         /// Updates the configuration with verbose output enabled
         /// and returns it.
         /// </summary>
-        /// <param name="level">Verbosity level</param>
-        /// <returns>Configuration</returns>
+        /// <param name="isVerbose">If true, then messages are logged.</param>
+        public Configuration WithVerbosityEnabled(bool isVerbose = true)
+        {
+            this.IsVerbose = isVerbose;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with verbose output enabled
+        /// and returns it.
+        /// </summary>
+        /// <param name="level">The verbosity level.</param>
+        [Obsolete("WithVerbosityEnabled(int level) is deprecated; use WithVerbosityEnabled(bool isVerbose) instead.")]
         public Configuration WithVerbosityEnabled(int level)
         {
-            this.Verbose = level;
+            this.IsVerbose = level > 0;
             return this;
         }
 

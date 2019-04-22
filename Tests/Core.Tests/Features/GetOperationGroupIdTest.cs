@@ -23,11 +23,8 @@ namespace Microsoft.PSharp.Core.Tests
         {
             public MachineId Id;
 
-            public E()
-            {
-            }
-
-            public E(MachineId id)
+            public E(MachineId id, Guid operationGroupId)
+                : base(operationGroupId)
             {
                 this.Id = id;
             }
@@ -59,7 +56,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                this.Runtime.SendEvent(this.Id, new E(this.Id), OperationGroup);
+                this.Runtime.SendEvent(this.Id, new E(this.Id, OperationGroup));
             }
 
             private void CheckEvent()
@@ -71,7 +68,7 @@ namespace Microsoft.PSharp.Core.Tests
 
         private void AssertSucceeded(Type machine)
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var failed = false;
@@ -91,13 +88,13 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGetOperationGroupIdNotSet()
         {
             this.AssertSucceeded(typeof(M1));
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGetOperationGroupIdSet()
         {
             this.AssertSucceeded(typeof(M2));

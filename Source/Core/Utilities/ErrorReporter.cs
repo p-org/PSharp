@@ -27,18 +27,15 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Initializes a new instance of the <see cref="ErrorReporter"/> class.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="logger">ILogger</param>
         internal ErrorReporter(Configuration configuration, ILogger logger)
         {
             this.Configuration = configuration;
-            this.Logger = logger ?? new ConsoleLogger();
+            this.Logger = logger ?? new ConsoleLogger(true);
         }
 
         /// <summary>
         /// Reports an error, followed by the current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public void WriteErrorLine(string value)
         {
             this.Write("Error: ", ConsoleColor.Red);
@@ -49,7 +46,6 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Reports a warning, followed by the current line terminator.
         /// </summary>
-        /// <param name="value">Text</param>
         public void WriteWarningLine(string value)
         {
             if (this.Configuration.ShowWarnings)
@@ -63,11 +59,9 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Writes the specified string value.
         /// </summary>
-        /// <param name="value">Text</param>
-        /// <param name="color">ConsoleColor</param>
         private void Write(string value, ConsoleColor color)
         {
-            ConsoleColor previousForegroundColor = default(ConsoleColor);
+            ConsoleColor previousForegroundColor = default;
             if (this.Configuration.EnableColoredConsoleOutput)
             {
                 previousForegroundColor = Console.ForegroundColor;

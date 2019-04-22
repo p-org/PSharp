@@ -8,7 +8,7 @@ using System.Reflection;
 
 using Microsoft.PSharp.Runtime;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// The P# test harness machine. This is the root machine

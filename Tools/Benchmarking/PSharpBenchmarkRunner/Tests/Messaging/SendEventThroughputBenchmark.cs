@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.PSharp.Runtime;
 
-namespace Microsoft.PSharp.Benchmarking
+namespace Microsoft.PSharp.Benchmarking.Messaging
 {
     [ClrJob(baseline: true), CoreJob]
     [MemoryDiagnoser]
     [MinColumn, MaxColumn, MeanColumn, Q1Column, Q3Column, RankColumn]
     [MarkdownExporter, HtmlExporter, CsvExporter, CsvMeasurementsExporter, RPlotExporter]
-    public class MessagingThroughputBenchmark
+    public class SendEventThroughputBenchmark
     {
         private class SetupProducerEvent : Event
         {
@@ -60,10 +60,7 @@ namespace Microsoft.PSharp.Benchmarking
         {
             private TaskCompletionSource<bool> TcsSetup;
             private TaskCompletionSource<bool> TcsExperiment;
-
             private MachineId[] Consumers;
-            private Event Message;
-
             private long NumConsumers;
             private long NumMessages;
             private long Counter;
@@ -83,7 +80,6 @@ namespace Microsoft.PSharp.Benchmarking
                 this.NumMessages = (this.ReceivedEvent as SetupProducerEvent).NumMessages;
 
                 this.Consumers = new MachineId[this.NumConsumers];
-                this.Message = new Message();
                 this.Counter = 0;
 
                 for (int i = 0; i < this.NumConsumers; i++)
@@ -115,7 +111,7 @@ namespace Microsoft.PSharp.Benchmarking
                 this.Counter = 0;
                 for (int i = 0; i < this.NumMessages; i++)
                 {
-                    this.Send(this.Consumers[i % this.NumConsumers], this.Message);
+                    this.Send(this.Consumers[i % this.NumConsumers], new Message());
                 }
             }
 
@@ -159,10 +155,10 @@ namespace Microsoft.PSharp.Benchmarking
             }
         }
 
-        [Params(1, 10, 100, 1000)]
+        [Params(10, 100, 1000, 10000)]
         public int NumConsumers { get; set; }
 
-        private static int NumMessages => 100000;
+        private static int NumMessages => 1000000;
 
         private ProductionRuntime Runtime;
         private MachineId ProducerMachine;
@@ -184,7 +180,7 @@ namespace Microsoft.PSharp.Benchmarking
         }
 
         [Benchmark]
-        public void MeasureMessagingThroughput()
+        public void MeasureEventSendingThroughput()
         {
             this.Runtime.SendEvent(this.ProducerMachine, new StartExperiment());
             this.ExperimentAwaiter.Task.Wait();

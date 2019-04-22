@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.SchedulingStrategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -141,7 +142,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 lock (current)
                 {
-                    if (!current.IsEventHandlerRunning)
+                    if (!current.IsInboxHandlerRunning)
                     {
                         return;
                     }
@@ -226,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    while (!info.IsEventHandlerRunning)
+                    while (!info.IsInboxHandlerRunning)
                     {
                         System.Threading.Monitor.Wait(info);
                     }
@@ -299,7 +300,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             lock (info)
             {
-                info.IsEventHandlerRunning = true;
+                info.IsInboxHandlerRunning = true;
                 System.Threading.Monitor.PulseAll(info);
                 while (!info.IsActive)
                 {
@@ -503,7 +504,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;
 
-                if (machineInfo.IsEventHandlerRunning)
+                if (machineInfo.IsInboxHandlerRunning)
                 {
                     lock (machineInfo)
                     {

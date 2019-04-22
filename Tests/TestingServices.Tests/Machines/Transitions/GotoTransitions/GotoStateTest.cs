@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoMachineState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoMonitorState()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -20,11 +20,11 @@ namespace Microsoft.PSharp.Core.Tests
 
         private class Configure : Event
         {
-            public TaskCompletionSource<bool> TCS;
+            public TaskCompletionSource<bool> Tcs;
 
             public Configure(TaskCompletionSource<bool> tcs)
             {
-                this.TCS = tcs;
+                this.Tcs = tcs;
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var tcs = (this.ReceivedEvent as Configure).TCS;
+                var tcs = (this.ReceivedEvent as Configure).Tcs;
                 try
                 {
                     this.Assert(false);
@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var tcs = (this.ReceivedEvent as Configure).TCS;
+                var tcs = (this.ReceivedEvent as Configure).Tcs;
                 try
                 {
                     throw new InvalidOperationException();
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAssertFailureNoEventHandler()
         {
             var runtime = PSharpRuntime.Create();
@@ -81,10 +81,10 @@ namespace Microsoft.PSharp.Core.Tests
             tcs.Task.Wait();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAssertFailureEventHandler()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcsFail = new TaskCompletionSource<bool>();
@@ -112,10 +112,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnhandledExceptionEventHandler()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var tcsFail = new TaskCompletionSource<bool>();

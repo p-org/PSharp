@@ -539,7 +539,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingAbstractState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -551,7 +551,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingStateDuplicateStart()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -563,7 +563,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingStateOnEntry()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingStateOnEntry()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -586,7 +586,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingStateOnEventDoAction()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -598,7 +598,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingStateOnEventDoAction()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -609,7 +609,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingTwoStatesOnEventDoAction()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -620,7 +620,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingDeepStateOnEventDoAction()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -631,7 +631,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingStateOnEventGotoState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -643,7 +643,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingStateOnEventGotoState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -655,7 +655,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingTwoStatesOnEventGotoState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -667,7 +667,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingDeepStateOnEventGotoState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -679,7 +679,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateInheritingStateOnEventPushState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -691,7 +691,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingStateOnEventPushState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -703,7 +703,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingTwoStatesOnEventPushState()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -715,7 +715,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineStateOverridingDeepStateOnEventPushState()
         {
             var test = new Action<IMachineRuntime>((r) =>

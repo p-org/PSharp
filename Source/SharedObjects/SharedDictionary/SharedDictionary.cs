@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 
 using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices;
+using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.SharedObjects
 {
@@ -25,9 +25,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>();
             }
-            else if (runtime is TestingServices.TestingRuntime)
+            else if (runtime is TestingRuntime testingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(null, runtime as TestingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(null, testingRuntime);
             }
             else
             {
@@ -46,9 +46,9 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>(comparer);
             }
-            else if (runtime is TestingServices.TestingRuntime)
+            else if (runtime is TestingRuntime testingRuntime)
             {
-                return new MockSharedDictionary<TKey, TValue>(comparer, runtime as TestingRuntime);
+                return new MockSharedDictionary<TKey, TValue>(comparer, testingRuntime);
             }
             else
             {

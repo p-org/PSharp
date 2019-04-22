@@ -50,10 +50,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnDroppedCalled1()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
@@ -90,10 +90,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnDroppedCalled2()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
@@ -114,10 +114,10 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOnDroppedParams()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 var called = false;
@@ -225,10 +225,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProcessedOrDropped()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             config.EnableMonitorsInProduction = true;
 
             var test = new Action<IMachineRuntime>((r) =>

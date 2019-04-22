@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestHaltCalled()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestReceiveOnHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -178,7 +178,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestRaiseOnHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoOnHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAPIsOnHalt()
         {
             var test = new Action<IMachineRuntime>((r) =>

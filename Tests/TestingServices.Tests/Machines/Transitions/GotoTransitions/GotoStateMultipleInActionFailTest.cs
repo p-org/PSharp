@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail3()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail4()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail5()
         {
             var test = new Action<IMachineRuntime>((r) =>

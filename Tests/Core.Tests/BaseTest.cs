@@ -21,8 +21,8 @@ namespace Microsoft.PSharp.Core.Tests
 
         protected void Run(Configuration configuration, Action<IMachineRuntime> test)
         {
-            var logger = new ThreadSafeInMemoryLogger();
             var outputLogger = new Common.TestOutputLogger(this.TestOutput);
+            var logger = new ThreadSafeInMemoryLogger(configuration.IsVerbose);
 
             try
             {
@@ -36,7 +36,12 @@ namespace Microsoft.PSharp.Core.Tests
             }
             finally
             {
-                this.TestOutput.WriteLine(logger.ToString());
+                string output = logger.ToString();
+                if (output.Length > 0)
+                {
+                    this.TestOutput.WriteLine(logger.ToString());
+                }
+
                 logger.Dispose();
                 outputLogger.Dispose();
             }

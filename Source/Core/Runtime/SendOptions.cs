@@ -3,56 +3,52 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Optional parameters for a send operation.
+    /// Optional parameters for an event send operation that are used during testing.
     /// </summary>
     public class SendOptions
     {
         /// <summary>
-        /// Operation group id.
+        /// True if this event must always be handled, else false.
         /// </summary>
-        public Guid? OperationGroupId;
+        public bool MustHandle { get; private set; }
 
         /// <summary>
-        /// Is this a MustHandle event?
+        /// Specifies that there must not be more than N instances of the
+        /// event in the inbox queue of the receiver machine.
         /// </summary>
-        public bool MustHandle;
+        public int Assert { get; private set; }
+
+        /// <summary>
+        /// Speciﬁes that during testing, an execution that increases the cardinality of the
+        /// event beyond N in the receiver machine inbox queue must not be generated.
+        /// </summary>
+        public int Assume { get; private set; }
+
+        /// <summary>
+        /// User-defined hash of the event payload. The default value is 0. Set it to a custom value
+        /// to improve the accuracy of liveness checking when state-caching is enabled.
+        /// </summary>
+        public int HashedState { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SendOptions"/> class.
         /// </summary>
-        public SendOptions()
+        public SendOptions(bool mustHandle = false, int assert = -1, int assume = -1, int hashedState = 0)
         {
-            this.OperationGroupId = null;
-            this.MustHandle = false;
+            this.MustHandle = mustHandle;
+            this.Assert = assert;
+            this.Assume = assume;
+            this.HashedState = hashedState;
         }
 
         /// <summary>
         /// A string that represents the current options.
         /// </summary>
-        public override string ToString()
-        {
-            return $"SendOptions[Guid='{this.OperationGroupId}', MustHandle='{this.MustHandle}']";
-        }
-
-        /// <summary>
-        /// Implicit conversion from a <see cref="Guid"/>.
-        /// </summary>
-        public static implicit operator SendOptions(Guid operationGroupId)
-        {
-            return new SendOptions { OperationGroupId = operationGroupId };
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="SendOptions"/> from the specified <see cref="Guid"/>.
-        /// </summary>
-        public static SendOptions FromGuid(Guid operationGroupId)
-        {
-            return operationGroupId;
-        }
+        public override string ToString() =>
+            string.Format("SendOptions[MustHandle='{0}', Assert='{1}', Assume='{2}', HashedState='{3}']",
+                this.MustHandle, this.Assert, this.Assume, this.HashedState);
     }
 }

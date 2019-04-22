@@ -22,7 +22,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public MachineId Id;
 
             public Config(MachineId id)
-                : base(-1, -1)
             {
                 this.Id = id;
             }
@@ -30,10 +29,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E1 : Event
         {
-            public E1()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E2 : Event
@@ -41,7 +36,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public int Value;
 
             public E2(int value)
-                : base(1, -1)
             {
                 this.Value = value;
             }
@@ -49,10 +43,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E3 : Event
         {
-            public E3()
-                : base(-1, -1)
-            {
-            }
         }
 
         private class E4 : Event
@@ -61,10 +51,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class Unit : Event
         {
-            public Unit()
-                : base(1, -1)
-            {
-            }
         }
 
         private class RealMachine : Machine
@@ -94,8 +80,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.GhostMachine, new E1());
-                this.Send(this.GhostMachine, new E1()); // error
+                this.Send(this.GhostMachine, new E1(), new SendOptions(assert: 1));
+                this.Send(this.GhostMachine, new E1(), new SendOptions(assert: 1)); // Error.
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -153,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.RealMachine, new E2(100));
+                this.Send(this.RealMachine, new E2(100), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -170,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMaxInstances1AssertionFailure()
         {
             var configuration = GetConfiguration();

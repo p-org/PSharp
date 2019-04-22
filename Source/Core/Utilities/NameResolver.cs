@@ -52,5 +52,10 @@ namespace Microsoft.PSharp.Utilities
 
             return name;
         }
+
+        /// <summary>
+        /// Returns the state name to be used for logging purposes.
+        /// </summary>
+        internal static string GetStateNameForLogging(Type state) => state is null ? "None" : GetQualifiedStateName(state);
     }
 }

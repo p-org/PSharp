@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class GotoStateTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateStatement()
         {
             var test = @"
@@ -53,7 +53,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateStatementWithPSharpAPI()
         {
             var test = @"
@@ -100,7 +100,7 @@ this.Goto<S2>();
             LanguageTestUtilities.AssertRewritten(expected, test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGotoStateStatementWithPSharpAPI2()
         {
             var test = @"

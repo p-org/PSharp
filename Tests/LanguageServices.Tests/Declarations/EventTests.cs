@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class EventTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventDeclaration()
         {
             var test = @"
@@ -51,7 +51,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSimpleGenericEventDeclaration()
         {
             var test = @"
@@ -93,7 +93,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestComplexGenericEventDeclaration()
         {
             var test = @"
@@ -135,7 +135,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventDeclarationWithPayload()
         {
             var test = @"namespace Foo {
@@ -187,7 +187,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestGenericEventDeclarationWithPayload()
         {
             var test = @"
@@ -239,7 +239,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventInMachineDeclaration()
         {
             var test = @"
@@ -308,7 +308,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProtectedEventDeclaration()
         {
             var test = @"
@@ -318,7 +318,7 @@ protected event e;
             LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as protected.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPrivateEventDeclaration()
         {
             var test = @"
@@ -328,14 +328,14 @@ private event e;
             LanguageTestUtilities.AssertFailedTestLog("An event declared in the scope of a namespace cannot be private.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventDeclarationWithoutNamespace()
         {
             var test = "event e;";
             LanguageTestUtilities.AssertFailedTestLog("Must be declared inside a namespace or machine.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventDeclarationWithGenericError1()
         {
             var test = @"
@@ -345,7 +345,7 @@ public event e>;
             LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"assert\", \"assume\", \"<\", \"(\", \";\", \":\".", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventDeclarationWithGenericError2()
         {
             var test = @"
@@ -355,7 +355,7 @@ public event e<;
             LanguageTestUtilities.AssertFailedTestLog("Invalid generic expression.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAbstractEventDeclarationInMachine()
         {
             var test = @"
@@ -369,7 +369,7 @@ abstract event e;
             LanguageTestUtilities.AssertFailedTestLog("An event cannot be declared as abstract.", test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProtectedEventDeclarationInMachine()
         {
             var test = @"

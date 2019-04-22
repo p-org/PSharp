@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestLiveness1()
         {
             var configuration = GetConfiguration();

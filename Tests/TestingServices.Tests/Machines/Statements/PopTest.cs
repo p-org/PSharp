@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestUnbalancedPop()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(M), "M"); });
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, bugReport, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPopDuringOnExit()
         {
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(N), "N"); });

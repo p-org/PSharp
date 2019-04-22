@@ -27,21 +27,21 @@ namespace Microsoft.PSharp
         /// Map from monitor types to a set of all
         /// possible states types.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap =
             new ConcurrentDictionary<Type, HashSet<Type>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available states.
         /// </summary>
-        private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap =
+        private static readonly ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap =
             new ConcurrentDictionary<Type, HashSet<MonitorState>>();
 
         /// <summary>
         /// Map from monitor types to a set of all
         /// available actions.
         /// </summary>
-        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap =
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap =
             new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp
         /// Returns from the execution context, and transitions
         /// the monitor to the given <see cref="MonitorState"/>.
         /// </summary>
-        /// <typeparam name="S">Type of the state</typeparam>
+        /// <typeparam name="S">Type of the state.</typeparam>
         protected void Goto<S>()
             where S : MonitorState
         {
@@ -201,7 +201,7 @@ namespace Microsoft.PSharp
         /// Returns from the execution context, and transitions
         /// the monitor to the given <see cref="MonitorState"/>.
         /// </summary>
-        /// <param name="s">Type of the state</param>
+        /// <param name="s">Type of the state.</param>
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Raises an <see cref="Event"/> internally and returns from the execution context.
         /// </summary>
-        /// <param name="e">Event</param>
+        /// <param name="e">The event to raise.</param>
         protected void Raise(Event e)
         {
             // If the event is null, then report an error and exit.
@@ -222,27 +222,21 @@ namespace Microsoft.PSharp
 
             var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, NameResolver.GetQualifiedStateName(this.CurrentState));
             EventInfo raisedEvent = new EventInfo(e, eventOrigin);
-            this.Runtime.NotifyRaisedEvent(this, raisedEvent);
+            this.Runtime.NotifyRaisedEvent(this, e, raisedEvent);
             this.HandleEvent(e);
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws
-        /// an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
         {
             this.Runtime.Assert(predicate);
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws
-        /// an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
         protected void Assert(bool predicate, string s, params object[] args)
         {
             this.Runtime.Assert(predicate, s, args);
@@ -251,7 +245,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies the monitor to handle the received event.
         /// </summary>
-        /// <param name="e">Event</param>
+        /// <param name="e">The event to monitor.</param>
         internal void MonitorEvent(Event e)
         {
             this.Runtime.Logger.OnMonitorEvent(this.GetType().Name, this.Id, this.CurrentStateName,
@@ -262,7 +256,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handles the given event.
         /// </summary>
-        /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
             this.CurrentActionCalledTransitionStatement = false;
@@ -318,7 +311,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Invokes an action.
         /// </summary>
-        /// <param name="actionName">Action name</param>
         [DebuggerStepThrough]
         private void Do(string actionName)
         {
@@ -352,7 +344,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        /// <param name="eventHandlerExitActionName">Action name</param>
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
@@ -387,7 +378,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the specified action.
         /// </summary>
-        /// <param name="action">MethodInfo</param>
         [DebuggerStepThrough]
         private void ExecuteAction(MethodInfo action)
         {
@@ -417,8 +407,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Performs a goto transition to the given state.
         /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <param name="onExitActionName">Action name</param>
         private void GotoState(Type s, string onExitActionName)
         {
             // The monitor performs the on exit statements of the current state.
@@ -444,27 +432,11 @@ namespace Microsoft.PSharp
         /// can be handled if it is deferred, or leads to a transition or
         /// action binding.
         /// </summary>
-        /// <param name="e">Event type</param>
-        /// <returns>Boolean</returns>
         private bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||
                 this.ActionBindings.ContainsKey(e) ||
                 e == typeof(GotoStateEvent))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the state has a default handler.
-        /// </summary>
-        private bool HasDefaultHandler()
-        {
-            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.ActionBindings.ContainsKey(typeof(Default)))
             {
                 return true;
             }
@@ -496,7 +468,6 @@ namespace Microsoft.PSharp
         /// a potential liveness bug if the temperature passes the
         /// specified threshold. Only works in a liveness monitor.
         /// </summary>
-        /// <param name="livenessTemperature">The liveness temperature.</param>
         internal void CheckLivenessTemperature(int livenessTemperature)
         {
             if (livenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
@@ -510,18 +481,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns true if the monitor is in a hot state.
         /// </summary>
-        /// <returns>Boolean</returns>
-        internal bool IsInHotState()
-        {
-            return this.State.IsHot;
-        }
+        internal bool IsInHotState() => this.State.IsHot;
 
         /// <summary>
         /// Returns true if the monitor is in a hot state. Also outputs
         /// the name of the current state.
         /// </summary>
-        /// <param name="stateName">State name</param>
-        /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
             stateName = this.CurrentStateName;
@@ -531,18 +496,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns true if the monitor is in a cold state.
         /// </summary>
-        /// <returns>Boolean</returns>
-        internal bool IsInColdState()
-        {
-            return this.State.IsCold;
-        }
+        internal bool IsInColdState() => this.State.IsCold;
 
         /// <summary>
         /// Returns true if the monitor is in a cold state. Also outputs
         /// the name of the current state.
         /// </summary>
-        /// <param name="stateName">State name</param>
-        /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
             stateName = this.CurrentStateName;
@@ -560,7 +519,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the cached state of this monitor.
         /// </summary>
-        /// <returns>Hash value</returns>
         internal int GetCachedState()
         {
             unchecked
@@ -580,11 +538,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns a string that represents the current monitor.
         /// </summary>
-        /// <returns>string</returns>
-        public override string ToString()
-        {
-            return this.GetType().Name;
-        }
+        public override string ToString() => this.GetType().Name;
 
         /// <summary>
         /// Transitions to the start state, and executes the
@@ -731,7 +685,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Processes a type, looking for monitor states.
         /// </summary>
-        /// <param name="type">Type</param>
         private void ExtractStateTypes(Type type)
         {
             Stack<Type> stack = new Stack<Type>();
@@ -763,7 +716,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Configures the state transitions of the monitor.
         /// </summary>
-        /// <param name="state">State</param>
         private void ConfigureStateTransitions(MonitorState state)
         {
             this.GotoTransitions = state.GotoTransitions;
@@ -774,11 +726,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the action with the specified name.
         /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <returns>Action</returns>
         private MethodInfo GetActionWithName(string actionName)
         {
-            MethodInfo method = null;
+            MethodInfo method;
             Type monitorType = this.GetType();
 
             do
@@ -814,8 +764,6 @@ namespace Microsoft.PSharp
         /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
         /// exception, and throws it to the user.
         /// </summary>
-        /// <param name="ex">Exception</param>
-        /// <param name="actionName">Action name</param>
         private void ReportUnhandledException(Exception ex, string actionName)
         {
             var state = this.CurrentState is null ? "<unknown>" : this.CurrentStateName;
@@ -827,10 +775,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the set of all states in the monitor
-        /// (for code coverage).
+        /// Returns the set of all states in the monitor (for code coverage).
         /// </summary>
-        /// <returns>Set of all states in the monitor</returns>
         internal HashSet<string> GetAllStates()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.Id);
@@ -845,10 +791,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the monitor
-        /// (for code coverage).
+        /// Returns the set of all (states, registered event) pairs in the monitor (for code coverage).
         /// </summary>
-        /// <returns>Set of all (states, registered event) pairs in the monitor</returns>
         internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.Id);

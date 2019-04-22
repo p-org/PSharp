@@ -25,7 +25,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public MachineId Id;
 
             public Config(MachineId id)
-                : base(-1, -1)
             {
                 this.Id = id;
             }
@@ -33,42 +32,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E1 : Event
         {
-            public E1()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E2 : Event
         {
-            public E2()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E3 : Event
         {
-            public E3()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E4 : Event
         {
-            public E4()
-                : base(1, -1)
-            {
-            }
         }
 
         private class Unit : Event
         {
-            public Unit()
-                : base(1, -1)
-            {
-            }
         }
 
         private class Real : Machine
@@ -98,15 +77,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.GhostMachine, new E1());
+                this.Send(this.GhostMachine, new E1(), new SendOptions(assert: 1));
 
-                // we wait in this state until E2 comes from Ghost,
+                // We wait in this state until E2 comes from Ghost,
                 // then handle E2 using the inherited handler Action1
-                // installed by Init
-                // then wait until E4 comes from Ghost, and since
+                // installed by Init.
+                // Then wait until E4 comes from Ghost, and since
                 // there's no handler for E4 in this pushed state,
                 // this state is popped, and E4 goto handler from Init
-                // is invoked
+                // is invoked.
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -122,7 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void Action1()
             {
-                this.Send(this.GhostMachine, new E3());
+                this.Send(this.GhostMachine, new E3(), new SendOptions(assert: 1));
             }
         }
 
@@ -150,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.RealMachine, new E2());
+                this.Send(this.RealMachine, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -160,11 +139,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS2()
             {
-                this.Send(this.RealMachine, new E4());
+                this.Send(this.RealMachine, new E4(), new SendOptions(assert: 1));
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestActions5Fail()
         {
             var configuration = GetConfiguration();

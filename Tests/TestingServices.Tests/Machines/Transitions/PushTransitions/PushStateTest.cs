@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPushStateEvent()
         {
             var test = new Action<IMachineRuntime>((r) =>

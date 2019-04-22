@@ -13,12 +13,11 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// The underlying logger.
         /// </summary>
-        internal static ILogger Logger = new ConsoleLogger();
+        internal static ILogger Logger = new ConsoleLogger(true);
 
         /// <summary>
         ///  Writes the specified string value to the output stream.
         /// </summary>
-        /// <param name="value">Text</param>
         public static void Write(string value)
         {
             Logger.Write(value);
@@ -37,7 +36,6 @@ namespace Microsoft.PSharp.IO
         /// Writes the specified string value, followed by the
         /// current line terminator, to the output stream.
         /// </summary>
-        /// <param name="value">Text</param>
         public static void WriteLine(string value)
         {
             Logger.WriteLine(value);

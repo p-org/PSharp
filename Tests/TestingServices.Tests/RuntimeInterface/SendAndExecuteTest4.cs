@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private async Task InitOnEntry()
             {
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(M), new E(this.Id));
-                var handled = await this.Runtime.SendEventAndExecute(m, new LE());
+                var handled = await this.Runtime.SendEventAndExecuteAsync(m, new LE());
                 this.Assert(handled);
             }
         }
@@ -60,12 +60,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private async Task InitOnEntry()
             {
                 var creator = (this.ReceivedEvent as E).Mid;
-                var handled = await this.Id.Runtime.SendEventAndExecute(creator, new LE());
+                var handled = await this.Id.Runtime.SendEventAndExecuteAsync(creator, new LE());
                 this.Assert(!handled);
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSendCycleDoesNotDeadlock()
         {
             var test = new Action<IMachineRuntime>((r) =>

@@ -17,25 +17,10 @@ namespace Microsoft.PSharp
     internal class EventInfo
     {
         /// <summary>
-        /// Contained event.
-        /// </summary>
-        internal Event Event { get; private set; }
-
-        /// <summary>
-        /// Event type.
-        /// </summary>
-        internal Type EventType { get; private set; }
-
-        /// <summary>
         /// Event name.
         /// </summary>
         [DataMember]
         internal string EventName { get; private set; }
-
-        /// <summary>
-        /// The step from which this event was sent.
-        /// </summary>
-        internal int SendStep { get; }
 
         /// <summary>
         /// Information regarding the event origin.
@@ -44,24 +29,43 @@ namespace Microsoft.PSharp
         internal EventOriginInfo OriginInfo { get; private set; }
 
         /// <summary>
-        /// The operation group id associated with this event.
+        /// True if this event must always be handled, else false.
         /// </summary>
-        internal Guid OperationGroupId { get; private set; }
+        internal bool MustHandle { get; set; }
 
         /// <summary>
-        /// Is this a must-handle event?
+        /// Specifies that there must not be more than N instances of the
+        /// event in the inbox queue of the receiver machine.
         /// </summary>
-        internal bool MustHandle { get; private set; }
+        internal int Assert { get; set; }
+
+        /// <summary>
+        /// Speciﬁes that during testing, an execution that increases the cardinality of the
+        /// event beyond N in the receiver machine inbox queue must not be generated.
+        /// </summary>
+        internal int Assume { get; set; }
+
+        /// <summary>
+        /// User-defined hash of the event payload. The default value is 0. Set it to a custom value
+        /// to improve the accuracy of liveness checking when state-caching is enabled.
+        /// </summary>
+        internal int HashedState { get; set; }
+
+        /// <summary>
+        /// The step from which this event was sent.
+        /// </summary>
+        internal int SendStep { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventInfo"/> class.
         /// </summary>
         internal EventInfo(Event e)
         {
-            this.Event = e;
-            this.EventType = e.GetType();
-            this.EventName = this.EventType.FullName;
+            this.EventName = e.GetType().FullName;
             this.MustHandle = false;
+            this.Assert = -1;
+            this.Assume = -1;
+            this.HashedState = 0;
         }
 
         /// <summary>
@@ -71,31 +75,6 @@ namespace Microsoft.PSharp
             : this(e)
         {
             this.OriginInfo = originInfo;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EventInfo"/> class.
-        /// </summary>
-        internal EventInfo(Event e, EventOriginInfo originInfo, int sendStep)
-            : this(e, originInfo)
-        {
-            this.SendStep = sendStep;
-        }
-
-        /// <summary>
-        /// Sets the operation group id associated with this event.
-        /// </summary>
-        internal void SetOperationGroupId(Guid operationGroupId)
-        {
-            this.OperationGroupId = operationGroupId;
-        }
-
-        /// <summary>
-        /// Sets the MustHandle flag of the event.
-        /// </summary>
-        internal void SetMustHandle(bool mustHandle)
-        {
-            this.MustHandle = mustHandle;
         }
     }
 }

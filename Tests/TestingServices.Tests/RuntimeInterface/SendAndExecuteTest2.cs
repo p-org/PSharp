@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSyncSendToReceive()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(config, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestSyncSendSometimesDoesNotHandle()
         {
             var config = Configuration.Create().WithNumberOfIterations(1000);

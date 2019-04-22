@@ -22,7 +22,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public bool Value;
 
             public CheckE(bool v)
-                : base(1, -1)
             {
                 this.Value = v;
             }
@@ -103,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration1()
         {
             var configuration = GetConfiguration();
@@ -118,7 +117,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(configuration, test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration2()
         {
             var configuration = GetConfiguration();
@@ -133,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(configuration, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration3()
         {
             var configuration = GetConfiguration();

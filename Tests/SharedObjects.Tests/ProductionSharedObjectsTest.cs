@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.SharedObjects.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProductionSharedObjects()
         {
             var runtime = PSharpRuntime.Create();

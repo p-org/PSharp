@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 #pragma warning restore CA1801 // Parameter not used
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAmbiguousMachineEventHandler()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertSucceeded(test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestAmbiguousMonitorEventHandler()
         {
             var test = new Action<IMachineRuntime>((r) =>

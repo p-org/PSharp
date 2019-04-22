@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetGivenUpReferenceAfterSend1()
         {
             var test = @"
@@ -62,15 +63,15 @@ class M : Machine
 }
 }";
 
-            var configuration = GetConfiguration();
+            var configuration = Setup.GetConfiguration();
             configuration.ProjectName = "Test";
             configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
+            configuration.IsVerbose = true;
             configuration.AnalyzeDataRaces = true;
-            AssertSucceeded(configuration, test, isPSharpProgram: false);
+            Assert.Succeeded(configuration, test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetGivenUpReferenceAfterSend2()
         {
             var test = @"
@@ -121,10 +122,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetViaFieldAfterSend1()
         {
             var test = @"
@@ -171,10 +172,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetViaFieldAfterSend2()
         {
             var test = @"
@@ -221,10 +222,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetViaFieldAfterSend3()
         {
             var test = @"
@@ -271,10 +272,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetViaFieldAfterSend4()
         {
             var test = @"
@@ -321,10 +322,10 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestResetViaFieldAfterSend5()
         {
             var test = @"
@@ -371,7 +372,7 @@ class M : Machine
  }
 }
 }";
-            AssertSucceeded(test, isPSharpProgram: false);
+            Assert.Succeeded(test, isPSharpProgram: false);
         }
     }
 }

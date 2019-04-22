@@ -20,8 +20,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E10(short a10, ushort b10)
                 : base()
             {
-                Xunit.Assert.True(a10 == 1);
-                Xunit.Assert.True(b10 == 2);
+                Assert.True(a10 == 1);
+                Assert.True(b10 == 2);
                 this.A10 = a10;
                 this.B10 = b10;
             }
@@ -35,8 +35,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E1(short a10, ushort b10, byte a1, bool b1)
                 : base(a10, b10)
             {
-                Xunit.Assert.True(a1 == 30);
-                Xunit.Assert.True(b1 == true);
+                Assert.True(a1 == 30);
+                Assert.True(b1 == true);
                 this.A1 = a1;
                 this.B1 = b1;
             }
@@ -50,8 +50,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E2(short a10, ushort b10, byte a1, bool b1, int a2, uint b2)
                 : base(a10, b10, a1, b1)
             {
-                Xunit.Assert.True(a2 == 100);
-                Xunit.Assert.True(b2 == 101);
+                Assert.True(a2 == 100);
+                Assert.True(b2 == 101);
                 this.A2 = a2;
                 this.B2 = b2;
             }
@@ -73,8 +73,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E10(short a10, ushort b10)
                 : base()
             {
-                Xunit.Assert.True(a10 == 1);
-                Xunit.Assert.True(b10 == 2);
+                Assert.True(a10 == 1);
+                Assert.True(b10 == 2);
                 this.A10 = a10;
                 this.B10 = b10;
             }
@@ -88,8 +88,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E1(short a10, ushort b10, byte a1, bool b1)
                 : base(a10, b10)
             {
-                Xunit.Assert.True(a1 == 30);
-                Xunit.Assert.True(b1 == true);
+                Assert.True(a1 == 30);
+                Assert.True(b1 == true);
                 this.A1 = a1;
                 this.B1 = b1;
             }
@@ -103,8 +103,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public E2(short a10, ushort b10, byte a1, bool b1, int a2, uint b2)
                 : base(a10, b10, a1, b1)
             {
-                Xunit.Assert.True(a2 == 100);
-                Xunit.Assert.True(b2 == 101);
+                Assert.True(a2 == 100);
+                Assert.True(b2 == 101);
                 this.A2 = a2;
                 this.B2 = b2;
             }
@@ -118,81 +118,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
     }
 
-    public sealed class AssertAssumeTester
-    {
-        internal class E1 : Event
-        {
-            public E1()
-                : base(1, -1)
-            {
-            }
-        }
-
-        internal class E2 : E1
-        {
-            public E2()
-                : base()
-            {
-                this.SetCardinalityConstraints(2, -1);
-            }
-        }
-
-        internal class E3 : Event
-        {
-            public E3()
-                : base(-1, 3)
-            {
-            }
-        }
-
-        internal class E4 : E3
-        {
-            public E4()
-                : base()
-            {
-                this.SetCardinalityConstraints(-1, 4);
-            }
-        }
-
-        internal class E5 : Event
-        {
-            public E5()
-                : base(5, -1)
-            {
-            }
-        }
-
-        internal class E6 : E5
-        {
-            public E6()
-                : base()
-            {
-                this.SetCardinalityConstraints(-1, 6);
-            }
-        }
-
-        internal class E7 : E6
-        {
-            public E7()
-            : base()
-        {
-                this.SetCardinalityConstraints(-1, -1);
-            }
-        }
-
-        public static void Test()
-        {
-            bool verify(Event ev, int expectedAssert, int expectedAssume) => ev.Assert == expectedAssert && ev.Assume == expectedAssume;
-            Assert.True(verify(new E1(), 1, -1));
-            Assert.True(verify(new E2(), 2, -1));
-            Assert.True(verify(new E3(), -1, 3));
-            Assert.True(verify(new E4(), -1, 4));
-            Assert.True(verify(new E5(), 5, -1));
-            Assert.True(verify(new E6(), -1, 6));
-            Assert.True(verify(new E7(), -1, -1));
-        }
-    }
-
     public class EventInheritanceTest : BaseTest
     {
         public EventInheritanceTest(ITestOutputHelper output)
@@ -200,22 +125,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevel()
         {
             MultiPayloadMultiLevelTester.Test();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestMultiPayloadMultiLevelGeneric()
         {
             MultiPayloadMultiLevelGenericTester.Test();
-        }
-
-        [Fact]
-        public void TestAssertAssume()
-        {
-            AssertAssumeTester.Test();
         }
 
         private class A : Machine
@@ -295,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventInheritanceRun()
         {
             var tcs = new TaskCompletionSource<bool>();

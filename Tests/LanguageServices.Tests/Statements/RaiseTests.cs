@@ -9,7 +9,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class RaiseTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventRaiseStatement()
         {
             var test = @"
@@ -65,7 +65,7 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestEventRaiseStatementWithPSharpAPI()
         {
             var test = @"

@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.IO
         {
             if (configuration.EnableDebugging)
             {
-                this.DefaultLogger = new ConsoleLogger();
+                this.DefaultLogger = new ConsoleLogger(true);
             }
             else
             {

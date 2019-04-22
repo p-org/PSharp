@@ -12,7 +12,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests
 {
     public class MonitorTests
     {
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestPrivateMonitorDeclaration()
         {
             var test = @"
@@ -30,7 +30,7 @@ private monitor M { }
             Assert.Equal("A monitor cannot be declared as private.", parser.GetParsingErrorLog());
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestProtectedMonitorDeclaration()
         {
             var test = @"

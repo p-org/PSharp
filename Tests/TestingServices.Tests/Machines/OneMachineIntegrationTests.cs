@@ -22,26 +22,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private class E1 : Event
         {
-            public E1()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E2 : Event
         {
-            public E2()
-                : base(1, -1)
-            {
-            }
         }
 
         private class E3 : Event
         {
-            public E3()
-                : base(1, -1)
-            {
-            }
         }
 
         private class M1 : Machine
@@ -58,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
                 this.Raise(new E1());
             }
 
@@ -84,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             private void HandleE2()
@@ -105,12 +93,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             private class Active : MachineState
@@ -132,12 +120,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -170,12 +158,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             private void HandleE2()
@@ -197,12 +185,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
         }
 
@@ -219,12 +207,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -254,12 +242,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -270,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -294,12 +282,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -310,7 +298,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
                 this.Pop();
             }
 
@@ -335,12 +323,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -351,7 +339,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -374,7 +362,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -387,12 +375,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             private void ActiveOnExit()
             {
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(CheckingOnEntry))]
@@ -422,12 +410,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -440,7 +428,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             private void ActiveOnExit()
@@ -468,12 +456,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -490,7 +478,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnExit()
             {
-                this.Send(this.Id, new E3());
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -513,12 +501,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2());
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -587,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
                 this.Raise(new Halt());
             }
 
@@ -641,7 +629,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void HandleE2()
             {
-                this.Send(this.Id, new E1());
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -757,7 +745,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration1()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -768,7 +756,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration2()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -779,7 +767,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration3()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -790,7 +778,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration4()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -801,7 +789,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration5()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -812,7 +800,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration6()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -823,7 +811,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration7()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -834,7 +822,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration8()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -845,7 +833,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration9()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -856,7 +844,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration10()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -867,7 +855,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration11()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -878,7 +866,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration12()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -889,7 +877,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration13()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -900,7 +888,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration14()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -911,7 +899,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration15()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -922,7 +910,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration16()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -933,7 +921,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration17()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -944,7 +932,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration18()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -955,7 +943,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration19()
         {
             var test = new Action<IMachineRuntime>((r) =>
@@ -966,7 +954,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.AssertFailed(test, 1, true);
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestOneMachineIntegration20()
         {
             var test = new Action<IMachineRuntime>((r) =>

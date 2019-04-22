@@ -27,7 +27,8 @@ namespace Microsoft.PSharp.Core.Tests
         {
             private StringBuilder StringBuilder;
 
-            public CustomLogger()
+            public CustomLogger(bool isVerbose)
+                : base(isVerbose)
             {
                 this.StringBuilder = new StringBuilder();
             }
@@ -121,11 +122,11 @@ namespace Microsoft.PSharp.Core.Tests
 
         internal class Configure : Event
         {
-            public TaskCompletionSource<bool> TCS;
+            public TaskCompletionSource<bool> Tcs;
 
             public Configure(TaskCompletionSource<bool> tcs)
             {
-                this.TCS = tcs;
+                this.Tcs = tcs;
             }
         }
 
@@ -145,7 +146,7 @@ namespace Microsoft.PSharp.Core.Tests
 
         private class M : Machine
         {
-            private TaskCompletionSource<bool> TCS;
+            private TaskCompletionSource<bool> Tcs;
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -156,14 +157,14 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                this.TCS = (this.ReceivedEvent as Configure).TCS;
+                this.Tcs = (this.ReceivedEvent as Configure).Tcs;
                 var n = this.CreateMachine(typeof(N));
                 this.Send(n, new E(this.Id));
             }
 
             private void Act()
             {
-                this.TCS.SetResult(true);
+                this.Tcs.SetResult(true);
             }
         }
 
@@ -182,12 +183,12 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCustomLogger()
         {
-            CustomLogger logger = new CustomLogger();
+            CustomLogger logger = new CustomLogger(true);
 
-            Configuration config = Configuration.Create().WithVerbosityEnabled(2);
+            Configuration config = Configuration.Create().WithVerbosityEnabled();
             var runtime = PSharpRuntime.Create(config);
             runtime.SetLogger(logger);
 
@@ -219,10 +220,10 @@ namespace Microsoft.PSharp.Core.Tests
             logger.Dispose();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestCustomLoggerNoVerbosity()
         {
-            CustomLogger logger = new CustomLogger();
+            CustomLogger logger = new CustomLogger(false);
 
             var runtime = PSharpRuntime.Create();
             runtime.SetLogger(logger);
@@ -236,10 +237,10 @@ namespace Microsoft.PSharp.Core.Tests
             logger.Dispose();
         }
 
-        [Fact]
+        [Fact(Timeout=5000)]
         public void TestNullCustomLoggerFail()
         {
-            var config = GetConfiguration().WithVerbosityEnabled(2);
+            var config = GetConfiguration();
             var test = new Action<IMachineRuntime>((r) =>
             {
                 InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => r.SetLogger(null));

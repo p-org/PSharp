@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -57,6 +56,11 @@ namespace Microsoft.PSharp.Runtime
         public event OnEventDroppedHandler OnEventDropped;
 
         /// <summary>
+        /// Checks if an <see cref="OnEventDropped"/> handler has been installed by the user.
+        /// </summary>
+        internal bool IsOnEventDroppedHandlerInstalled => this.OnEventDropped != null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BaseRuntime"/> class.
         /// </summary>
         protected BaseRuntime(Configuration configuration)
@@ -64,7 +68,8 @@ namespace Microsoft.PSharp.Runtime
             this.Configuration = configuration;
             this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
             this.MachineIdCounter = 0;
-            this.SetLogger(new ConsoleLogger());
+            this.Logger = configuration.IsVerbose ?
+                (ILogger)new ConsoleLogger(true) : new DisposingLogger();
             this.IsRunning = true;
         }
 
@@ -255,23 +260,6 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Gets the target machine for an event; if not found, logs a halted-machine entry.
-        /// </summary>
-        protected bool GetTargetMachine(MachineId targetMachineId, Event e, BaseMachine sender,
-            Guid operationGroupId, out Machine targetMachine)
-        {
-            if (!this.MachineMap.TryGetValue(targetMachineId, out targetMachine))
-            {
-                var senderState = (sender as Machine)?.CurrentStateName ?? string.Empty;
-                this.Logger.OnSend(targetMachineId, sender?.Id, senderState,
-                    e.GetType().FullName, operationGroupId, isTargetHalted: true);
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         /// <returns>MachineId</returns>
@@ -299,24 +287,9 @@ namespace Microsoft.PSharp.Runtime
         internal abstract Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
-        /// Checks that a machine can start its event handler. Returns false if the event
-        /// handler should not be started.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual bool CheckStartEventHandler(Machine machine)
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
         /// </summary>
         internal abstract IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner);
-
-        /// <summary>
-        /// Returns the timer machine type.
-        /// </summary>
-        internal abstract Type GetTimerMachineType();
 
         /// <summary>
         /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
@@ -438,7 +411,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine raised an <see cref="Event"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyRaisedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -447,7 +420,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a monitor raised an <see cref="Event"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyRaisedEvent(Monitor monitor, EventInfo eventInfo)
+        internal virtual void NotifyRaisedEvent(Monitor monitor, Event e, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -456,7 +429,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine dequeued an <see cref="Event"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -483,15 +456,23 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine is handling a raised <see cref="Event"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyHandleRaisedEvent(Machine machine, Event e)
         {
             // Override to implement the notification.
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive one or more events.
+        /// Notifies that a machine is waiting to receive an event of the specified type.
         /// </summary>
-        internal virtual void NotifyWaitEvents(Machine machine, EventInfo eventInfoInInbox)
+        internal virtual void NotifyWaitEvent(Machine machine, Type eventType)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive an event of one of the specified types.
+        /// </summary>
+        internal virtual void NotifyWaitEvent(Machine machine, params Type[] eventTypes)
         {
             // Override to implement the notification.
         }
@@ -500,7 +481,17 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine received an event without waiting because the event
+        /// was already in the inbox when the machine invoked the receive statement.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
             // Override to implement the notification.
         }
@@ -509,7 +500,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies that a machine has halted.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual void NotifyHalted(Machine machine, LinkedList<EventInfo> inbox)
+        internal virtual void NotifyHalted(Machine machine)
         {
             // Override to implement the notification.
         }
@@ -538,10 +529,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         protected internal virtual void Log(string format, params object[] args)
         {
-            if (this.Configuration.Verbose > 1)
-            {
-                this.Logger.WriteLine(format, args);
-            }
+            this.Logger.WriteLine(format, args);
         }
 
         /// <summary>
@@ -550,26 +538,6 @@ namespace Microsoft.PSharp.Runtime
         public void SetLogger(ILogger logger)
         {
             this.Logger = logger ?? throw new InvalidOperationException("Cannot install a null logger.");
-            this.Logger.Configuration = this.Configuration;
-        }
-
-        /// <summary>
-        /// Gets the new operation group id to propagate.
-        /// </summary>
-        internal Guid GetNewOperationGroupId(BaseMachine sender, Guid? operationGroupId)
-        {
-            if (operationGroupId.HasValue)
-            {
-                return operationGroupId.Value;
-            }
-            else if (sender != null)
-            {
-                return sender.Info.OperationGroupId;
-            }
-            else
-            {
-                return Guid.Empty;
-            }
         }
 
         /// <summary>
@@ -607,14 +575,9 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Checks if an <see cref="OnEventDropped"/> handler has been registered by the user.
-        /// </summary>
-        protected internal bool IsOnEventDroppedHandlerRegistered() => this.OnEventDropped != null;
-
-        /// <summary>
         /// Tries to handle the specified dropped <see cref="Event"/>.
         /// </summary>
-        protected internal void TryHandleDroppedEvent(Event e, MachineId mid)
+        internal void TryHandleDroppedEvent(Event e, MachineId mid)
         {
             this.OnEventDropped?.Invoke(e, mid);
         }
@@ -644,7 +607,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Disposes runtime resources.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
