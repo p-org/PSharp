@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class ReceiveStressTest : BaseTest
+    public class ReceiveEventStressTest : BaseTest
     {
-        public ReceiveStressTest(ITestOutputHelper output)
+        public ReceiveEventStressTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
             }
 
-            private void InitOnEntry()
+            private async Task InitOnEntry()
             {
                 var tcs = (this.ReceivedEvent as SetupTcsEvent).Tcs;
                 var numMessages = (this.ReceivedEvent as SetupTcsEvent).NumMessages;
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.Core.Tests
                 {
                     counter++;
                     this.Send(mid, new Message());
-                    this.Receive(typeof(Message));
+                    await this.Receive(typeof(Message));
                 }
 
                 tcs.SetResult(true);
@@ -197,17 +197,17 @@ namespace Microsoft.PSharp.Core.Tests
                 while (counter < numMessages)
                 {
                     counter++;
-                    await this.Receive(typeof(Message));
+                    await Task.WhenAny(this.Receive(typeof(Message)), Task.Delay(5000));
                     this.Send(mid, new Message());
                 }
             }
         }
 
         [Fact(Timeout = 15000)]
-        public void StressTestReceiveEvent()
+        public void TestReceiveEvent()
         {
             var configuration = GetConfiguration();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var test = new Action<IMachineRuntime>((r) =>
                 {
@@ -223,10 +223,10 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public void StressTestReceiveEventAlternate()
+        public void TestReceiveEventAlternate()
         {
             var configuration = GetConfiguration();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var test = new Action<IMachineRuntime>((r) =>
                 {
@@ -242,10 +242,10 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public void StressTestReceiveEventExchange()
+        public void TestReceiveEventExchange()
         {
             var configuration = GetConfiguration();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var test = new Action<IMachineRuntime>((r) =>
                 {

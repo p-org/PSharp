@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecute(null, type, null, e, operationGroupId);
+            this.CreateMachineAndExecuteAsync(null, type, null, e, operationGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -198,7 +198,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecute(null, type, machineName, e, operationGroupId);
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, operationGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, operationGroupId);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecute(null, type, null, e, operationGroupId);
+            this.CreateMachineAndExecuteAsync(null, type, null, e, operationGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecute(null, type, machineName, e, operationGroupId);
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, operationGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecute(mid, type, null, e, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, operationGroupId);
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// event and reaches quiescense again.
         /// </summary>
         public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null) =>
-            this.SendEventAndExecute(target, e, this.GetCurrentMachine(), options);
+            this.SendEventAndExecuteAsync(target, e, this.GetCurrentMachine(), options);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
-            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
+            SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, null, null);
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// can only be used to access its payload, and cannot be handled. The method returns only
         /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        internal Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string machineName, Event e = null, Guid? operationGroupId = null)
+        internal Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e = null, Guid? operationGroupId = null)
         {
             Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
@@ -384,7 +384,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.CreateMachineAndExecute(mid, type, machineName, e, creator, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, machineName, e, creator, operationGroupId);
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// method returns only when the machine is initialized and the <see cref="Event"/>
         /// (if any) is handled.
         /// </summary>
-        internal override async Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string machineName, Event e,
+        internal override async Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
             Machine creator, Guid? operationGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
@@ -405,7 +405,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
 
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
-            this.SetOperationGroupIdForMachine(machine, creator, operationGroupId);
+            SetOperationGroupIdForMachine(machine, creator, operationGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, creator, null);
@@ -514,7 +514,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// if the target machine was already running. Otherwise blocks until the machine handles
         /// the event and reaches quiescense again.
         /// </summary>
-        internal override async Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override async Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
             this.Assert(sender is Machine,
                 "Only a machine can call 'SendEventAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
@@ -1138,33 +1138,36 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive an event of the specified type.
-        /// </summary>
-        internal override void NotifyWaitEvent(Machine machine, Type eventType)
-        {
-            (machine.Info as SchedulableInfo).IsEnabled = false;
-
-            this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventType.FullName);
-            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
-        }
-
-        /// <summary>
         /// Notifies that a machine is waiting to receive an event of one of the specified types.
         /// </summary>
-        internal override void NotifyWaitEvent(Machine machine, params Type[] eventTypes)
+        internal override void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
             (machine.Info as SchedulableInfo).IsEnabled = false;
 
-            string eventNames = string.Empty;
-            if (eventTypes.Length > 0)
+            string eventNames;
+            var eventWaitTypesArray = eventTypes.ToArray();
+            if (eventWaitTypesArray.Length == 1)
             {
-                string[] eventNameArray = new string[eventTypes.Length - 1];
-                for (int i = 0; i < eventTypes.Length - 2; i++)
+                this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray[0]);
+                eventNames = eventWaitTypesArray[0].FullName;
+            }
+            else
+            {
+                this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray);
+                if (eventWaitTypesArray.Length > 0)
                 {
-                    eventNameArray[i] = eventTypes[i].FullName;
-                }
+                    string[] eventNameArray = new string[eventWaitTypesArray.Length - 1];
+                    for (int i = 0; i < eventWaitTypesArray.Length - 2; i++)
+                    {
+                        eventNameArray[i] = eventWaitTypesArray[i].FullName;
+                    }
 
-                eventNames = string.Join(", ", eventNameArray) + " or " + eventTypes[eventTypes.Length - 1].FullName;
+                    eventNames = string.Join(", ", eventNameArray) + " or " + eventWaitTypesArray[eventWaitTypesArray.Length - 1].FullName;
+                }
+                else
+                {
+                    eventNames = string.Empty;
+                }
             }
 
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventNames);
@@ -1176,6 +1179,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
+            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: true);
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
             // A subsequent enqueue unblocked the receive action of machine.
@@ -1199,6 +1203,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
+            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
+
             (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
 
             if (this.Configuration.EnableDataRaceDetection)

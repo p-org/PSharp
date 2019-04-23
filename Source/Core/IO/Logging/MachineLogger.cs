@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;

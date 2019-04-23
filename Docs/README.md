@@ -19,8 +19,9 @@ Now you are ready to dive into various features and topics:
 - [Using timers in P#](Features/Timers.md)
 - [Logging](Features/Logging.md) and [tracking operation groups](Features/TrackingOperationGroups.md)
 
-Learn how to use the P# testing infrastructure to thoroughly check safety and liveness properties, and deterministically reproduce bugs:
-- [Testing P# programs and reproducing bugs](Testing/TestingMethodology.md)
+Learn how to use the P# testing infrastructure to write unit-tests, thoroughly check safety and liveness properties, and deterministically reproduce bugs:
+- [Unit-testing P# machines in isolation](Testing/UnitTesting.md)
+- [Automatically testing P# programs end-to-end and reproducing bugs](Testing/TestingMethodology.md)
 - [Effectively checking liveness properties](Testing/LivenessChecking.md)
 - [Testing async/await code using P#](Testing/TestingAsyncAwait.md)
 - [Code and activity coverage](Testing/CodeCoverageVisualisation.md)
