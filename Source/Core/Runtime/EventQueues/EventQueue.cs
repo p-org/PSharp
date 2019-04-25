@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.Runtime
 
             if (enqueueStatus is EnqueueStatus.Received)
             {
-                this.Runtime.Logger.OnReceive(this.Machine.Id, this.Machine.CurrentStateName, e.GetType().FullName, wasBlocked: true);
+                this.Runtime.NotifyReceivedEvent(this.Machine, e, info);
                 this.ReceiveCompletionSource.SetResult(e);
                 return enqueueStatus;
             }
@@ -267,11 +267,11 @@ namespace Microsoft.PSharp.Runtime
 
             if (e is null)
             {
-                this.Runtime.Logger.OnWait(this.Machine.Id, this.Machine.CurrentStateName, Array.Empty<Type>());
+                this.Runtime.NotifyWaitEvent(this.Machine, this.EventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.Runtime.Logger.OnReceive(this.Machine.Id, this.Machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
+            this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, null);
             return Task.FromResult(e);
         }
 

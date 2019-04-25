@@ -10,35 +10,71 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Timers;
 using Microsoft.PSharp.Timers;
 
-namespace Microsoft.PSharp.Runtime
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
-    /// Runtime for executing machines in production.
+    /// Runtime for testing a machine in isolation.
     /// </summary>
-    internal sealed class ProductionRuntime : BaseRuntime
+    internal sealed class MachineTestingRuntime : BaseRuntime
     {
         /// <summary>
-        /// List of monitors in the program.
+        /// The machine being tested.
         /// </summary>
-        private readonly List<Monitor> Monitors;
+        internal readonly Machine Machine;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProductionRuntime"/> class.
+        /// The inbox of the machine being tested.
         /// </summary>
-        internal ProductionRuntime()
-            : this(Configuration.Create())
+        internal readonly EventQueue MachineInbox;
+
+        /// <summary>
+        /// Task completion source that completes when the machine being tested reaches quiescence.
+        /// </summary>
+        private TaskCompletionSource<bool> QuiescenceCompletionSource;
+
+        /// <summary>
+        /// True if the machine is waiting to receive and event, else false.
+        /// </summary>
+        internal bool IsMachineWaitingToReceiveEvent { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MachineTestingRuntime"/> class.
+        /// </summary>
+        internal MachineTestingRuntime(Type machineType, Configuration configuration)
+            : base(configuration)
         {
+            if (!machineType.IsSubclassOf(typeof(Machine)))
+            {
+                this.Assert(false, "Type '{0}' is not a machine.", machineType.FullName);
+            }
+
+            var mid = new MachineId(machineType, null, this);
+
+            this.Machine = MachineFactory.Create(machineType);
+            this.MachineInbox = new EventQueue(this, this.Machine);
+
+            this.Machine.Initialize(this, mid, new MachineInfo(mid), this.MachineInbox);
+            this.Machine.InitializeStateInformation();
+
+            this.Logger.OnCreateMachine(this.Machine.Id, null);
+
+            this.MachineMap.TryAdd(mid, this.Machine);
+
+            this.IsMachineWaitingToReceiveEvent = false;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProductionRuntime"/> class.
+        /// Starts executing the machine-under-test by transitioning it to its initial state
+        /// and passing an optional initialization event.
         /// </summary>
-        internal ProductionRuntime(Configuration configuration)
-            : base(configuration)
+        internal Task StartAsync(Event initialEvent)
         {
-            this.Monitors = new List<Monitor>();
+            this.RunMachineEventHandler(this.Machine, initialEvent, true);
+            return this.QuiescenceCompletionSource.Task;
         }
 
         /// <summary>
@@ -55,7 +91,7 @@ namespace Microsoft.PSharp.Runtime
         /// used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachine(null, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -63,7 +99,7 @@ namespace Microsoft.PSharp.Runtime
         /// used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachine(null, type, machineName, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
@@ -71,7 +107,7 @@ namespace Microsoft.PSharp.Runtime
         /// be used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachine(mid, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -80,7 +116,7 @@ namespace Microsoft.PSharp.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -89,7 +125,7 @@ namespace Microsoft.PSharp.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -99,7 +135,7 @@ namespace Microsoft.PSharp.Runtime
         /// is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(mid, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -108,7 +144,7 @@ namespace Microsoft.PSharp.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -117,7 +153,7 @@ namespace Microsoft.PSharp.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -127,112 +163,55 @@ namespace Microsoft.PSharp.Runtime
         /// is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
-            this.CreateMachineAndExecuteAsync(mid, type, null, e, null, operationGroupId);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        public override void SendEvent(MachineId target, Event e, SendOptions options = null)
-        {
-            this.SendEvent(target, e, null, options);
-        }
+        public override void SendEvent(MachineId target, Event e, SendOptions options = null) =>
+            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEvent' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
         public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null) =>
-            this.SendEventAndExecuteAsync(target, e, null, options);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
         public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null) =>
-            this.SendEventAndExecuteAsync(target, e, options);
+            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecute' is not supported in this testing mode.");
 
         /// <summary>
         /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
         /// if the id is not set, or if the <see cref="MachineId"/> is not associated with this runtime.
         /// During testing, the runtime asserts that the specified machine is currently executing.
         /// </summary>
-        public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
-        {
-            if (!this.MachineMap.TryGetValue(currentMachine, out Machine machine))
-            {
-                return Guid.Empty;
-            }
-
-            return machine.Info.OperationGroupId;
-        }
+        public override Guid GetCurrentOperationGroupId(MachineId currentMachine) => Guid.Empty;
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e, Machine creator, Guid? operationGroupId)
         {
-            Machine machine = this.CreateMachine(mid, type, machineName);
-            this.Logger.OnCreateMachine(machine.Id, creator?.Id);
-            SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            this.RunMachineEventHandler(machine, e, true);
-            return machine.Id;
+            mid = mid ?? new MachineId(type, null, this);
+            this.Logger.OnCreateMachine(mid, creator?.Id);
+            return mid;
         }
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
         /// method returns only when the created machine reaches quiescence.
         /// </summary>
-        internal override async Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
+        internal override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
             Machine creator, Guid? operationGroupId)
         {
-            Machine machine = this.CreateMachine(mid, type, machineName);
-            this.Logger.OnCreateMachine(machine.Id, creator?.Id);
-            SetOperationGroupIdForMachine(machine, creator, operationGroupId);
-            await this.RunMachineEventHandlerAsync(machine, e, true);
-            return machine.Id;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
-        /// </summary>
-        private Machine CreateMachine(MachineId mid, Type type, string machineName)
-        {
-            if (!type.IsSubclassOf(typeof(Machine)))
-            {
-                this.Assert(false, "Type '{0}' is not a machine.", type.FullName);
-            }
-
-            if (mid is null)
-            {
-                mid = new MachineId(type, machineName, this);
-            }
-            else if (mid.Runtime != null && mid.Runtime != this)
-            {
-                this.Assert(false, "Unbound machine id '{0}' was created by another runtime.", mid.Value);
-            }
-            else if (mid.Type != type.FullName)
-            {
-                this.Assert(false, "Cannot bind machine id '{0}' of type '{1}' to a machine of type '{2}'.",
-                    mid.Value, mid.Type, type.FullName);
-            }
-            else
-            {
-                mid.Bind(this);
-            }
-
-            Machine machine = MachineFactory.Create(type);
-            machine.Initialize(this, mid, new MachineInfo(mid), new EventQueue(this, machine));
-            machine.InitializeStateInformation();
-
-            if (!this.MachineMap.TryAdd(mid, machine))
-            {
-                string info = "This typically occurs if either the machine id was created by another runtime instance, " +
-                    "or if a machine id from a previous runtime generation was deserialized, but the current runtime " +
-                    "has not increased its generation value.";
-                this.Assert(false, "Machine with id '{0}' was already created in generation '{1}'. {2}", mid.Value, mid.Generation, info);
-            }
-
-            return machine;
+            mid = mid ?? new MachineId(type, null, this);
+            this.Logger.OnCreateMachine(mid, creator?.Id);
+            return Task.FromResult(mid);
         }
 
         /// <summary>
@@ -240,37 +219,31 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
-            if (target is null)
-            {
-                string message = sender != null ?
-                    string.Format("Machine '{0}' is sending to a null machine.", sender.Id.ToString()) :
-                    "Cannot send to a null machine.";
-                this.Assert(false, message);
-            }
+            this.Assert(sender is null || this.Machine.Id.Equals(sender.Id),
+                string.Format("Only machine '{0}' can send an event during this test.", this.Machine.Id.ToString()));
+            this.Assert(target != null, string.Format("Machine '{0}' is sending to a null machine.", this.Machine.Id.ToString()));
+            this.Assert(e != null, string.Format("Machine '{0}' is sending a null event.", this.Machine.Id.ToString()));
 
-            if (e is null)
-            {
-                string message = sender != null ?
-                    string.Format("Machine '{0}' is sending a null event.", sender.Id.ToString()) :
-                    "Cannot send a null event.";
-                this.Assert(false, message);
-            }
-
-            if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
+            if (this.Machine.Info.IsHalted)
             {
                 this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                     e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
-                this.TryHandleDroppedEvent(e, target);
                 return;
             }
 
-            this.Logger.OnSend(targetMachine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+            this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                 e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
 
-            EnqueueStatus enqueueStatus = targetMachine.Enqueue(e, null);
+            if (!target.Equals(this.Machine.Id))
+            {
+                // Drop all events sent to a machine other than the machine-under-test.
+                return;
+            }
+
+            EnqueueStatus enqueueStatus = this.Machine.Enqueue(e, null);
             if (enqueueStatus == EnqueueStatus.EventHandlerNotRunning)
             {
-                this.RunMachineEventHandler(targetMachine, null, false);
+                this.RunMachineEventHandler(this.Machine, null, false);
             }
         }
 
@@ -278,52 +251,20 @@ namespace Microsoft.PSharp.Runtime
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        internal override async Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options)
         {
-            if (target is null)
-            {
-                string message = sender != null ?
-                    string.Format("Machine '{0}' is sending to a null machine.", sender.Id.ToString()) :
-                    "Cannot send to a null machine.";
-                this.Assert(false, message);
-            }
-
-            if (e is null)
-            {
-                string message = sender != null ?
-                    string.Format("Machine '{0}' is sending a null event.", sender.Id.ToString()) :
-                    "Cannot send a null event.";
-                this.Assert(false, message);
-            }
-
-            if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
-            {
-                this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
-                    e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
-                this.TryHandleDroppedEvent(e, target);
-                return true;
-            }
-
-            this.Logger.OnSend(targetMachine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
-                e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
-
-            EnqueueStatus enqueueStatus = targetMachine.Enqueue(e, null);
-            if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
-            {
-                await this.RunMachineEventHandlerAsync(targetMachine, null, false);
-                return true;
-            }
-
-            return false;
+            this.SendEvent(target, e, sender, options);
+            return this.QuiescenceCompletionSource.Task;
         }
 
         /// <summary>
         /// Runs a new asynchronous machine event handler.
-        /// This is a fire and forget invocation.
         /// </summary>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
+        private Task RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh)
         {
-            Task.Run(async () =>
+            this.QuiescenceCompletionSource = new TaskCompletionSource<bool>();
+
+            return Task.Run(async () =>
             {
                 try
                 {
@@ -333,78 +274,34 @@ namespace Microsoft.PSharp.Runtime
                     }
 
                     await machine.RunEventHandlerAsync();
+                    this.QuiescenceCompletionSource.SetResult(true);
                 }
                 catch (Exception ex)
                 {
                     this.IsRunning = false;
                     this.RaiseOnFailureEvent(ex);
+                    this.QuiescenceCompletionSource.SetException(ex);
                 }
             });
         }
 
         /// <summary>
-        /// Runs a new asynchronous machine event handler.
-        /// </summary>
-        private async Task RunMachineEventHandlerAsync(Machine machine, Event initialEvent, bool isFresh)
-        {
-            try
-            {
-                if (isFresh)
-                {
-                    await machine.GotoStartState(initialEvent);
-                }
-
-                await machine.RunEventHandlerAsync();
-            }
-            catch (Exception ex)
-            {
-                this.IsRunning = false;
-                this.RaiseOnFailureEvent(ex);
-                return;
-            }
-        }
-
-        /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
         /// </summary>
-        internal override IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner) => new MachineTimer(info, owner);
+        internal override IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner)
+        {
+            var mid = this.CreateMachineId(typeof(MockMachineTimer));
+            this.CreateMachine(mid, typeof(MockMachineTimer), new TimerSetupEvent(info, owner, this.Configuration.TimeoutDelay));
+            this.MachineMap.TryGetValue(mid, out Machine machine);
+            return machine as IMachineTimer;
+        }
 
         /// <summary>
         /// Tries to create a new <see cref="PSharp.Monitor"/> of the specified <see cref="Type"/>.
         /// </summary>
         internal override void TryCreateMonitor(Type type)
         {
-            // Check if monitors are enabled in production.
-            if (!this.Configuration.EnableMonitorsInProduction)
-            {
-                return;
-            }
-
-            lock (this.Monitors)
-            {
-                if (this.Monitors.Any(m => m.GetType() == type))
-                {
-                    // Idempotence: only one monitor per type can exist.
-                    return;
-                }
-            }
-
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass of Monitor.", type.FullName);
-
-            MachineId mid = new MachineId(type, null, this);
-            Monitor monitor = (Monitor)Activator.CreateInstance(type);
-
-            monitor.Initialize(this, mid);
-            monitor.InitializeStateInformation();
-
-            lock (this.Monitors)
-            {
-                this.Monitors.Add(monitor);
-            }
-
-            this.Logger.OnCreateMonitor(type.FullName, monitor.Id);
-
-            monitor.GotoStartState();
+            // No-op in this runtime mode.
         }
 
         /// <summary>
@@ -412,33 +309,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
-            // Check if monitors are enabled in production.
-            if (!this.Configuration.EnableMonitorsInProduction)
-            {
-                return;
-            }
-
-            Monitor monitor = null;
-
-            lock (this.Monitors)
-            {
-                foreach (var m in this.Monitors)
-                {
-                    if (m.GetType() == type)
-                    {
-                        monitor = m;
-                        break;
-                    }
-                }
-            }
-
-            if (monitor != null)
-            {
-                lock (monitor)
-                {
-                    monitor.MonitorEvent(e);
-                }
-            }
+            // No-op in this runtime mode.
         }
 
         /// <summary>
@@ -650,13 +521,16 @@ namespace Microsoft.PSharp.Runtime
                 var eventWaitTypesArray = eventTypes.ToArray();
                 if (eventWaitTypesArray.Length == 1)
                 {
-                    this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray[0]);
+                    this.Logger.OnWait(this.Machine.Id, this.Machine.CurrentStateName, eventWaitTypesArray[0]);
                 }
                 else
                 {
-                    this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray);
+                    this.Logger.OnWait(this.Machine.Id, this.Machine.CurrentStateName, eventWaitTypesArray);
                 }
             }
+
+            this.IsMachineWaitingToReceiveEvent = true;
+            this.QuiescenceCompletionSource.SetResult(true);
         }
 
         /// <summary>
@@ -665,6 +539,8 @@ namespace Microsoft.PSharp.Runtime
         internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: true);
+            this.IsMachineWaitingToReceiveEvent = false;
+            this.QuiescenceCompletionSource = new TaskCompletionSource<bool>();
         }
 
         /// <summary>
@@ -691,7 +567,6 @@ namespace Microsoft.PSharp.Runtime
         {
             if (disposing)
             {
-                this.Monitors.Clear();
                 this.MachineMap.Clear();
             }
 

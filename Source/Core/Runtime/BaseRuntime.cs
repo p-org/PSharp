@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -270,9 +271,8 @@ namespace Microsoft.PSharp.Runtime
         /// method returns only when the machine is initialized and the <see cref="Event"/>
         /// (if any) is handled.
         /// </summary>
-        /// <returns>MachineId</returns>
-        internal abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, string machineName,
-            Event e, Machine creator, Guid? operationGroupId);
+        internal abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
+            Machine creator, Guid? operationGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -280,11 +280,10 @@ namespace Microsoft.PSharp.Runtime
         internal abstract void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
-        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately
-        /// if the target machine was already running. Otherwise blocks until the machine handles
-        /// the event and reaches quiescense again.
+        /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
+        /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        internal abstract Task<bool> SendEventAndExecute(MachineId target, Event e, BaseMachine sender, SendOptions options);
+        internal abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options);
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
@@ -462,17 +461,9 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive an event of the specified type.
-        /// </summary>
-        internal virtual void NotifyWaitEvent(Machine machine, Type eventType)
-        {
-            // Override to implement the notification.
-        }
-
-        /// <summary>
         /// Notifies that a machine is waiting to receive an event of one of the specified types.
         /// </summary>
-        internal virtual void NotifyWaitEvent(Machine machine, params Type[] eventTypes)
+        internal virtual void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
             // Override to implement the notification.
         }
@@ -543,7 +534,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Sets the operation group id for the specified machine.
         /// </summary>
-        internal void SetOperationGroupIdForMachine(Machine created, BaseMachine sender, Guid? operationGroupId)
+        internal static void SetOperationGroupIdForMachine(Machine created, BaseMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {

@@ -104,7 +104,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.EventWaitTypes.Clear();
                 this.Machine.Info.IsWaitingToReceive = false;
-                this.Runtime.Logger.OnReceive(this.Machine.Id, this.Machine.CurrentStateName, info.EventName, wasBlocked: true);
                 this.Runtime.NotifyReceivedEvent(this.Machine, e, info);
                 this.ReceiveCompletionSource.SetResult(e);
                 return EnqueueStatus.EventHandlerRunning;
@@ -340,23 +339,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
                 this.EventWaitTypes = eventWaitTypes;
                 this.Machine.Info.IsWaitingToReceive = true;
-
-                var eventWaitTypesArray = this.EventWaitTypes.Keys.ToArray();
-                if (eventWaitTypesArray.Length == 1)
-                {
-                    this.Runtime.Logger.OnWait(this.Machine.Id, this.Machine.CurrentStateName, eventWaitTypesArray[0]);
-                    this.Runtime.NotifyWaitEvent(this.Machine, eventWaitTypesArray[0]);
-                }
-                else
-                {
-                    this.Runtime.Logger.OnWait(this.Machine.Id, this.Machine.CurrentStateName, eventWaitTypesArray);
-                    this.Runtime.NotifyWaitEvent(this.Machine, eventWaitTypesArray);
-                }
-
+                this.Runtime.NotifyWaitEvent(this.Machine, this.EventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.Runtime.Logger.OnReceive(this.Machine.Id, this.Machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
             this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, info);
             return Task.FromResult(e);
         }

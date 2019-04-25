@@ -1,6 +1,6 @@
-Testing P# programs and reproducing bugs
-========================================
-The P# tester can be used to **systematically test** a P# program to find **safety** and **liveness property violations** (specified by the user).
+Automatically testing P# programs end-to-end and reproducing bugs
+=================================================================
+The P# tester can be used to **automatically test** a P# program to find and determinitically reproduce generic errors, as well as (specified by the user) **safety** and **liveness property violations**.
 
 To invoke the tester use the following command:
 ```

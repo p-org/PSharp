@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class ReceiveTest : BaseTest
+    public class ReceiveEventIntegrationTest : BaseTest
     {
-        public ReceiveTest(ITestOutputHelper output)
+        public ReceiveEventIntegrationTest(ITestOutputHelper output)
             : base(output)
         {
         }
