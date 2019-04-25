@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(N));
             });
 
-            var bugReport = "Detected synchronization context that is not controlled by the P# runtime.";
+            var bugReport = "Detected concurrency that is not controlled by the P# runtime.";
             this.AssertFailed(test, bugReport, true);
         }
     }

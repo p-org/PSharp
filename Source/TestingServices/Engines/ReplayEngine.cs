@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Runtime;
-using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices

@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
-using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Timers;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
@@ -71,6 +71,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly List<Monitor> Monitors;
 
         /// <summary>
+        /// Map from machine ids to asynchronous operations.
+        /// </summary>
+        private readonly ConcurrentDictionary<MachineId, MachineOperation> MachineOperations;
+
+        /// <summary>
         /// Map from task ids to machines.
         /// </summary>
         private readonly ConcurrentDictionary<int, Machine> TaskMap;
@@ -97,6 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             : base(configuration)
         {
             this.Monitors = new List<Monitor>();
+            this.MachineOperations = new ConcurrentDictionary<MachineId, MachineOperation>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.RootTaskId = Task.CurrentId;
             this.AllCreatedMachineIds = new HashSet<MachineId>();
@@ -283,7 +289,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return Guid.Empty;
             }
 
-            return machine.Info.OperationGroupId;
+            return machine.OperationGroupId;
         }
 
         /// <summary>
@@ -296,20 +302,20 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
             TestHarnessMachine harness = new TestHarnessMachine(testMethod, testAction);
-
-            harness.Initialize(this, mid, new SchedulableInfo(mid));
+            MachineOperation op = this.MachineOperations.GetOrAdd(mid, new MachineOperation(mid));
+            harness.Initialize(this, mid);
 
             Task task = new Task(() =>
             {
                 try
                 {
-                    BugFindingScheduler.NotifyEventHandlerStarted(harness.Info as SchedulableInfo);
+                    BugFindingScheduler.NotifyEventHandlerStarted(op);
 
                     harness.Run();
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of the test harness machine.");
-                    (harness.Info as SchedulableInfo).NotifyEventHandlerCompleted();
-                    this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, harness.Info.Id);
+                    op.NotifyEventHandlerCompleted();
+                    this.Scheduler.ScheduleNextOperation(AsyncOperationType.Stop, AsyncOperationTarget.Task, harness.Id.Value);
                     IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of the test harness machine.");
                 }
                 catch (ExecutionCanceledException)
@@ -322,12 +328,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             });
 
-            (harness.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, 0);
-            this.Scheduler.NotifyEventHandlerCreated(harness.Info as SchedulableInfo);
+            op.NotifyEventHandlerCreated(task, 0);
+            this.Scheduler.NotifyEventHandlerCreated(op);
 
             task.Start();
 
-            this.Scheduler.WaitForEventHandlerToStart(harness.Info as SchedulableInfo);
+            this.Scheduler.WaitForEventHandlerToStart(op);
         }
 
         /// <summary>
@@ -359,7 +365,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             // Using ulong.MaxValue because a 'Create' operation cannot specify
             // the id of its target, because the id does not exist yet.
-            this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Create, AsyncOperationTarget.Task, ulong.MaxValue);
+            ResetProgramCounter(creator);
 
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
             SetOperationGroupIdForMachine(machine, creator, operationGroupId);
@@ -402,7 +409,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             // Using ulong.MaxValue because a 'Create' operation cannot specify
             // the id of its target, because the id does not exist yet.
-            this.Scheduler.Schedule(OperationType.Create, OperationTargetType.Schedulable, ulong.MaxValue);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Create, AsyncOperationTarget.Task, ulong.MaxValue);
+            ResetProgramCounter(creator);
 
             Machine machine = this.CreateMachine(mid, type, machineName, creator);
             SetOperationGroupIdForMachine(machine, creator, operationGroupId);
@@ -437,7 +445,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
-            machine.Initialize(this, mid, new SchedulableInfo(mid), new MockEventQueue(this, machine));
+            this.MachineOperations.GetOrAdd(mid, new MachineOperation(mid));
+            IMachineStateManager stateManager = new MockMachineStateManager(this, machine);
+            IEventQueue eventQueue = new MockEventQueue(stateManager, machine);
+            machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
             if (this.Configuration.ReportActivityCoverage && !isMachineTypeCached)
@@ -484,7 +495,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
                 e.GetType().FullName, target.Value, target.Type);
 
-            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, target.Value);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
+            ResetProgramCounter(sender as Machine);
 
             if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
             {
@@ -525,7 +537,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
                 e.GetType().FullName, target.Value, target.Type);
 
-            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, target.Value);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
+            ResetProgramCounter(sender as Machine);
 
             if (!this.MachineMap.TryGetValue(target, out Machine targetMachine))
             {
@@ -610,11 +623,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
         private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
         {
+            MachineOperation op = this.GetMachineOperation(machine.Id);
+
             Task task = new Task(async () =>
             {
                 try
                 {
-                    BugFindingScheduler.NotifyEventHandlerStarted(machine.Info as SchedulableInfo);
+                    BugFindingScheduler.NotifyEventHandlerStarted(op);
 
                     if (isFresh)
                     {
@@ -625,22 +640,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (syncCaller != null)
                     {
-                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id, machine.Info.OperationGroupId), machine, null, out EventInfo _);
+                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id, machine.OperationGroupId), machine, null, out EventInfo _);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{(machine.Info as SchedulableInfo).TaskId}'.");
-                    (machine.Info as SchedulableInfo).NotifyEventHandlerCompleted();
+                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{op.Task.Id}'.");
+                    op.NotifyEventHandlerCompleted();
 
-                    if (machine.Info.IsHalted)
+                    if (machine.IsHalted)
                     {
-                        this.Scheduler.Schedule(OperationType.Stop, OperationTargetType.Schedulable, machine.Info.Id);
+                        this.Scheduler.ScheduleNextOperation(AsyncOperationType.Stop, AsyncOperationTarget.Task, machine.Id.Value);
                     }
                     else
                     {
-                        this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+                        this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' with task id '{(machine.Info as SchedulableInfo).TaskId}'.");
+                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' with task id '{op.Task.Id}'.");
+                    ResetProgramCounter(machine);
                 }
                 catch (ExecutionCanceledException)
                 {
@@ -658,12 +674,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             this.TaskMap.TryAdd(task.Id, machine);
 
-            (machine.Info as SchedulableInfo).NotifyEventHandlerCreated(task.Id, enablingEvent?.SendStep ?? 0);
-            this.Scheduler.NotifyEventHandlerCreated(machine.Info as SchedulableInfo);
+            op.NotifyEventHandlerCreated(task, enablingEvent?.SendStep ?? 0);
+            this.Scheduler.NotifyEventHandlerCreated(op);
 
             task.Start(this.TaskScheduler);
 
-            this.Scheduler.WaitForEventHandlerToStart(machine.Info as SchedulableInfo);
+            this.Scheduler.WaitForEventHandlerToStart(op);
         }
 
         /// <summary>
@@ -701,8 +717,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             MachineId mid = new MachineId(type, null, this);
 
-            SchedulableInfo info = new SchedulableInfo(mid);
-            this.Scheduler.NotifyMonitorRegistered(info);
+            MachineOperation op = this.MachineOperations.GetOrAdd(mid, new MachineOperation(mid));
+            this.Scheduler.NotifyMonitorRegistered(op);
 
             Monitor monitor = Activator.CreateInstance(type) as Monitor;
             monitor.Initialize(this, mid);
@@ -724,11 +740,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void Monitor(Type type, BaseMachine sender, Event e)
         {
             this.AssertCorrectCallerMachine(sender as Machine, "Monitor");
-            if (sender is Machine)
-            {
-                this.AssertNoPendingTransitionStatement(sender as Machine, "Monitor");
-            }
-
             foreach (var m in this.Monitors)
             {
                 if (m.GetType() == type)
@@ -816,18 +827,18 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal void AssertTransitionStatement(Machine machine)
         {
-            this.Assert(!machine.Info.IsInsideOnExit,
+            var stateManager = machine.StateManager as MockMachineStateManager;
+            this.Assert(!stateManager.IsInsideOnExit,
                 "Machine '{0}' has called raise, goto, push or pop inside an OnExit method.",
                 machine.Id.Name);
-            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement,
+            this.Assert(!stateManager.IsTransitionStatementCalledInCurrentAction,
                 "Machine '{0}' has called multiple raise, goto, push or pop in the same action.",
                 machine.Id.Name);
-            machine.Info.CurrentActionCalledTransitionStatement = true;
+            stateManager.IsTransitionStatementCalledInCurrentAction = true;
         }
 
         /// <summary>
-        /// Asserts that a transition statement (raise, goto or pop)
-        /// has not already been called.
+        /// Asserts that a transition statement (raise, goto or pop) has not already been called.
         /// </summary>
         internal void AssertNoPendingTransitionStatement(Machine machine, string calledAPI)
         {
@@ -837,7 +848,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return;
             }
 
-            this.Assert(!machine.Info.CurrentActionCalledTransitionStatement,
+            var stateManager = machine.StateManager as MockMachineStateManager;
+            this.Assert(!stateManager.IsTransitionStatementCalledInCurrentAction,
                 "Machine '{0}' cannot call '{1}' after calling raise, goto, push or pop in the same action.",
                 machine.Id.Name, calledAPI);
         }
@@ -899,10 +911,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
-            if (caller is Machine)
+            if (caller is Machine machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
-                (caller as Machine).Info.ProgramCounter++;
+                (machine.StateManager as MockMachineStateManager).ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
@@ -926,10 +938,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
-            if (caller is Machine)
+            if (caller is Machine machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
-                (caller as Machine).Info.ProgramCounter++;
+                (machine.StateManager as MockMachineStateManager).ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
@@ -1011,6 +1023,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
@@ -1026,6 +1040,67 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter.InAction[machine.Id.Value] = false;
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        internal override void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+
+            string machineState = machine.CurrentStateName;
+            this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
+
+            this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter.InAction[machine.Id.Value] = true;
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed invoking an action.
+        /// </summary>
+        internal override void NotifyCompletedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter.InAction[machine.Id.Value] = false;
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        internal override void NotifyInvokedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            (machine.StateManager as MockMachineStateManager).IsInsideOnExit = true;
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+
+            string machineState = machine.CurrentStateName;
+            this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
+
+            this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter.InAction[machine.Id.Value] = true;
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed invoking an action.
+        /// </summary>
+        internal override void NotifyCompletedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            (machine.StateManager as MockMachineStateManager).IsInsideOnExit = false;
+            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1073,16 +1148,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
+            MachineOperation op = this.GetMachineOperation(machine.Id);
+
             // Skip `Receive` if the last operation exited the previous event handler,
             // to avoid scheduling duplicate `Receive` operations.
-            if ((machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint)
+            if (op.SkipNextReceiveSchedulingPoint)
             {
-                (machine.Info as SchedulableInfo).SkipNextReceiveSchedulingPoint = false;
+                op.SkipNextReceiveSchedulingPoint = false;
             }
             else
             {
-                (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
-                this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+                op.MatchingSendIndex = (ulong)eventInfo.SendStep;
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+                ResetProgramCounter(machine);
             }
 
             this.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
@@ -1142,7 +1220,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
-            (machine.Info as SchedulableInfo).IsEnabled = false;
+            MachineOperation op = this.GetMachineOperation(machine.Id);
+            op.IsEnabled = false;
+            op.IsWaitingToReceive = true;
 
             string eventNames;
             var eventWaitTypesArray = eventTypes.ToArray();
@@ -1171,11 +1251,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventNames);
-            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+            ResetProgramCounter(machine);
         }
 
         /// <summary>
-        /// Notifies that a machine received an event that it was waiting for.
+        /// Notifies that a machine enqueued an event that it was waiting to receive.
         /// </summary>
         internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
@@ -1188,8 +1269,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, e, (ulong)eventInfo.SendStep);
             }
 
-            (machine.Info as SchedulableInfo).IsEnabled = true;
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
+            MachineOperation op = this.GetMachineOperation(machine.Id);
+            op.IsWaitingToReceive = false;
+            op.IsEnabled = true;
+            op.MatchingSendIndex = (ulong)eventInfo.SendStep;
 
             if (this.Configuration.ReportActivityCoverage)
             {
@@ -1205,14 +1288,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
 
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)eventInfo.SendStep;
+            MachineOperation op = this.GetMachineOperation(machine.Id);
+            op.MatchingSendIndex = (ulong)eventInfo.SendStep;
 
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, e, (ulong)eventInfo.SendStep);
             }
 
-            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+            ResetProgramCounter(machine);
         }
 
         /// <summary>
@@ -1230,12 +1315,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyDefaultEventHandlerCheck(Machine machine)
         {
-            this.Scheduler.Schedule(OperationType.Send, OperationTargetType.Inbox, machine.Info.Id);
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, machine.Id.Value);
 
             // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
-            // will use this as its NextOperationMatchingSendIndex.
-            // If it does not fire, NextOperationMatchingSendIndex will be overwritten.
-            (machine.Info as SchedulableInfo).NextOperationMatchingSendIndex = (ulong)this.Scheduler.ScheduledSteps;
+            // will use this as its MatchingSendIndex.
+            // If it does not fire, MatchingSendIndex will be overwritten.
+            this.GetMachineOperation(machine.Id).MatchingSendIndex = (ulong)this.Scheduler.ScheduledSteps;
         }
 
         /// <summary>
@@ -1243,8 +1328,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyDefaultHandlerFired(Machine machine)
         {
-            // NextOperationMatchingSendIndex is set in NotifyDefaultEventHandlerCheck.
-            this.Scheduler.Schedule(OperationType.Receive, OperationTargetType.Inbox, machine.Info.Id);
+            // MatchingSendIndex is set in NotifyDefaultEventHandlerCheck.
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+            ResetProgramCounter(machine);
         }
 
         /// <summary>
@@ -1411,6 +1497,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
+        /// Resets the program counter of the specified machine.
+        /// </summary>
+        private static void ResetProgramCounter(Machine machine)
+        {
+            if (machine != null)
+            {
+                (machine.StateManager as MockMachineStateManager).ProgramCounter = 0;
+            }
+        }
+
+        /// <summary>
         /// Gets the currently executing <see cref="Machine"/>, if one exists.
         /// </summary>
         internal Machine GetCurrentMachine()
@@ -1434,9 +1531,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Gets the id of the currently executing <see cref="Machine"/>.
         /// <returns>MachineId or null, if not present</returns>
         /// </summary>
-        internal MachineId GetCurrentMachineId()
+        internal MachineId GetCurrentMachineId() => this.GetCurrentMachine()?.Id;
+
+        /// <summary>
+        /// Gets the currently executing operation of the machine with the specified id.
+        /// </summary>
+        internal MachineOperation GetMachineOperation(MachineId id)
         {
-            return this.GetCurrentMachine()?.Id;
+            this.MachineOperations.TryGetValue(id, out MachineOperation op);
+            return op;
         }
 
         /// <summary>
@@ -1453,7 +1556,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
                     hash = (hash * 31) + machine.GetCachedState();
-                    hash = (hash * 31) + (int)(machine.Info as SchedulableInfo).NextOperationType;
+                    hash = (hash * 31) + (int)this.GetMachineOperation(machine.Id).Type;
                 }
 
                 foreach (var monitor in this.Monitors)
@@ -1494,6 +1597,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.Monitors.Clear();
                 this.MachineMap.Clear();
+                this.MachineOperations.Clear();
                 this.TaskMap.Clear();
             }
 

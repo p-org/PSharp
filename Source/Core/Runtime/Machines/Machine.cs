@@ -51,6 +51,11 @@ namespace Microsoft.PSharp
             new ConcurrentDictionary<Type, bool>();
 
         /// <summary>
+        /// Manages the state of the machine.
+        /// </summary>
+        internal IMachineStateManager StateManager { get; private set; }
+
+        /// <summary>
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
@@ -88,6 +93,11 @@ namespace Microsoft.PSharp
         /// Map that contains the active timers.
         /// </summary>
         private readonly Dictionary<TimerInfo, IMachineTimer> Timers;
+
+        /// <summary>
+        /// Is the machine halted.
+        /// </summary>
+        internal volatile bool IsHalted;
 
         /// <summary>
         /// Is pop invoked in the current action.
@@ -155,20 +165,6 @@ namespace Microsoft.PSharp
         protected virtual int HashedState => 0;
 
         /// <summary>
-        /// Unique id of the group of operations that is
-        /// associated with the next operation.
-        /// </summary>
-        protected Guid OperationGroupId
-        {
-            get => this.Info.OperationGroupId;
-
-            set
-            {
-                this.Info.OperationGroupId = value;
-            }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="Machine"/> class.
         /// </summary>
         protected Machine()
@@ -177,7 +173,7 @@ namespace Microsoft.PSharp
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
             this.ActionMap = new Dictionary<string, CachedAction>();
             this.Timers = new Dictionary<TimerInfo, IMachineTimer>();
-
+            this.IsHalted = false;
             this.IsPopInvoked = false;
             this.OnExceptionRequestedGracefulHalt = false;
         }
@@ -185,9 +181,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info, IEventQueue inbox)
+        internal void Initialize(BaseRuntime runtime, MachineId mid, IMachineStateManager stateManager, IEventQueue inbox)
         {
-            this.Initialize(runtime, mid, info);
+            this.Initialize(runtime, mid);
+            this.StateManager = stateManager;
             this.Inbox = inbox;
         }
 
@@ -244,7 +241,7 @@ namespace Microsoft.PSharp
             {
                 // The event inherits the current machine operation group id,
                 // because the user did not specify a value.
-                e.OperationGroupId = this.Info.OperationGroupId;
+                e.OperationGroupId = this.OperationGroupId;
             }
 
             this.Runtime.SendEvent(mid, e, this, options);
@@ -256,14 +253,14 @@ namespace Microsoft.PSharp
         /// <param name="e">The event to raise.</param>
         protected void Raise(Event e)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
 
             if (e.OperationGroupId == Guid.Empty)
             {
                 // The event inherits the current machine operation group id,
                 // because the user did not specify a value.
-                e.OperationGroupId = this.Info.OperationGroupId;
+                e.OperationGroupId = this.OperationGroupId;
             }
 
             this.Inbox.Raise(e);
@@ -278,7 +275,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(Type eventType, Func<Event, bool> predicate = null)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
             return this.Inbox.ReceiveAsync(eventType, predicate);
         }
@@ -290,7 +287,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(params Type[] eventTypes)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
             return this.Inbox.ReceiveAsync(eventTypes);
         }
@@ -303,7 +300,7 @@ namespace Microsoft.PSharp
         /// <returns>The received event.</returns>
         protected internal Task<Event> Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Receive while halted.", this.Id);
             this.Runtime.NotifyReceiveCalled(this);
             return this.Inbox.ReceiveAsync(events);
         }
@@ -329,7 +326,7 @@ namespace Microsoft.PSharp
         [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Goto while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Goto while halted.", this.Id);
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
                 "Machine '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
             this.Raise(new GotoStateEvent(s));
@@ -356,7 +353,7 @@ namespace Microsoft.PSharp
         [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
         protected void Push(Type s)
         {
-            this.Assert(!this.Info.IsHalted, "Machine '{0}' invoked Push while halted.", this.Id);
+            this.Assert(!this.IsHalted, "Machine '{0}' invoked Push while halted.", this.Id);
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
                 "Machine '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
             this.Raise(new PushStateEvent(s));
@@ -533,7 +530,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal EnqueueStatus Enqueue(Event e, EventInfo info)
         {
-            if (this.Info.IsHalted)
+            if (this.IsHalted)
             {
                 return EnqueueStatus.Dropped;
             }
@@ -547,19 +544,19 @@ namespace Microsoft.PSharp
         /// </summary>
         internal async Task RunEventHandlerAsync()
         {
-            if (this.Info.IsHalted)
+            if (this.IsHalted)
             {
                 return;
             }
 
             Event lastDequeuedEvent = null;
-            while (!this.Info.IsHalted && this.Runtime.IsRunning)
+            while (!this.IsHalted && this.Runtime.IsRunning)
             {
                 (DequeueStatus status, Event e, EventInfo info) = this.Inbox.Dequeue();
                 if (status is DequeueStatus.Success)
                 {
                     // The machine inherits the operation group id of the dequeued event.
-                    this.Info.OperationGroupId = e.OperationGroupId;
+                    this.OperationGroupId = e.OperationGroupId;
 
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
@@ -604,7 +601,7 @@ namespace Microsoft.PSharp
                 // Handles next event.
                 await this.HandleEvent(e);
 
-                if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.Info.IsHalted)
+                if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.IsHalted)
                 {
                     // Inform the user that the machine is done handling the current event.
                     // The machine will either go idle or dequeue its next event.
@@ -619,7 +616,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private async Task HandleEvent(Event e)
         {
-            this.Info.CurrentActionCalledTransitionStatement = false;
             var currentState = this.CurrentStateName;
 
             while (true)
@@ -698,7 +694,7 @@ namespace Microsoft.PSharp
                 {
                     // If the current state cannot handle the event.
                     await this.ExecuteCurrentStateOnExit(null);
-                    if (this.Info.IsHalted)
+                    if (this.IsHalted)
                     {
                         return;
                     }
@@ -730,7 +726,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Executes the on entry function of the current state.
+        /// Executes the on entry action of the current state.
         /// </summary>
         private async Task ExecuteCurrentStateOnEntry()
         {
@@ -746,9 +742,9 @@ namespace Microsoft.PSharp
             // if there is one available.
             if (entryAction != null)
             {
-                this.Runtime.NotifyInvokedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyInvokedOnEntryAction(this, entryAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(entryAction);
-                this.Runtime.NotifyCompletedAction(this, entryAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyCompletedOnEntryAction(this, entryAction.MethodInfo, this.ReceivedEvent);
             }
 
             if (this.IsPopInvoked)
@@ -759,7 +755,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Executes the on exit function of the current state.
+        /// Executes the on exit action of the current state.
         /// </summary>
         /// <param name="eventHandlerExitActionName">Action name</param>
         private async Task ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
@@ -772,15 +768,13 @@ namespace Microsoft.PSharp
                 exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
             }
 
-            this.Info.IsInsideOnExit = true;
-
             // Invokes the exit action of the current state,
             // if there is one available.
             if (exitAction != null)
             {
-                this.Runtime.NotifyInvokedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyInvokedOnExitAction(this, exitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(exitAction);
-                this.Runtime.NotifyCompletedAction(this, exitAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyCompletedOnExitAction(this, exitAction.MethodInfo, this.ReceivedEvent);
             }
 
             // Invokes the exit action of the event handler,
@@ -788,12 +782,10 @@ namespace Microsoft.PSharp
             if (eventHandlerExitActionName != null)
             {
                 CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                this.Runtime.NotifyInvokedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyInvokedOnExitAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
-                this.Runtime.NotifyCompletedAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
+                this.Runtime.NotifyCompletedOnExitAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
             }
-
-            this.Info.IsInsideOnExit = false;
         }
 
         /// <summary>
@@ -862,13 +854,13 @@ namespace Microsoft.PSharp
 
                 if (innerException is ExecutionCanceledException)
                 {
-                    this.Info.IsHalted = true;
+                    this.IsHalted = true;
                     Debug.WriteLine("<Exception> ExecutionCanceledException was " +
                         $"thrown from Machine '{this.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
-                    this.Info.IsHalted = true;
+                    this.IsHalted = true;
                     Debug.WriteLine("<Exception> TaskSchedulerException was " +
                         $"thrown from Machine '{this.Id}'.");
                 }
@@ -895,7 +887,7 @@ namespace Microsoft.PSharp
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(onExitActionName);
-            if (this.Info.IsHalted)
+            if (this.IsHalted)
             {
                 return;
             }
@@ -936,7 +928,7 @@ namespace Microsoft.PSharp
 
             // The machine performs the on exit action of the current state.
             await this.ExecuteCurrentStateOnExit(null);
-            if (this.Info.IsHalted)
+            if (this.IsHalted)
             {
                 return;
             }
@@ -1149,12 +1141,11 @@ namespace Microsoft.PSharp
             unchecked
             {
                 var hash = 19;
-
                 hash = (hash * 31) + this.GetType().GetHashCode();
                 hash = (hash * 31) + this.Id.Value.GetHashCode();
-                hash = (hash * 31) + this.Info.IsEventHandlerRunning.GetHashCode();
-                hash = (hash * 31) + this.Info.IsHalted.GetHashCode();
-                hash = (hash * 31) + this.Info.ProgramCounter;
+                hash = (hash * 31) + this.IsHalted.GetHashCode();
+
+                hash = (hash * 31) + this.StateManager.GetCachedState();
 
                 foreach (var state in this.StateStack)
                 {
@@ -1441,7 +1432,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the set of all states in the machine (for code coverage).
         /// </summary>
-        internal override HashSet<string> GetAllStates()
+        internal HashSet<string> GetAllStates()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()), "Machine '{0}' hasn't populated its states yet.", this.Id);
 
@@ -1457,7 +1448,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the set of all (states, registered event) pairs in the machine (for code coverage).
         /// </summary>
-        internal override HashSet<Tuple<string, string>> GetAllStateEventPairs()
+        internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
             this.Assert(StateMap.ContainsKey(this.GetType()), "Machine '{0}' hasn't populated its states yet.", this.Id);
 
@@ -1619,7 +1610,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HaltMachine()
         {
-            this.Info.IsHalted = true;
+            this.IsHalted = true;
             this.ReceivedEvent = null;
 
             // Close the inbox, which will stop any subsequent enqueues.

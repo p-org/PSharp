@@ -55,9 +55,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             var mid = new MachineId(machineType, null, this);
 
             this.Machine = MachineFactory.Create(machineType);
-            this.MachineInbox = new EventQueue(this, this.Machine);
+            IMachineStateManager stateManager = new MachineStateManager(this, this.Machine);
+            this.MachineInbox = new EventQueue(stateManager);
 
-            this.Machine.Initialize(this, mid, new MachineInfo(mid), this.MachineInbox);
+            this.Machine.Initialize(this, mid, stateManager, this.MachineInbox);
             this.Machine.InitializeStateInformation();
 
             this.Logger.OnCreateMachine(this.Machine.Id, null);
@@ -224,7 +225,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(target != null, string.Format("Machine '{0}' is sending to a null machine.", this.Machine.Id.ToString()));
             this.Assert(e != null, string.Format("Machine '{0}' is sending a null event.", this.Machine.Id.ToString()));
 
-            if (this.Machine.Info.IsHalted)
+            if (this.Machine.IsHalted)
             {
                 this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                     e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);

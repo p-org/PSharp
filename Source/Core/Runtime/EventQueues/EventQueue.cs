@@ -15,14 +15,9 @@ namespace Microsoft.PSharp.Runtime
     internal sealed class EventQueue : IEventQueue
     {
         /// <summary>
-        /// The runtime that executes the machine that owns this queue.
+        /// Manages the state of the machine that owns this queue.
         /// </summary>
-        private readonly BaseRuntime Runtime;
-
-        /// <summary>
-        /// The machine that owns this queue.
-        /// </summary>
-        private readonly Machine Machine;
+        private readonly IMachineStateManager MachineStateManager;
 
         /// <summary>
         /// The internal queue.
@@ -65,10 +60,9 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="EventQueue"/> class.
         /// </summary>
-        internal EventQueue(BaseRuntime runtime, Machine machine)
+        internal EventQueue(IMachineStateManager machineStateManager)
         {
-            this.Runtime = runtime;
-            this.Machine = machine;
+            this.MachineStateManager = machineStateManager;
             this.Queue = new LinkedList<Event>();
             this.EventWaitTypes = new Dictionary<Type, Func<Event, bool>>();
             this.IsClosed = false;
@@ -97,9 +91,9 @@ namespace Microsoft.PSharp.Runtime
                 else
                 {
                     this.Queue.AddLast(e);
-                    if (!this.Machine.Info.IsEventHandlerRunning)
+                    if (!this.MachineStateManager.IsEventHandlerRunning)
                     {
-                        this.Machine.Info.IsEventHandlerRunning = true;
+                        this.MachineStateManager.IsEventHandlerRunning = true;
                         enqueueStatus = EnqueueStatus.EventHandlerNotRunning;
                     }
                 }
@@ -107,13 +101,13 @@ namespace Microsoft.PSharp.Runtime
 
             if (enqueueStatus is EnqueueStatus.Received)
             {
-                this.Runtime.NotifyReceivedEvent(this.Machine, e, info);
+                this.MachineStateManager.OnReceiveEvent(e, info);
                 this.ReceiveCompletionSource.SetResult(e);
                 return enqueueStatus;
             }
             else
             {
-                this.Runtime.Logger.OnEnqueue(this.Machine.Id, e.GetType().FullName);
+                this.MachineStateManager.OnEnqueueEvent(e, info);
             }
 
             return enqueueStatus;
@@ -128,7 +122,7 @@ namespace Microsoft.PSharp.Runtime
             // have priority over the events in the inbox.
             if (this.RaisedEvent != null)
             {
-                if (this.Machine.IsEventIgnoredInCurrentState(this.RaisedEvent))
+                if (this.MachineStateManager.IsEventIgnoredInCurrentState(this.RaisedEvent, null))
                 {
                     // TODO: should the user be able to raise an ignored event?
                     // The raised event is ignored in the current state.
@@ -149,7 +143,7 @@ namespace Microsoft.PSharp.Runtime
                 while (node != null)
                 {
                     // Iterates through the events in the inbox.
-                    if (this.Machine.IsEventIgnoredInCurrentState(node.Value))
+                    if (this.MachineStateManager.IsEventIgnoredInCurrentState(node.Value, null))
                     {
                         // Removes an ignored event.
                         var nextNode = node.Next;
@@ -157,7 +151,7 @@ namespace Microsoft.PSharp.Runtime
                         node = nextNode;
                         continue;
                     }
-                    else if (this.Machine.IsEventDeferredInCurrentState(node.Value))
+                    else if (this.MachineStateManager.IsEventDeferredInCurrentState(node.Value, null))
                     {
                         // Skips a deferred event.
                         node = node.Next;
@@ -170,12 +164,12 @@ namespace Microsoft.PSharp.Runtime
                 }
 
                 // No event can be dequeued, so check if there is a default event handler.
-                if (!this.Machine.IsDefaultHandlerInstalledInCurrentState())
+                if (!this.MachineStateManager.IsDefaultHandlerInstalledInCurrentState())
                 {
                     // There is no default event handler installed, so do not return an event.
                     // Setting 'IsEventHandlerRunning' must happen inside the lock as it needs
                     // to be synchronized with the enqueue and starting a new event handler.
-                    this.Machine.Info.IsEventHandlerRunning = false;
+                    this.MachineStateManager.IsEventHandlerRunning = false;
                     return (DequeueStatus.NotAvailable, null, null);
                 }
             }
@@ -191,7 +185,7 @@ namespace Microsoft.PSharp.Runtime
         public void Raise(Event e)
         {
             this.RaisedEvent = e;
-            this.Runtime.NotifyRaisedEvent(this.Machine, e, null);
+            this.MachineStateManager.OnRaisedEvent(e, null);
         }
 
         /// <summary>
@@ -267,11 +261,11 @@ namespace Microsoft.PSharp.Runtime
 
             if (e is null)
             {
-                this.Runtime.NotifyWaitEvent(this.Machine, this.EventWaitTypes.Keys);
+                this.MachineStateManager.NotifyWaitEvent(this.EventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, null);
+            this.MachineStateManager.NotifyReceivedEventWithoutWaiting(e, null);
             return Task.FromResult(e);
         }
 
@@ -301,12 +295,9 @@ namespace Microsoft.PSharp.Runtime
                 return;
             }
 
-            if (this.Runtime.IsOnEventDroppedHandlerInstalled)
+            foreach (var e in this.Queue)
             {
-                foreach (var e in this.Queue)
-                {
-                    this.Runtime.TryHandleDroppedEvent(e, this.Machine.Id);
-                }
+                this.MachineStateManager.OnDroppedEvent(e, null);
             }
 
             this.Queue.Clear();

@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.Runtime
                 return Guid.Empty;
             }
 
-            return machine.Info.OperationGroupId;
+            return machine.OperationGroupId;
         }
 
         /// <summary>
@@ -221,7 +221,10 @@ namespace Microsoft.PSharp.Runtime
             }
 
             Machine machine = MachineFactory.Create(type);
-            machine.Initialize(this, mid, new MachineInfo(mid), new EventQueue(this, machine));
+            IMachineStateManager stateManager = new MachineStateManager(this, machine);
+            IEventQueue eventQueue = new EventQueue(stateManager);
+
+            machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
             if (!this.MachineMap.TryAdd(mid, machine))
@@ -596,6 +599,28 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        internal override void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            if (this.Configuration.IsVerbose)
+            {
+                this.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        internal override void NotifyInvokedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            if (this.Configuration.IsVerbose)
+            {
+                this.Logger.OnMachineAction(machine.Id, machine.CurrentStateName, action.Name);
+            }
+        }
+
+        /// <summary>
         /// Notifies that a monitor invoked an action.
         /// </summary>
         internal override void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
@@ -660,7 +685,7 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Notifies that a machine received an event that it was waiting for.
+        /// Notifies that a machine enqueued an event that it was waiting to receive.
         /// </summary>
         internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {

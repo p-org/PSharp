@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             });
 
             this.AssertFailed(config, test, "Livelock detected. 'A()' and 'B()' are waiting " +
-                "for an event, but no other schedulable choices are enabled.", true);
+                "to receive an event, but no other controlled tasks are enabled.", true);
         }
     }
 }

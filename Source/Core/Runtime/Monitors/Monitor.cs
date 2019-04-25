@@ -83,16 +83,6 @@ namespace Microsoft.PSharp
         private int LivenessTemperature;
 
         /// <summary>
-        /// Checks if the monitor is executing an OnExit method.
-        /// </summary>
-        internal bool IsInsideOnExit;
-
-        /// <summary>
-        /// Checks if the current action called a transition statement.
-        /// </summary>
-        internal bool CurrentActionCalledTransitionStatement;
-
-        /// <summary>
         /// The unique monitor id.
         /// </summary>
         internal MachineId Id { get; private set; }
@@ -180,8 +170,6 @@ namespace Microsoft.PSharp
         {
             this.Id = mid;
             this.Runtime = runtime;
-            this.IsInsideOnExit = false;
-            this.CurrentActionCalledTransitionStatement = false;
         }
 
         /// <summary>
@@ -258,8 +246,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HandleEvent(Event e)
         {
-            this.CurrentActionCalledTransitionStatement = false;
-
             // Do not process an ignored event.
             if (this.IgnoredEvents.Contains(e.GetType()))
             {
@@ -355,8 +341,6 @@ namespace Microsoft.PSharp
                 exitAction = this.ActionMap[this.State.ExitAction];
             }
 
-            this.IsInsideOnExit = true;
-
             // Invokes the exit action of the current state,
             // if there is one available.
             if (exitAction != null)
@@ -371,8 +355,6 @@ namespace Microsoft.PSharp
                 MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                 this.ExecuteAction(eventHandlerExitAction);
             }
-
-            this.IsInsideOnExit = false;
         }
 
         /// <summary>

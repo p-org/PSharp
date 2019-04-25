@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.PSharp.Runtime
@@ -27,18 +26,19 @@ namespace Microsoft.PSharp.Runtime
         protected internal MachineId Id { get; private set; }
 
         /// <summary>
-        /// Stores machine-related metadata.
+        /// Unique id of the group of operations that is
+        /// associated with the next operation.
         /// </summary>
-        internal MachineInfo Info { get; private set; }
+        protected internal Guid OperationGroupId { get; set; }
 
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(BaseRuntime runtime, MachineId mid, MachineInfo info)
+        internal void Initialize(BaseRuntime runtime, MachineId mid)
         {
             this.Runtime = runtime;
             this.Id = mid;
-            this.Info = info;
+            this.OperationGroupId = Guid.Empty;
         }
 
         /// <summary>
@@ -69,24 +69,6 @@ namespace Microsoft.PSharp.Runtime
         public override string ToString()
         {
             return this.Id.Name;
-        }
-
-        /// <summary>
-        /// Returns the set of all states in the machine
-        /// (for code coverage).
-        /// </summary>
-        internal virtual HashSet<string> GetAllStates()
-        {
-            return new HashSet<string>();
-        }
-
-        /// <summary>
-        /// Returns the set of all (states, registered event) pairs in the machine
-        /// (for code coverage).
-        /// </summary>
-        internal virtual HashSet<Tuple<string, string>> GetAllStateEventPairs()
-        {
-            return new HashSet<Tuple<string, string>>();
         }
     }
 }
