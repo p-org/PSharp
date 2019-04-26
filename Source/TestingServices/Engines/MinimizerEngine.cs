@@ -166,9 +166,10 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         string lrString = $"{typedStrategy.controlStack.Peek().RequiredTraceEditorMode}:({ typedStrategy.controlStack.Peek().Left},{ typedStrategy.controlStack.Peek().Right})";
                         string controlMode = typedStrategy.controlStack.Peek().GetType().Name;
+                        int nDummies = typedStrategy.traceEditor.dummies;
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
 
-                        Console.WriteLine($"Iteration {i} completed. Mode={controlMode}; bugFound={aBugwasFoundThisIter}; HAX_IsSameBug={sameBugFoundThisIter} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
+                        Console.WriteLine($"Iteration {i} completed. Mode={controlMode}; bugFound={aBugwasFoundThisIter}; HAX_IsSameBug={sameBugFoundThisIter} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ; Dummies={nDummies}");
 
 
 

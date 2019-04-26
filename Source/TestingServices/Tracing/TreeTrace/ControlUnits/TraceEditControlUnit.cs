@@ -58,6 +58,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
         internal Stack<int> bSearchRightBounds;
         private bool isInited;
 
+
+        private int nextRight;
+
         public TraceEditControlUnit() {
             Completed = false;
             Valid = true;
@@ -73,12 +76,72 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 BestTree = guideTree;
                 Left = 0;
                 Right = guideTree.totalOrdering.Count - 1;
+                nextRight = Right;
             }
             else
             {
                 Completed = true;
                 Valid = false;
                 throw new ArgumentException("Can't do trace edit if guideTree doesn't reproduce bug");
+            }
+
+        }
+
+
+        public void __SAD__PrepareForNextIteration(EventTree resultTree)
+        {
+            if (!isInited)
+            {
+                Initialize(resultTree);
+            }
+            else if (resultTree.reproducesBug())
+            {
+                // We can do this since Left and Right is applied on the trace being constructed.
+                Left = Right + 1;
+                if (Left >= resultTree.totalOrdering.Count)
+                {
+                    Completed = true;
+                }
+                else
+                {   // Reasonably, We've covered everything to the left of Right. Now we need to set our Left
+                    // HAX: Don't use existing division. Start over
+                    Right = resultTree.totalOrdering.Count - 1;
+                    nextRight = resultTree.totalOrdering.Count - 1;
+                }
+                BestTree = resultTree; // TODO:? Move this up and rename resultTree usages to BestTree?
+            }
+            else
+            {   // No bug -> Important external event is within. This needs recursion.
+                if (BestTree == null)
+                {
+                    Valid = false;
+                }
+                else if (Left == Right)
+                {   // Can't recurse
+                    Left = Right + 1;
+                    if (Left >= BestTree.totalOrdering.Count)    // Use BestTree because it is our guide
+                    {   // We are done
+                        Completed = true;
+                    }
+                    else
+                    {
+                        if(Right < nextRight)
+                        {
+                            Right = nextRight;
+                        }
+                        else
+                        {
+                            nextRight = Right = BestTree.totalOrdering.Count - 1;
+                        }
+
+                    }
+                }
+                else
+                {   // recurse
+                    nextRight = Right; // Store next step
+                    int mid = (Left + Right) / 2;
+                    Right = mid;                    // Divide
+                }
             }
 
         }
@@ -117,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 {
                     Valid = false;
                 }
-                else if ( Left == Right )
+                else if (Left == Right)
                 {   // Can't recurse
                     Left = Right + 1;
                     if (Left >= BestTree.totalOrdering.Count)    // Use BestTree because it is our guide
@@ -133,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
 
                         if (Right < Left)
                         {   // Stack is empty
-                            Right = resultTree.totalOrdering.Count-1;
+                            Right = resultTree.totalOrdering.Count - 1;
                         }
 
                     }
@@ -141,11 +204,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
                 else
                 {   // recurse
                     bSearchRightBounds.Push(Right); // Store next step
-                    int mid = (Left+Right)/ 2;      
+                    int mid = (Left + Right) / 2;
                     Right = mid;                    // Divide
                 }
             }
-            
+
         }
 
     }

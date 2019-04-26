@@ -26,6 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             root = null;
             totalOrdering = new List<EventTreeNode>();
             withHeldSendIndices = new List<int>();
+            allLoopEventIndices = new HashSet<int>();
             reproducedBug = false;
 
             criticalTransitionStep = -1;
@@ -37,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private EventTreeNode activeNode;
         private bool reproducedBug;
         private ScheduleTrace actualTrace;
-
+        internal HashSet<int> allLoopEventIndices;
 
         public EventTreeNode getActiveNode()
         {

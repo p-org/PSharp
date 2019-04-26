@@ -91,6 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // TODO: I've been using this only for testing
             controlStack = new Stack<ITraceEditorControlUnit>();
             controlStack.Push(new TraceEditAndVerifyControlUnit());
+            
             controlStack.Push(new PruneSuffixControlUnit());
             controlStack.Push(new CriticalTransitionSearchControlUnit(MinimizationStrategy.NREPLAYSREQUIRED));
 
