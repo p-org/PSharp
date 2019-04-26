@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
-using Microsoft.PSharp.TestingServices.SchedulingStrategies;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Class implementing the basic P# bug-finding scheduler.
+    /// Provides methods for controlling the schedule of asynchronous operations.
     /// </summary>
     internal sealed class BugFindingScheduler
     {
@@ -26,14 +26,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private readonly TestingRuntime Runtime;
 
         /// <summary>
-        /// The scheduling strategy to be used for bug-finding.
+        /// The scheduling strategy to be used for state-space exploration.
         /// </summary>
         private readonly ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Map from unique ids to schedulable infos.
+        /// Map from unique source ids to asynchronous operations.
         /// </summary>
-        private readonly Dictionary<ulong, SchedulableInfo> SchedulableInfoMap;
+        private readonly Dictionary<ulong, MachineOperation> OperationMap;
 
         /// <summary>
         /// The scheduler completion source.
@@ -46,9 +46,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private bool IsSchedulerRunning;
 
         /// <summary>
-        /// The currently schedulable info.
+        /// The currently scheduled asynchronous operation.
         /// </summary>
-        internal SchedulableInfo ScheduledMachine { get; private set; }
+        internal MachineOperation ScheduledOperation { get; private set; }
 
         /// <summary>
         /// Number of scheduled steps.
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
-            this.SchedulableInfoMap = new Dictionary<ulong, SchedulableInfo>();
+            this.OperationMap = new Dictionary<ulong, MachineOperation>();
             this.CompletionSource = new TaskCompletionSource<bool>();
             this.IsSchedulerRunning = true;
             this.BugFound = false;
@@ -85,9 +85,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Schedules the next <see cref="ISchedulable"/> operation to execute.
+        /// Schedules the next asynchronous operation.
         /// </summary>
-        internal void Schedule(OperationType operationType, OperationTargetType targetType, ulong targetId)
+        internal void ScheduleNextOperation(AsyncOperationType type, AsyncOperationTarget target, ulong targetId)
         {
             int? taskId = Task.CurrentId;
 
@@ -108,35 +108,32 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            SchedulableInfo current = this.ScheduledMachine;
-            current.SetNextOperation(operationType, targetType, targetId);
+            MachineOperation current = this.ScheduledOperation;
+            current.SetNextOperation(type, target, targetId);
 
-            // Get and order the schedulable choices by their id.
-            var choices = this.SchedulableInfoMap.Values.OrderBy(choice => choice.Id).Select(choice => choice as ISchedulable).ToList();
-
-            if (!this.Strategy.GetNext(out ISchedulable next, choices, current))
+            // Get and order the operations by their id.
+            var ops = this.OperationMap.Values.OrderBy(op => op.SourceId).Select(op => op as IAsyncOperation).ToList();
+            if (!this.Strategy.GetNext(out IAsyncOperation next, ops, current))
             {
                 // Checks if the program has livelocked.
-                this.CheckIfProgramHasLivelocked(choices.Select(choice => choice as SchedulableInfo));
+                this.CheckIfProgramHasLivelocked(ops.Select(op => op as MachineOperation));
 
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
                 this.Stop();
             }
 
-            this.ScheduledMachine = next as SchedulableInfo;
+            this.ScheduledOperation = next as MachineOperation;
+            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.SourceId);
 
-            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Id);
-            (next as MachineInfo).ProgramCounter = 0;
-
-            Debug.WriteLine($"<ScheduleDebug> Schedule '{next.Name}' with task id '{this.ScheduledMachine.TaskId}'.");
+            Debug.WriteLine($"<ScheduleDebug> Schedule '{next.SourceName}' with task id '{this.ScheduledOperation.Task.Id}'.");
 
             if (current != next)
             {
                 current.IsActive = false;
                 lock (next)
                 {
-                    this.ScheduledMachine.IsActive = true;
+                    this.ScheduledOperation.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
 
@@ -149,9 +146,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                     while (!current.IsActive)
                     {
-                        Debug.WriteLine($"<ScheduleDebug> Sleep '{current.Name}' with task id '{current.TaskId}'.");
+                        Debug.WriteLine($"<ScheduleDebug> Sleep '{current.SourceName}' with task id '{current.Task.Id}'.");
                         System.Threading.Monitor.Wait(current);
-                        Debug.WriteLine($"<ScheduleDebug> Wake up '{current.Name}' with task id '{current.TaskId}'.");
+                        Debug.WriteLine($"<ScheduleDebug> Wake up '{current.SourceName}' with task id '{current.Task.Id}'.");
                     }
 
                     if (!current.IsEnabled)
@@ -216,20 +213,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Waits for the event handler to start.
         /// </summary>
-        internal void WaitForEventHandlerToStart(SchedulableInfo info)
+        internal void WaitForEventHandlerToStart(MachineOperation op)
         {
-            lock (info)
+            lock (op)
             {
-                if (this.SchedulableInfoMap.Count == 1)
+                if (this.OperationMap.Count == 1)
                 {
-                    info.IsActive = true;
-                    System.Threading.Monitor.PulseAll(info);
+                    op.IsActive = true;
+                    System.Threading.Monitor.PulseAll(op);
                 }
                 else
                 {
-                    while (!info.IsInboxHandlerRunning)
+                    while (!op.IsInboxHandlerRunning)
                     {
-                        System.Threading.Monitor.Wait(info);
+                        System.Threading.Monitor.Wait(op);
                     }
                 }
             }
@@ -267,49 +264,49 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that an event handler has been created.
         /// </summary>
-        internal void NotifyEventHandlerCreated(SchedulableInfo info)
+        internal void NotifyEventHandlerCreated(MachineOperation op)
         {
-            if (!this.SchedulableInfoMap.ContainsKey(info.Id))
+            if (!this.OperationMap.ContainsKey(op.SourceId))
             {
-                if (this.SchedulableInfoMap.Count == 0)
+                if (this.OperationMap.Count == 0)
                 {
-                    this.ScheduledMachine = info;
+                    this.ScheduledOperation = op;
                 }
 
-                this.SchedulableInfoMap.Add(info.Id, info);
+                this.OperationMap.Add(op.SourceId, op);
             }
 
-            Debug.WriteLine($"<ScheduleDebug> Created event handler of '{info.Name}' with task id '{info.TaskId}'.");
+            Debug.WriteLine($"<ScheduleDebug> Created event handler of '{op.SourceName}' with task id '{op.Task.Id}'.");
         }
 
         /// <summary>
         /// Notify that a monitor was registered.
         /// </summary>
-        internal void NotifyMonitorRegistered(SchedulableInfo info)
+        internal void NotifyMonitorRegistered(MachineOperation op)
         {
-            this.SchedulableInfoMap.Add(info.Id, info);
-            Debug.WriteLine($"<ScheduleDebug> Created monitor of '{info.Name}'.");
+            this.OperationMap.Add(op.SourceId, op);
+            Debug.WriteLine($"<ScheduleDebug> Created monitor of '{op.SourceName}'.");
         }
 
         /// <summary>
         /// Notify that the event handler has started.
         /// </summary>
-        internal static void NotifyEventHandlerStarted(SchedulableInfo info)
+        internal static void NotifyEventHandlerStarted(MachineOperation op)
         {
-            Debug.WriteLine($"<ScheduleDebug> Started event handler of '{info.Name}' with task id '{info.TaskId}'.");
+            Debug.WriteLine($"<ScheduleDebug> Started event handler of '{op.SourceName}' with task id '{op.Task.Id}'.");
 
-            lock (info)
+            lock (op)
             {
-                info.IsInboxHandlerRunning = true;
-                System.Threading.Monitor.PulseAll(info);
-                while (!info.IsActive)
+                op.IsInboxHandlerRunning = true;
+                System.Threading.Monitor.PulseAll(op);
+                while (!op.IsActive)
                 {
-                    Debug.WriteLine($"<ScheduleDebug> Sleep '{info.Name}' with task id '{info.TaskId}'.");
-                    System.Threading.Monitor.Wait(info);
-                    Debug.WriteLine($"<ScheduleDebug> Wake up '{info.Name}' with task id '{info.TaskId}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Sleep '{op.SourceName}' with task id '{op.Task.Id}'.");
+                    System.Threading.Monitor.Wait(op);
+                    Debug.WriteLine($"<ScheduleDebug> Wake up '{op.SourceName}' with task id '{op.Task.Id}'.");
                 }
 
-                if (!info.IsEnabled)
+                if (!op.IsEnabled)
                 {
                     throw new ExecutionCanceledException();
                 }
@@ -348,11 +345,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal HashSet<ulong> GetEnabledSchedulableIds()
         {
             var enabledSchedulableIds = new HashSet<ulong>();
-            foreach (var machineInfo in this.SchedulableInfoMap.Values)
+            foreach (var machineInfo in this.OperationMap.Values)
             {
                 if (machineInfo.IsEnabled)
                 {
-                    enabledSchedulableIds.Add(machineInfo.Id);
+                    enabledSchedulableIds.Add(machineInfo.SourceId);
                 }
             }
 
@@ -412,40 +409,31 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the number of available machines to schedule.
-        /// </summary>
-        private int NumberOfAvailableMachinesToSchedule()
-        {
-            var availableMachines = this.SchedulableInfoMap.Values.Where(choice => choice.IsEnabled).ToList();
-            return availableMachines.Count;
-        }
-
-        /// <summary>
         /// Checks for a livelock. This happens when there are no more enabled
-        /// machines, but there is one or more non-enabled machines that are
+        /// operations, but there is one or more non-enabled operations that are
         /// waiting to receive an event.
         /// </summary>
-        private void CheckIfProgramHasLivelocked(IEnumerable<SchedulableInfo> choices)
+        private void CheckIfProgramHasLivelocked(IEnumerable<MachineOperation> ops)
         {
-            var blockedChoices = choices.Where(choice => choice.IsWaitingToReceive).ToList();
-            if (blockedChoices.Count > 0)
+            var blockedOperations = ops.Where(op => op.IsWaitingToReceive).ToList();
+            if (blockedOperations.Count > 0)
             {
                 string message = "Livelock detected.";
-                for (int i = 0; i < blockedChoices.Count; i++)
+                for (int i = 0; i < blockedOperations.Count; i++)
                 {
-                    message += string.Format(CultureInfo.InvariantCulture, " '{0}'", blockedChoices[i].Name);
-                    if (i == blockedChoices.Count - 2)
+                    message += string.Format(CultureInfo.InvariantCulture, " '{0}'", blockedOperations[i].SourceName);
+                    if (i == blockedOperations.Count - 2)
                     {
                         message += " and";
                     }
-                    else if (i < blockedChoices.Count - 1)
+                    else if (i < blockedOperations.Count - 1)
                     {
                         message += ",";
                     }
                 }
 
-                message += blockedChoices.Count == 1 ? " is " : " are ";
-                message += "waiting for an event, but no other schedulable choices are enabled.";
+                message += blockedOperations.Count == 1 ? " is " : " are ";
+                message += "waiting to receive an event, but no other controlled tasks are enabled.";
                 this.Runtime.Scheduler.NotifyAssertionFailure(message, true);
             }
         }
@@ -460,11 +448,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             int? taskId = Task.CurrentId;
             if (taskId is null)
             {
-                string message = "Detected synchronization context that is not controlled by the P# runtime.";
+                string message = "Detected concurrency that is not controlled by the P# runtime.";
                 this.NotifyAssertionFailure(message, true);
             }
 
-            if (this.ScheduledMachine.TaskId != taskId.Value)
+            if (this.ScheduledOperation.Task.Id != taskId.Value)
             {
                 string message = $"Detected task with id '{taskId}' that is not controlled by the P# runtime.";
                 this.NotifyAssertionFailure(message, true);
@@ -499,16 +487,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void KillRemainingMachines()
         {
-            foreach (var machineInfo in this.SchedulableInfoMap.Values)
+            foreach (var machine in this.OperationMap.Values)
             {
-                machineInfo.IsActive = true;
-                machineInfo.IsEnabled = false;
+                machine.IsActive = true;
+                machine.IsEnabled = false;
 
-                if (machineInfo.IsInboxHandlerRunning)
+                if (machine.IsInboxHandlerRunning)
                 {
-                    lock (machineInfo)
+                    lock (machine)
                     {
-                        System.Threading.Monitor.PulseAll(machineInfo);
+                        System.Threading.Monitor.PulseAll(machine);
                     }
                 }
             }

@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = GetConfiguration();
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             var test = new Action<IMachineRuntime>((r) => { r.CreateMachine(typeof(Server)); });
-            var bugReport = "Livelock detected. 'Client()' is waiting for an event, but no other schedulable choices are enabled.";
+            var bugReport = "Livelock detected. 'Client()' is waiting to receive an event, but no other controlled tasks are enabled.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
 
@@ -132,8 +132,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(Server));
                 r.CreateMachine(typeof(Server));
             });
-            var bugReport = "Livelock detected. 'Client()' and 'Client()' are waiting for an event, " +
-                "but no other schedulable choices are enabled.";
+            var bugReport = "Livelock detected. 'Client()' and 'Client()' are waiting to " +
+                "receive an event, but no other controlled tasks are enabled.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
 
@@ -148,8 +148,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(Server));
                 r.CreateMachine(typeof(Server));
             });
-            var bugReport = "Livelock detected. 'Client()', 'Client()' and 'Client()' " +
-                "are waiting for an event, but no other schedulable choices are enabled.";
+            var bugReport = "Livelock detected. 'Client()', 'Client()' and 'Client()' are " +
+                "waiting to receive an event, but no other controlled tasks are enabled.";
             this.AssertFailed(configuration, test, bugReport, true);
         }
     }

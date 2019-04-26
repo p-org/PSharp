@@ -57,11 +57,6 @@ namespace Microsoft.PSharp.Runtime
         public event OnEventDroppedHandler OnEventDropped;
 
         /// <summary>
-        /// Checks if an <see cref="OnEventDropped"/> handler has been installed by the user.
-        /// </summary>
-        internal bool IsOnEventDroppedHandlerInstalled => this.OnEventDropped != null;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="BaseRuntime"/> class.
         /// </summary>
         protected BaseRuntime(Configuration configuration)
@@ -398,6 +393,42 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed invoking an action.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyCompletedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyInvokedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine completed invoking an action.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyCompletedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
+        {
+            // Override to implement the notification.
+        }
+
+        /// <summary>
         /// Notifies that a monitor invoked an action.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -463,13 +494,14 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies that a machine is waiting to receive an event of one of the specified types.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
             // Override to implement the notification.
         }
 
         /// <summary>
-        /// Notifies that a machine received an <see cref="Event"/> that it was waiting for.
+        /// Notifies that a machine enqueued an event that it was waiting to receive.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
@@ -538,15 +570,15 @@ namespace Microsoft.PSharp.Runtime
         {
             if (operationGroupId.HasValue)
             {
-                created.Info.OperationGroupId = operationGroupId.Value;
+                created.OperationGroupId = operationGroupId.Value;
             }
             else if (sender != null)
             {
-                created.Info.OperationGroupId = sender.Info.OperationGroupId;
+                created.OperationGroupId = sender.OperationGroupId;
             }
             else
             {
-                created.Info.OperationGroupId = Guid.Empty;
+                created.OperationGroupId = Guid.Empty;
             }
         }
 

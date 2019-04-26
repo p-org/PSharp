@@ -330,9 +330,6 @@ namespace Microsoft.PSharp.TestingServices
                     runtimeLogger = new InMemoryLogger(true);
                     runtime.SetLogger(runtimeLogger);
 
-                    // Sets the scheduling strategy logger to the in-memory logger.
-                    this.SchedulingStrategyLogger.SetLogger(runtimeLogger);
-
                     var writer = new LogWriter(new DisposingLogger());
                     Console.SetOut(writer);
                     Console.SetError(writer);
@@ -408,9 +405,6 @@ namespace Microsoft.PSharp.TestingServices
                         $"[task-{this.Configuration.TestingProcessId}]");
                 }
 
-                // Resets the scheduling strategy logger to the default logger.
-                this.SchedulingStrategyLogger.ResetToDefaultLogger();
-
                 // Cleans up the runtime before the next iteration starts.
                 runtimeLogger?.Dispose();
                 runtime?.Dispose();
@@ -466,7 +460,7 @@ namespace Microsoft.PSharp.TestingServices
                 ScheduleStep step = runtime.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    stringBuilder.Append($"({step.ScheduledMachineId})");
+                    stringBuilder.Append($"({step.ScheduledOperationId})");
                 }
                 else if (step.BooleanChoice != null)
                 {

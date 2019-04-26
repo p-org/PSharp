@@ -19,9 +19,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal sealed class MockEventQueue : IEventQueue
     {
         /// <summary>
-        /// The runtime that executes the machine that owns this queue.
+        /// Manages the state of the machine that owns this queue.
         /// </summary>
-        private readonly BaseRuntime Runtime;
+        private readonly IMachineStateManager MachineStateManager;
 
         /// <summary>
         /// The machine that owns this queue.
@@ -29,24 +29,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly Machine Machine;
 
         /// <summary>
-        /// The internal queue.
+        /// The internal queue that contains events with their metadata.
         /// </summary>
-        private readonly LinkedList<Event> Queue;
+        private readonly LinkedList<(Event e, EventInfo info)> Queue;
 
         /// <summary>
-        /// The metadata of the enqueued events.
+        /// The raised event and its metadata, or null if no event has been raised.
         /// </summary>
-        private readonly LinkedList<EventInfo> Metadata;
-
-        /// <summary>
-        /// The raised event, or null if no event has been raised.
-        /// </summary>
-        private Event RaisedEvent;
-
-        /// <summary>
-        /// The metadata of the raised event, if there is one.
-        /// </summary>
-        private EventInfo RaisedEventMetadata;
+        private (Event e, EventInfo info) RaisedEvent;
 
         /// <summary>
         /// Map from the types of events that the owner of the queue is waiting to receive
@@ -74,17 +64,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Checks if an event has been raised.
         /// </summary>
-        public bool IsEventRaised => this.RaisedEvent != null;
+        public bool IsEventRaised => this.RaisedEvent != default;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MockEventQueue"/> class.
         /// </summary>
-        internal MockEventQueue(BaseRuntime runtime, Machine machine)
+        internal MockEventQueue(IMachineStateManager machineStateManager, Machine machine)
         {
-            this.Runtime = runtime;
+            this.MachineStateManager = machineStateManager;
             this.Machine = machine;
-            this.Queue = new LinkedList<Event>();
-            this.Metadata = new LinkedList<EventInfo>();
+            this.Queue = new LinkedList<(Event, EventInfo)>();
             this.EventWaitTypes = new Dictionary<Type, Func<Event, bool>>();
             this.IsClosed = false;
         }
@@ -103,34 +92,31 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 (predicate is null || predicate(e)))
             {
                 this.EventWaitTypes.Clear();
-                this.Machine.Info.IsWaitingToReceive = false;
-                this.Runtime.NotifyReceivedEvent(this.Machine, e, info);
+                this.MachineStateManager.OnReceiveEvent(e, info);
                 this.ReceiveCompletionSource.SetResult(e);
                 return EnqueueStatus.EventHandlerRunning;
             }
 
-            this.Machine.Runtime.Logger.OnEnqueue(this.Machine.Id, info.EventName);
-
-            this.Queue.AddLast(e);
-            this.Metadata.AddLast(info);
+            this.MachineStateManager.OnEnqueueEvent(e, info);
+            this.Queue.AddLast((e, info));
 
             if (info.Assert >= 0)
             {
-                var eventCount = this.Queue.Count(val => val.GetType().Equals(e.GetType()));
-                this.Runtime.Assert(eventCount <= info.Assert,
+                var eventCount = this.Queue.Count(val => val.e.GetType().Equals(e.GetType()));
+                this.MachineStateManager.Assert(eventCount <= info.Assert,
                     "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
                     info.Assert, info.EventName, this);
             }
 
             if (info.Assume >= 0)
             {
-                var eventCount = this.Queue.Count(val => val.GetType().Equals(e.GetType()));
-                this.Runtime.Assert(eventCount <= info.Assume,
+                var eventCount = this.Queue.Count(val => val.e.GetType().Equals(e.GetType()));
+                this.MachineStateManager.Assert(eventCount <= info.Assume,
                     "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
                     info.Assume, info.EventName, this);
             }
 
-            if (!this.Machine.Info.IsEventHandlerRunning)
+            if (!this.MachineStateManager.IsEventHandlerRunning)
             {
                 if (this.TryDequeueEvent(true).e is null)
                 {
@@ -138,7 +124,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
                 else
                 {
-                    this.Machine.Info.IsEventHandlerRunning = true;
+                    this.MachineStateManager.IsEventHandlerRunning = true;
                     return EnqueueStatus.EventHandlerNotRunning;
                 }
             }
@@ -153,28 +139,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             // Try to get the raised event, if there is one. Raised events
             // have priority over the events in the inbox.
-            if (this.RaisedEvent != null)
+            if (this.RaisedEvent != default)
             {
-                if (this.Machine.IsEventIgnoredInCurrentState(this.RaisedEvent))
+                if (this.MachineStateManager.IsEventIgnoredInCurrentState(this.RaisedEvent.e, this.RaisedEvent.info))
                 {
                     // TODO: should the user be able to raise an ignored event?
                     // The raised event is ignored in the current state.
-                    this.RaisedEvent = null;
+                    this.RaisedEvent = default;
                 }
                 else
                 {
-                    Event raisedEvent = this.RaisedEvent;
-                    EventInfo raisedEventInfo = this.RaisedEventMetadata;
-                    this.RaisedEvent = null;
-                    this.RaisedEventMetadata = null;
-                    return (DequeueStatus.Raised, raisedEvent, raisedEventInfo);
+                    (Event e, EventInfo info) raisedEvent = this.RaisedEvent;
+                    this.RaisedEvent = default;
+                    return (DequeueStatus.Raised, raisedEvent.e, raisedEvent.info);
                 }
             }
 
-            var hasDefaultHandler = this.Machine.IsDefaultHandlerInstalledInCurrentState();
+            var hasDefaultHandler = this.MachineStateManager.IsDefaultHandlerInstalledInCurrentState();
             if (hasDefaultHandler)
             {
-                this.Runtime.NotifyDefaultEventHandlerCheck(this.Machine);
+                this.Machine.Runtime.NotifyDefaultEventHandlerCheck(this.Machine);
             }
 
             // Try to dequeue the next event, if there is one.
@@ -189,7 +173,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (!hasDefaultHandler)
             {
                 // There is no default event handler installed, so do not return an event.
-                this.Machine.Info.IsEventHandlerRunning = false;
+                this.MachineStateManager.IsEventHandlerRunning = false;
                 return (DequeueStatus.NotAvailable, null, null);
             }
 
@@ -205,52 +189,43 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         private (Event e, EventInfo info) TryDequeueEvent(bool checkOnly = false)
         {
-            Event nextAvailableEvent = null;
-            EventInfo nextAvailableEventInfo = null;
+            (Event, EventInfo) nextAvailableEvent = default;
 
             // Iterates through the events and metadata in the inbox.
             var node = this.Queue.First;
-            var nodeInfo = this.Metadata.First;
             while (node != null)
             {
                 var nextNode = node.Next;
-                var nextNodeInfo = nodeInfo.Next;
                 var currentEvent = node.Value;
-                var currentEventInfo = nodeInfo.Value;
 
-                if (this.Machine.IsEventIgnoredInCurrentState(currentEvent))
+                if (this.MachineStateManager.IsEventIgnoredInCurrentState(currentEvent.e, currentEvent.info))
                 {
                     if (!checkOnly)
                     {
                         // Removes an ignored event.
                         this.Queue.Remove(node);
-                        this.Metadata.Remove(nodeInfo);
                     }
 
                     node = nextNode;
-                    nodeInfo = nextNodeInfo;
                     continue;
                 }
 
                 // Skips a deferred event.
-                if (!this.Machine.IsEventDeferredInCurrentState(currentEvent))
+                if (!this.MachineStateManager.IsEventDeferredInCurrentState(currentEvent.e, currentEvent.info))
                 {
                     nextAvailableEvent = currentEvent;
-                    nextAvailableEventInfo = currentEventInfo;
                     if (!checkOnly)
                     {
                         this.Queue.Remove(node);
-                        this.Metadata.Remove(nodeInfo);
                     }
 
                     break;
                 }
 
                 node = nextNode;
-                nodeInfo = nextNodeInfo;
             }
 
-            return (nextAvailableEvent, nextAvailableEventInfo);
+            return nextAvailableEvent;
         }
 
         /// <summary>
@@ -260,9 +235,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             var eventOrigin = new EventOriginInfo(this.Machine.Id, this.GetType().Name,
                 NameResolver.GetStateNameForLogging(this.Machine.CurrentState));
-            this.RaisedEvent = e;
-            this.RaisedEventMetadata = new EventInfo(e, eventOrigin);
-            this.Runtime.NotifyRaisedEvent(this.Machine, e, this.RaisedEventMetadata);
+            var info = new EventInfo(e, eventOrigin);
+            this.RaisedEvent = (e, info);
+            this.MachineStateManager.OnRaisedEvent(e, info);
         }
 
         /// <summary>
@@ -311,40 +286,34 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         private Task<Event> ReceiveAsync(Dictionary<Type, Func<Event, bool>> eventWaitTypes)
         {
-            this.Runtime.NotifyReceiveCalled(this.Machine);
+            this.Machine.Runtime.NotifyReceiveCalled(this.Machine);
 
-            Event e = null;
-            EventInfo info = null;
+            (Event e, EventInfo info) receivedEvent = default;
             var node = this.Queue.First;
-            var nodeInfo = this.Metadata.First;
             while (node != null)
             {
                 // Dequeue the first event that the caller waits to receive, if there is one in the queue.
-                if (eventWaitTypes.TryGetValue(node.Value.GetType(), out Func<Event, bool> predicate) &&
-                    (predicate is null || predicate(node.Value)))
+                if (eventWaitTypes.TryGetValue(node.Value.e.GetType(), out Func<Event, bool> predicate) &&
+                    (predicate is null || predicate(node.Value.e)))
                 {
-                    e = node.Value;
-                    info = nodeInfo.Value;
+                    receivedEvent = node.Value;
                     this.Queue.Remove(node);
-                    this.Metadata.Remove(nodeInfo);
                     break;
                 }
 
                 node = node.Next;
-                nodeInfo = nodeInfo.Next;
             }
 
-            if (e is null)
+            if (receivedEvent == default)
             {
                 this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
                 this.EventWaitTypes = eventWaitTypes;
-                this.Machine.Info.IsWaitingToReceive = true;
-                this.Runtime.NotifyWaitEvent(this.Machine, this.EventWaitTypes.Keys);
+                this.MachineStateManager.NotifyWaitEvent(this.EventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, info);
-            return Task.FromResult(e);
+            this.MachineStateManager.NotifyReceivedEventWithoutWaiting(receivedEvent.e, receivedEvent.info);
+            return Task.FromResult(receivedEvent.e);
         }
 
         /// <summary>
@@ -355,13 +324,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             unchecked
             {
                 var hash = 19;
-                foreach (var eventInfo in this.Metadata)
+                foreach (var (_, info) in this.Queue)
                 {
-                    hash = (hash * 31) + eventInfo.EventName.GetHashCode();
-                    if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
+                    hash = (hash * 31) + info.EventName.GetHashCode();
+                    if (info.HashedState != 0)
                     {
                         // Adds the user-defined hashed event state.
-                        hash = (hash * 31) + eventInfo.HashedState;
+                        hash = (hash * 31) + info.HashedState;
                     }
                 }
 
@@ -375,10 +344,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public void Close()
         {
             this.IsClosed = true;
-
-            var mustHandleEvent = this.Metadata.FirstOrDefault(ev => ev.MustHandle);
-            this.Runtime.Assert(mustHandleEvent is null, "Machine '{0}' halted before dequeueing must-handle event '{1}'.",
-                this.Machine.Id, mustHandleEvent?.EventName ?? string.Empty);
         }
 
         /// <summary>
@@ -391,16 +356,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return;
             }
 
-            if (this.Runtime.IsOnEventDroppedHandlerInstalled)
+            foreach (var (e, info) in this.Queue)
             {
-                foreach (var e in this.Queue)
-                {
-                    this.Runtime.TryHandleDroppedEvent(e, this.Machine.Id);
-                }
+                this.MachineStateManager.OnDroppedEvent(e, info);
             }
 
             this.Queue.Clear();
-            this.Metadata.Clear();
         }
 
         /// <summary>
