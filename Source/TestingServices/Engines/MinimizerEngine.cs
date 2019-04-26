@@ -158,10 +158,18 @@ namespace Microsoft.PSharp.TestingServices.Engines
                         bool sameBugFoundThisIter = typedStrategy.HAX_WasTargetBugReproduced();
                         //bugFoundEveryTime = bugFoundEveryTime && bugFoundThisIter;
 
+                        if (aBugwasFoundThisIter && !sameBugFoundThisIter)
+                        {
+                            Console.WriteLine("K what?");
+                        }
+
                         // We need to replay + randomwalk till we're convinced OR till we show recovery.
                         string lrString = $"{typedStrategy.controlStack.Peek().RequiredTraceEditorMode}:({ typedStrategy.controlStack.Peek().Left},{ typedStrategy.controlStack.Peek().Right})";
+                        string controlMode = typedStrategy.controlStack.Peek().GetType().Name;
                         bool minimizationIterationCanContinue = typedStrategy.PrepareForNextIteration();
-                        Console.WriteLine($"Iteration {i} completed. bugFound={aBugwasFoundThisIter}; HAX_IsSameBug={sameBugFoundThisIter} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
+
+                        Console.WriteLine($"Iteration {i} completed. Mode={controlMode}; bugFound={aBugwasFoundThisIter}; HAX_IsSameBug={sameBugFoundThisIter} ; TraceLength={typedStrategy.getBestTree()?.totalOrdering.Count}; {lrString} ");
+
 
 
                         if (sameBugFoundThisIter)
@@ -282,7 +290,11 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
                 // Checks that no monitor is in a hot state at termination. Only
                 // checked if no safety property violations have been found.
-                HAX_IsTempBug = (runtime as MinimizationRuntime).HAX_Monitors[0].HAX_LivenessTemperature >= Configuration.LivenessTemperatureThreshold;
+
+                HAX_IsTempBug = false;
+                foreach (Monitor m in (runtime as MinimizationRuntime).HAX_Monitors) { 
+                    HAX_IsTempBug = HAX_IsTempBug || m.HAX_LivenessTemperature >= Configuration.LivenessTemperatureThreshold;
+                }
 
                 if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
                 {

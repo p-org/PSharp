@@ -58,6 +58,10 @@ namespace Microsoft.PSharp.TestingServices.SchedulingStrategies
         /// 
         /// This operation is not currently supported in P#.
         /// </summary>
-        Join
+        Join,
+        /// <summary>
+        /// KG HAX
+        /// </summary>
+        HAX_Dummy
     }
 }

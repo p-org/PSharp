@@ -21,6 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
         public bool strictBugEquivalenceChecking { get; }
 
         private int nReplays;
+
         public MinimalTraceReplayControlUnit(int nReplaysRequired, bool strictBugEquivalenceChecking)
         {
             BestTree = null;
@@ -31,7 +32,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
             this.strictBugEquivalenceChecking = strictBugEquivalenceChecking; 
         }
 
-        
+        public MinimalTraceReplayControlUnit(EventTree guideTree, int nReplaysRequired, bool strictBugEquivalenceChecking)
+            : this(nReplaysRequired, strictBugEquivalenceChecking)
+        {
+            BestTree = guideTree;
+        }
 
         public void PrepareForNextIteration(EventTree resultTree)
         {

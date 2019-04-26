@@ -141,6 +141,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             constructTree.withHeldSendIndices.Add(currentHandler.totalOrderingIndex);
         }
 
+        internal void forceInsertEventNode(EventTreeNode insertNode)
+        {
+            constructTree.startScheduleChoice(insertNode);
+            constructTree.completeScheduleChoice(insertNode, null, null);
+            constructTree.withHeldSendIndices.Add(insertNode.totalOrderingIndex);
+        }
+
         #endregion
 
         #region ischedulable matching
@@ -165,6 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
+        // Simple based on the running program, not on the guide.
         internal bool getTreeNodeFromISchedulable(ISchedulable sch, out EventTreeNode treeNode)
         {
             bool matched = false;

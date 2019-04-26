@@ -19,6 +19,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private bool bugIsRecorded; // turns true once we set the bug.
 
         TraceIteration currentRun; // Make private
+
         internal int currentWithHoldRangeStart;
         internal int currentWithHoldRangeEnd;
 
@@ -49,12 +50,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             internal EventTreeNode activeNode;
             private int activeNode_boolIndex;
             private int activeNode_intIndex;
-            HashSet<int> deletedIndices;
+            internal HashSet<int> deletedIndices;
+            internal HashSet<int> deletedLoopReceiveIndices;
+            //Dictionary<int,int> deletedLoopReceiveIndices; // Maps receive Event to sendEvent
+            //internal Dictionary<string,int> delayedLoopEvents; // Maps EventSig to the send Event - Needed to fix matchingSendId
+
             internal int HAX_deletedCount;
 
             internal TraceEditorMode iterationMode;
             private int replayLength;
             internal bool strictBugEquivalenceChecking;
+            
 
             public Dictionary<Monitor, Tuple<int,int>> HotMonitors { get; internal set; } // Maps some monitor identifier to the totalOrderingIndex
 
@@ -64,6 +70,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 totalOrderingIndex = 0;
                 iterationMode = currentMode;
                 deletedIndices = new HashSet<int>();
+                //deletedLoopReceiveIndices = new Dictionary<int, int>();
+                deletedLoopReceiveIndices = new HashSet<int>();
+                //delayedLoopEvents = new Dictionary<string, int>();
                 HotMonitors = new Dictionary<Monitor, Tuple<int, int>>();
                 setActiveNode(null);
                 HAX_deletedCount = 0;
@@ -82,22 +91,55 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 totalOrderingIndex++;
             }
 
-            public void addDeletion(int index)
+            public void addDeletion(int index, bool isLoopEvent)
             {
                 deletedIndices.Add(index);
+                if (isLoopEvent)
+                {
+                    deletedLoopReceiveIndices.Add(index);
+                }
+
             }
             public bool checkDeleted(EventTreeNode etn)
             {
                 if (deletedIndices.Contains(etn.totalOrderingIndex))
                 {
-                    if (etn.directChild != null) { deletedIndices.Add(etn.directChild.totalOrderingIndex); }
                     if (etn.createdChild != null) { deletedIndices.Add(etn.createdChild.totalOrderingIndex); }
+                    if (etn.directChild  != null) { deletedIndices.Add(etn.directChild.totalOrderingIndex); }
                     return true;
                 }
                 else
                 {
                     return false;
                 }
+            }
+
+            internal bool isLoopSendEvent(EventTreeNode eventNode, out int correspondingSendId)
+            {
+                correspondingSendId = -1;
+                if (eventNode.opType != OperationType.Send || eventNode.srcMachineId != eventNode.targetMachineId) // TODO: Improve with explicit notion of LoopSend, LoopReceive
+                {
+                    return false;
+                }
+                
+                EventTreeNode at = eventNode;
+                while (at!=null)
+                {
+                    if(at.opType == OperationType.Receive)
+                    {
+                        if (deletedLoopReceiveIndices.Contains(at.totalOrderingIndex)/*deletedLoopReceiveIndices.ContainsKey(at.totalOrderingIndex)*/)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    at = at.parent;
+                }
+
+                return false;
             }
 
             public void setActiveNode(EventTreeNode match)
@@ -138,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             internal bool coarseMatch(EventTreeNode etn)
             {
-                // TODO: DO a coarse match
+                // TODO: DO a coarse match. Remember to include loopEvent correction
                 return true;
             }
 
@@ -281,7 +323,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         private void copyMetaBetweenTrees(EventTree from, EventTree to)
         {
-            to.criticalTransitionStep = from.criticalTransitionStep;
+            to.criticalTransitionStep = from.criticalTransitionStep; // TODO:: Is this even right? It could change because of the edits.
         }
 
         public bool prepareForScheduleTraceReplay(bool strictBugEquivalenceChecking)
@@ -304,7 +346,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return true;
         }
 
-            public bool prepareForTraceEditIteration(EventTree guideTree, int left, int right)
+        public bool prepareForTraceEditIteration(EventTree guideTree, int left, int right)
         {
             currentRun = new TraceIteration(guideTree, TraceEditorMode.TraceEdit);
             reset();
@@ -324,9 +366,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (currentRun.reachedEnd()){
                 return true;
             }
+            bool isLoopEvent = false;
             bool deliver = true;
             System.Console.WriteLine(e.GetType().FullName);
-            if ( eventIsCandidateToBeDropped(e) )
+            if ( eventIsCandidateToBeDropped(e, out isLoopEvent) )
             {
                 int stepIndex = activeProgramModel.constructTree.totalOrdering.Count-1;
                 if (currentRun.checkWithHeld(currentRun.activeNode))
@@ -340,7 +383,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     //}
 
                 }
-                else if (stepIndex >= currentWithHoldRangeStart && stepIndex <= currentWithHoldRangeEnd)
+                else if ( stepIsInPruneRange(stepIndex) )
                 {
                     deliver = false;
                 }
@@ -352,13 +395,35 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
             else
             { 
+
                 if (currentRun.activeNode != null && currentRun.activeNode.createdChild != null)
                 {
-                    currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex);
+                    currentRun.addDeletion(currentRun.activeNode.createdChild.totalOrderingIndex, isLoopEvent);
                 }
-                recordEventWithHeld();
-                return false;
+                // We should not have to care about this.
+                // string eventSig = getEventSignature(e);
+                if (isLoopEvent)
+                {
+                    // Let it be delivered so we traverse iteration
+                    // A loop event which traverses isn't actually withheld
+                    return true;
+                }
+                else
+                {
+                    recordEventWithHeld(); 
+                    return false;
+                }
             }
+        }
+
+        private bool stepIsInPruneRange(int stepIndex)
+        {
+            return (stepIndex >= currentWithHoldRangeStart  && stepIndex <= currentWithHoldRangeEnd);
+        }
+
+        private string getEventSignature(Event e)
+        {
+            return e.ToString() + "::" + currentRun.activeNode.srcMachineId + "::" + currentRun.activeNode.targetMachineId; 
         }
 
         internal bool reachedEnd()
@@ -366,13 +431,28 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             return currentRun.reachedEnd();
         }
 
-        private bool eventIsCandidateToBeDropped(Event e)
+        private bool eventIsCandidateToBeDropped(Event e, out bool isLoopEvent)
         {
-            return (
+            if(
+                //e.GetType().FullName == "Microsoft.PSharp.Timers.TimerElapsedEvent" || 
                 e.GetType().FullName == "ReplicatingStorage.SyncTimer+Timeout" ||
                 e.GetType().FullName == "Raft.PeriodicTimer+Timeout" || e.GetType().FullName == "Raft.ElectionTimer+Timeout" ||
                 e.GetType().FullName == "ChainReplication.Client+Update" || e.GetType().FullName == "ChainReplication.Client+Query"
-                );
+                )
+            {
+                isLoopEvent = false;
+                return true;
+            }
+            else if( e.GetType().FullName == "Microsoft.PSharp.Timers.RepeatTimeout"  )
+            {
+                isLoopEvent = true;
+                return true;
+            }
+            else
+            {
+                isLoopEvent = false;
+                return false;
+            }
         }
 
 
@@ -385,8 +465,37 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             // Skip everything deleted ?
             // TODO: Can we be smarter? Check if any of the deleted ones could actually be one worth delivering
             //      i.e., matches the enabledOne, whereas the next non-deleted one does not match (??) idk.
-            while (!currentRun.reachedEnd() && currentRun.checkDeleted(currentRun.peek()))
+            while (!currentRun.reachedEnd() && ( currentRun.checkDeleted(currentRun.peek()) || currentRun.peek().opType==OperationType.HAX_Dummy) )
             {
+                EventTreeNode currentEvent = currentRun.peek();
+                int correspondingSendId = -1;
+                if ( currentRun.isLoopSendEvent(currentEvent, out correspondingSendId) )
+                {
+                    int stepIndex = activeProgramModel.constructTree.totalOrdering.Count - 1;
+                    if ( stepIsInPruneRange(stepIndex+1) ) 
+                    {
+                        // This receive should also be skipped. Mark it as skipped
+                        currentRun.deletedLoopReceiveIndices.Add(currentEvent.createdChild.totalOrderingIndex);
+
+                        // Shall we insert a dummy, withheld step for the heck of it? 
+                        // Might prevent this from degrading to a linear search when the loop is the limiting factor.
+                        EventTreeNode insertNode = new EventTreeNode(OperationType.HAX_Dummy, currentEvent.srcMachineId, currentEvent.targetMachineId, currentEvent.otherId );
+                        activeProgramModel.forceInsertEventNode(insertNode);
+                        // currentRun.addDeletion(insertNode.totalOrderingIndex, false); // Does this do anything? 
+                    }
+                    else
+                    {
+                        currentRun.deletedIndices.Remove(currentEvent.createdChild.totalOrderingIndex);
+                        // TOOD: Fix the receivedId here or in the coarse match?   
+                    }
+
+                }
+                if (currentEvent.opType == OperationType.HAX_Dummy)
+                {
+                    EventTreeNode insertNode = new EventTreeNode(OperationType.HAX_Dummy, currentEvent.srcMachineId, currentEvent.targetMachineId, currentEvent.otherId);
+                    activeProgramModel.forceInsertEventNode(insertNode);
+                }
+
                 currentRun.HAX_deletedCount++;
                 currentRun.next();
             }

@@ -93,7 +93,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace.ControlUnits
             {   // We just did a traceEdit
                 //if(resultTree.withHeldSendIndices.Count > 0) // ;// If we withHeld anything 
                 // TODO: Optimize. It may be that we didn't hit anything in the window
-                if (resultTree.reproducesBug() && resultTree.withHeldSendIndices.Count > 0)
+                if (resultTree.reproducesBug() && resultTree.withHeldSendIndices.Count > 0
+                    && resultTree.withHeldSendIndices[resultTree.withHeldSendIndices.Count-1] > traceEditControl.Left
+                    )
                 {
                     currentStage = 1;
                     candidateTree = resultTree;

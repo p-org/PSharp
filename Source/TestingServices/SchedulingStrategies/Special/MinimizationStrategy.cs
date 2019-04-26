@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 et = EventTree.FromTrace(scheduleDump);
                 originalTraceLength = et.CountSteps();
                 // We need to call this stuff here
-                controlStack.Push(new MinimalTraceReplayControlUnit(MinimizationStrategy.NREPLAYSREQUIRED, true));
+                controlStack.Push(new MinimalTraceReplayControlUnit(et, MinimizationStrategy.NREPLAYSREQUIRED, true));
                 //traceEditor.prepareForMinimalTraceReplay(et); // TODO: Do we need this?
             }
             else
