@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Microsoft.PSharp.TestingServices.Tracing.TreeTrace;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Tracing.Error;
 
 namespace Microsoft.PSharp.TestingServices.Engines
 {
@@ -23,6 +24,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
         /// Text describing an internal replay error.
         /// </summary>
         internal string InternalError { get; private set; }
+        public string ReadableTrace { get; private set; }
+        public BugTrace BugTrace { get; private set; }
 
         /// <summary>
         /// Creates a new P# minimizing engine.
@@ -307,6 +310,16 @@ namespace Microsoft.PSharp.TestingServices.Engines
                     base.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
+                if (runtime.Scheduler.BugFound)
+                {
+                    if (runtimeLogger != null)
+                    {
+                        this.ReadableTrace = runtimeLogger.ToString();
+                    }
+
+                    this.BugTrace = runtime.BugTrace;
+                }
+
                 (base.Strategy as MinimizationStrategy).recordResult(runtime.Scheduler.BugFound, runtime.ScheduleTrace);
                 
                 TestReport report = runtime.Scheduler.GetReport();
@@ -340,6 +353,8 @@ namespace Microsoft.PSharp.TestingServices.Engines
         #region otherstuff
         public override void TryEmitTraces(string directory, string file)
         {   
+
+
             StringBuilder stringBuilder = new StringBuilder();
 
             stringBuilder.Append("--is-mintrace").Append(Environment.NewLine);
@@ -374,6 +389,13 @@ namespace Microsoft.PSharp.TestingServices.Engines
 
             stringBuilder.Append(minimalTree.serialize());
             File.WriteAllText( directory+file+".mintrace" , stringBuilder.ToString());
+
+            // ReadableTrace
+            if (traceEditorReachedMinimum)
+            {
+                File.WriteAllText(directory + file + ".mintxt", ReadableTrace);
+            }
+
         }
 
         #endregion
