@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices
                 () =>
                 {
                     // Runtime used to serialize and test the program.
-                    TestingRuntime runtime = null;
+                    SystematicTestingRuntime runtime = null;
 
                     // Logger used to intercept the program output if no custom logger
                     // is installed and if verbosity is turned off.
@@ -137,16 +137,16 @@ namespace Microsoft.PSharp.TestingServices
                             this.TestInitMethod.Invoke(null, Array.Empty<object>());
                         }
 
-                        // Creates a new instance of the bug-finding runtime.
+                        // Creates a new instance of the testing runtime.
                         if (this.TestRuntimeFactoryMethod != null)
                         {
-                            runtime = (TestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                            runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
                                 null,
                                 new object[] { this.Configuration, this.Strategy, this.Reporter });
                         }
                         else
                         {
-                            runtime = new TestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                            runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                         }
 
                         // If verbosity is turned off, then intercept the program log, and also redirect

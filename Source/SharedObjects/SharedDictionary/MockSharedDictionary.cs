@@ -23,12 +23,12 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The testing runtime hosting this shared dictionary.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MockSharedDictionary{TKey, TValue}"/> class.
         /// </summary>
-        public MockSharedDictionary(IEqualityComparer<TKey> comparer, TestingRuntime runtime)
+        public MockSharedDictionary(IEqualityComparer<TKey> comparer, SystematicTestingRuntime runtime)
         {
             this.Runtime = runtime;
             if (comparer != null)

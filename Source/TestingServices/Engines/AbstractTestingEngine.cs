@@ -440,7 +440,7 @@ namespace Microsoft.PSharp.TestingServices
                     $"'{runtimeFactoryMethods.Count}' factory methods were found instead.");
             }
 
-            if (runtimeFactoryMethods[0].ReturnType != typeof(TestingRuntime) ||
+            if (runtimeFactoryMethods[0].ReturnType != typeof(SystematicTestingRuntime) ||
                 runtimeFactoryMethods[0].ContainsGenericParameters ||
                 runtimeFactoryMethods[0].IsAbstract || runtimeFactoryMethods[0].IsVirtual ||
                 runtimeFactoryMethods[0].IsConstructor ||
@@ -452,7 +452,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Error.ReportAndExit("Incorrect test runtime factory method declaration. Please " +
                     "declare the method as follows:\n" +
-                    $"  [{typeof(TestRuntimeCreateAttribute).FullName}] internal static TestingRuntime " +
+                    $"  [{typeof(TestRuntimeCreateAttribute).FullName}] internal static SystematicTestingRuntime " +
                     $"{runtimeFactoryMethods[0].Name}(Configuration configuration, ISchedulingStrategy strategy, " +
                     "IRegisterRuntimeOperation reporter) {{ ... }}");
             }

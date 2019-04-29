@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.Runtime
         public void Raise(Event e)
         {
             this.RaisedEvent = e;
-            this.MachineStateManager.OnRaisedEvent(e, null);
+            this.MachineStateManager.OnRaiseEvent(e, null);
         }
 
         /// <summary>
@@ -261,11 +261,13 @@ namespace Microsoft.PSharp.Runtime
 
             if (e is null)
             {
-                this.MachineStateManager.NotifyWaitEvent(this.EventWaitTypes.Keys);
+                // Note that 'EventWaitTypes' is racy, so should not be accessed outside
+                // the lock, this is why we access 'eventWaitTypes' instead.
+                this.MachineStateManager.OnWaitEvent(eventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.MachineStateManager.NotifyReceivedEventWithoutWaiting(e, null);
+            this.MachineStateManager.OnReceiveEventWithoutWaiting(e, null);
             return Task.FromResult(e);
         }
 
@@ -297,7 +299,7 @@ namespace Microsoft.PSharp.Runtime
 
             foreach (var e in this.Queue)
             {
-                this.MachineStateManager.OnDroppedEvent(e, null);
+                this.MachineStateManager.OnDropEvent(e, null);
             }
 
             this.Queue.Clear();

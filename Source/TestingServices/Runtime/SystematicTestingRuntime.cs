@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// <summary>
     /// Runtime for systematically testing machines by controlling the scheduler.
     /// </summary>
-    internal sealed class TestingRuntime : BaseRuntime
+    internal sealed class SystematicTestingRuntime : BaseRuntime
     {
         /// <summary>
         /// The bug-finding scheduler.
@@ -96,9 +96,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal readonly int? RootTaskId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestingRuntime"/> class.
+        /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
-        internal TestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
+        internal SystematicTestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration)
         {
             this.Monitors = new List<Monitor>();
@@ -446,8 +446,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
             this.MachineOperations.GetOrAdd(mid, new MachineOperation(mid));
-            IMachineStateManager stateManager = new MockMachineStateManager(this, machine);
-            IEventQueue eventQueue = new MockEventQueue(stateManager, machine);
+            IMachineStateManager stateManager = new SerializedMachineStateManager(this, machine);
+            IEventQueue eventQueue = new SerializedMachineEventQueue(stateManager, machine);
             machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
@@ -827,7 +827,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal void AssertTransitionStatement(Machine machine)
         {
-            var stateManager = machine.StateManager as MockMachineStateManager;
+            var stateManager = machine.StateManager as SerializedMachineStateManager;
             this.Assert(!stateManager.IsInsideOnExit,
                 "Machine '{0}' has called raise, goto, push or pop inside an OnExit method.",
                 machine.Id.Name);
@@ -848,7 +848,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 return;
             }
 
-            var stateManager = machine.StateManager as MockMachineStateManager;
+            var stateManager = machine.StateManager as SerializedMachineStateManager;
             this.Assert(!stateManager.IsTransitionStatementCalledInCurrentAction,
                 "Machine '{0}' cannot call '{1}' after calling raise, goto, push or pop in the same action.",
                 machine.Id.Name, calledAPI);
@@ -914,7 +914,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (caller is Machine machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "Random");
-                (machine.StateManager as MockMachineStateManager).ProgramCounter++;
+                (machine.StateManager as SerializedMachineStateManager).ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
@@ -941,7 +941,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (caller is Machine machine)
             {
                 this.AssertNoPendingTransitionStatement(caller as Machine, "FairRandom");
-                (machine.StateManager as MockMachineStateManager).ProgramCounter++;
+                (machine.StateManager as SerializedMachineStateManager).ProgramCounter++;
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
@@ -1023,7 +1023,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1040,7 +1040,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1052,7 +1052,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1069,7 +1069,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyCompletedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1081,8 +1081,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyInvokedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsInsideOnExit = true;
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsInsideOnExit = true;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1099,8 +1099,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyCompletedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            (machine.StateManager as MockMachineStateManager).IsInsideOnExit = false;
-            (machine.StateManager as MockMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsInsideOnExit = false;
+            (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1503,7 +1503,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             if (machine != null)
             {
-                (machine.StateManager as MockMachineStateManager).ProgramCounter = 0;
+                (machine.StateManager as SerializedMachineStateManager).ProgramCounter = 0;
             }
         }
 

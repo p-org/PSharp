@@ -294,7 +294,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            TestingRuntime runtime = null;
+            SystematicTestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -309,13 +309,13 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (this.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (TestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                    runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
                         null,
                         new object[] { this.Configuration, this.Strategy, this.Reporter });
                 }
                 else
                 {
-                    runtime = new TestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                    runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                 }
 
                 if (this.Configuration.EnableDataRaceDetection)
@@ -412,10 +412,9 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Gathers the exploration strategy statistics for
-        /// the latest testing iteration.
+        /// Gathers the exploration strategy statistics for the latest testing iteration.
         /// </summary>
-        private void GatherIterationStatistics(TestingRuntime runtime)
+        private void GatherIterationStatistics(SystematicTestingRuntime runtime)
         {
             TestReport report = runtime.Scheduler.GetReport();
             report.CoverageInfo.Merge(runtime.CoverageInfo);
@@ -425,7 +424,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Constructs a reproducable trace.
         /// </summary>
-        private void ConstructReproducableTrace(TestingRuntime runtime)
+        private void ConstructReproducableTrace(SystematicTestingRuntime runtime)
         {
             StringBuilder stringBuilder = new StringBuilder();
 

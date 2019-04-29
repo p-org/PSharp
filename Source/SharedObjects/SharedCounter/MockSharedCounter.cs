@@ -20,12 +20,12 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The testing runtime hosting this shared counter.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MockSharedCounter"/> class.
         /// </summary>
-        public MockSharedCounter(int value, TestingRuntime runtime)
+        public MockSharedCounter(int value, SystematicTestingRuntime runtime)
         {
             this.Runtime = runtime;
             this.CounterMachine = this.Runtime.CreateMachine(typeof(SharedCounterMachine));

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedRegister<T>(value);
             }
-            else if (runtime is TestingRuntime testingRuntime)
+            else if (runtime is SystematicTestingRuntime testingRuntime)
             {
                 return new MockSharedRegister<T>(value, testingRuntime);
             }

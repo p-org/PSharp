@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that an event has been raised.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnRaisedEvent(Event e, EventInfo eventInfo)
+        public void OnRaiseEvent(Event e, EventInfo eventInfo)
         {
             this.Runtime.NotifyRaisedEvent(this.Machine, e, eventInfo);
         }
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that it is waiting to receive an event of one of the specified types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NotifyWaitEvent(IEnumerable<Type> eventTypes)
+        public void OnWaitEvent(IEnumerable<Type> eventTypes)
         {
             this.Runtime.NotifyWaitEvent(this.Machine, eventTypes);
         }
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.Runtime
         /// event queue when the machine invoked the receive statement.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NotifyReceivedEventWithoutWaiting(Event e, EventInfo eventInfo)
+        public void OnReceiveEventWithoutWaiting(Event e, EventInfo eventInfo)
         {
             this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, eventInfo);
         }
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that an event has been dropped.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnDroppedEvent(Event e, EventInfo eventInfo)
+        public void OnDropEvent(Event e, EventInfo eventInfo)
         {
             this.Runtime.TryHandleDroppedEvent(e, this.Machine.Id);
         }
