@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,8 +22,15 @@ namespace Microsoft.PSharp.Core.Tests
 
         protected void Run(Configuration configuration, Action<IMachineRuntime> test)
         {
-            var outputLogger = new Common.TestOutputLogger(this.TestOutput);
-            var logger = new ThreadSafeInMemoryLogger(configuration.IsVerbose);
+            ILogger logger;
+            if (configuration.IsVerbose)
+            {
+                logger = new TestOutputLogger(this.TestOutput, true);
+            }
+            else
+            {
+                logger = new DisposingLogger();
+            }
 
             try
             {
@@ -36,14 +44,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
             finally
             {
-                string output = logger.ToString();
-                if (output.Length > 0)
-                {
-                    this.TestOutput.WriteLine(logger.ToString());
-                }
-
                 logger.Dispose();
-                outputLogger.Dispose();
             }
         }
 

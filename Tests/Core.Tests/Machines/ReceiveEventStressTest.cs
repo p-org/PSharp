@@ -95,6 +95,25 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        [Fact(Timeout = 15000)]
+        public void TestReceiveEvent()
+        {
+            var configuration = GetConfiguration();
+            for (int i = 0; i < 100; i++)
+            {
+                var test = new Action<IMachineRuntime>((r) =>
+                {
+                    r.Logger.WriteLine($"Iteration #{i}");
+
+                    var tcs = new TaskCompletionSource<bool>();
+                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 10000));
+                    Assert.True(tcs.Task.Result);
+                });
+
+                this.Run(configuration, test);
+            }
+        }
+
         private class M3 : Machine
         {
             [Start]
@@ -153,6 +172,25 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        [Fact(Timeout = 15000)]
+        public void TestReceiveEventAlternate()
+        {
+            var configuration = GetConfiguration();
+            for (int i = 0; i < 100; i++)
+            {
+                var test = new Action<IMachineRuntime>((r) =>
+                {
+                    r.Logger.WriteLine($"Iteration #{i}");
+
+                    var tcs = new TaskCompletionSource<bool>();
+                    r.CreateMachine(typeof(M3), new SetupTcsEvent(tcs, 10000));
+                    Assert.True(tcs.Task.Result);
+                });
+
+                this.Run(configuration, test);
+            }
+        }
+
         private class M5 : Machine
         {
             [Start]
@@ -197,47 +235,9 @@ namespace Microsoft.PSharp.Core.Tests
                 while (counter < numMessages)
                 {
                     counter++;
-                    await Task.WhenAny(this.Receive(typeof(Message)), Task.Delay(5000));
+                    await this.Receive(typeof(Message));
                     this.Send(mid, new Message());
                 }
-            }
-        }
-
-        [Fact(Timeout = 15000)]
-        public void TestReceiveEvent()
-        {
-            var configuration = GetConfiguration();
-            for (int i = 0; i < 100; i++)
-            {
-                var test = new Action<IMachineRuntime>((r) =>
-                {
-                    r.Logger.WriteLine($"Iteration #{i}");
-
-                    var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 10000));
-                    Assert.True(tcs.Task.Result);
-                });
-
-                this.Run(configuration, test);
-            }
-        }
-
-        [Fact(Timeout = 15000)]
-        public void TestReceiveEventAlternate()
-        {
-            var configuration = GetConfiguration();
-            for (int i = 0; i < 100; i++)
-            {
-                var test = new Action<IMachineRuntime>((r) =>
-                {
-                    r.Logger.WriteLine($"Iteration #{i}");
-
-                    var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M3), new SetupTcsEvent(tcs, 10000));
-                    Assert.True(tcs.Task.Result);
-                });
-
-                this.Run(configuration, test);
             }
         }
 

@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Map from task ids to machines.
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Initializes a new instance of the <see cref="AsynchronousTaskScheduler"/> class.
         /// </summary>
-        internal AsynchronousTaskScheduler(TestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        internal AsynchronousTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;

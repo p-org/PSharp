@@ -14,9 +14,9 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
-    /// Implements a queue of events that is used for testing purposes.
+    /// Implements a queue of events that is used by a serialized machine during testing.
     /// </summary>
-    internal sealed class MockEventQueue : IEventQueue
+    internal sealed class SerializedMachineEventQueue : IEventQueue
     {
         /// <summary>
         /// Manages the state of the machine that owns this queue.
@@ -67,9 +67,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         public bool IsEventRaised => this.RaisedEvent != default;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MockEventQueue"/> class.
+        /// Initializes a new instance of the <see cref="SerializedMachineEventQueue"/> class.
         /// </summary>
-        internal MockEventQueue(IMachineStateManager machineStateManager, Machine machine)
+        internal SerializedMachineEventQueue(IMachineStateManager machineStateManager, Machine machine)
         {
             this.MachineStateManager = machineStateManager;
             this.Machine = machine;
@@ -237,7 +237,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 NameResolver.GetStateNameForLogging(this.Machine.CurrentState));
             var info = new EventInfo(e, eventOrigin);
             this.RaisedEvent = (e, info);
-            this.MachineStateManager.OnRaisedEvent(e, info);
+            this.MachineStateManager.OnRaiseEvent(e, info);
         }
 
         /// <summary>
@@ -308,11 +308,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
                 this.EventWaitTypes = eventWaitTypes;
-                this.MachineStateManager.NotifyWaitEvent(this.EventWaitTypes.Keys);
+                this.MachineStateManager.OnWaitEvent(this.EventWaitTypes.Keys);
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.MachineStateManager.NotifyReceivedEventWithoutWaiting(receivedEvent.e, receivedEvent.info);
+            this.MachineStateManager.OnReceiveEventWithoutWaiting(receivedEvent.e, receivedEvent.info);
             return Task.FromResult(receivedEvent.e);
         }
 
@@ -358,7 +358,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             foreach (var (e, info) in this.Queue)
             {
-                this.MachineStateManager.OnDroppedEvent(e, info);
+                this.MachineStateManager.OnDropEvent(e, info);
             }
 
             this.Queue.Clear();

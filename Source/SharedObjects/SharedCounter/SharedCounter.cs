@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedCounter(value);
             }
-            else if (runtime is TestingRuntime testingRuntime)
+            else if (runtime is SystematicTestingRuntime testingRuntime)
             {
                 return new MockSharedCounter(value, testingRuntime);
             }

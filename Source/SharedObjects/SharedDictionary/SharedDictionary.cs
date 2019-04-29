@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>();
             }
-            else if (runtime is TestingRuntime testingRuntime)
+            else if (runtime is SystematicTestingRuntime testingRuntime)
             {
                 return new MockSharedDictionary<TKey, TValue>(null, testingRuntime);
             }
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.SharedObjects
             {
                 return new ProductionSharedDictionary<TKey, TValue>(comparer);
             }
-            else if (runtime is TestingRuntime testingRuntime)
+            else if (runtime is SystematicTestingRuntime testingRuntime)
             {
                 return new MockSharedDictionary<TKey, TValue>(comparer, testingRuntime);
             }

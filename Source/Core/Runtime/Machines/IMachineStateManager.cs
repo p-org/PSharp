@@ -46,12 +46,12 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Notifies the machine that an event has been raised.
         /// </summary>
-        void OnRaisedEvent(Event e, EventInfo eventInfo);
+        void OnRaiseEvent(Event e, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies the machine that it is waiting to receive an event of one of the specified types.
         /// </summary>
-        void NotifyWaitEvent(IEnumerable<Type> eventTypes);
+        void OnWaitEvent(IEnumerable<Type> eventTypes);
 
         /// <summary>
         /// Notifies the machine that an event it was waiting to receive has been enqueued.
@@ -62,12 +62,12 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that an event it was waiting to receive was already in the
         /// event queue when the machine invoked the receive statement.
         /// </summary>
-        void NotifyReceivedEventWithoutWaiting(Event e, EventInfo eventInfo);
+        void OnReceiveEventWithoutWaiting(Event e, EventInfo eventInfo);
 
         /// <summary>
         /// Notifies the machine that an event has been dropped.
         /// </summary>
-        void OnDroppedEvent(Event e, EventInfo eventInfo);
+        void OnDropEvent(Event e, EventInfo eventInfo);
 
         /// <summary>
         /// Asserts if the specified condition holds.

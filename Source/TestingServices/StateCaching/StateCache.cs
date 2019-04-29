@@ -12,14 +12,14 @@ using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
-    /// Class implementing a P# state cache.
+    /// Class implementing a state cache.
     /// </summary>
     internal sealed class StateCache
     {
         /// <summary>
-        /// The P# testing runtime.
+        /// The testing runtime.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Set of fingerprints.
@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Initializes a new instance of the <see cref="StateCache"/> class.
         /// </summary>
-        internal StateCache(TestingRuntime runtime)
+        internal StateCache(SystematicTestingRuntime runtime)
         {
             this.Runtime = runtime;
             this.Fingerprints = new HashSet<Fingerprint>();

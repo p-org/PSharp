@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The P# testing runtime.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// The scheduling strategy to be used for state-space exploration.
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Initializes a new instance of the <see cref="BugFindingScheduler"/> class.
         /// </summary>
-        internal BugFindingScheduler(TestingRuntime runtime, ISchedulingStrategy strategy)
+        internal BugFindingScheduler(SystematicTestingRuntime runtime, ISchedulingStrategy strategy)
         {
             this.Runtime = runtime;
             this.Strategy = strategy;

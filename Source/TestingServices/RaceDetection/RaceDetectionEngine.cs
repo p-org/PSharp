@@ -62,9 +62,9 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
 
         /// <summary>
         /// We need a reference to the runtime to query it for the currently
-        /// executing machine's Id at read/write operations
+        /// executing machine's Id at read/write operations.
         /// </summary>
-        private TestingRuntime Runtime;
+        private SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Counter to track the number of enqueue operations.
@@ -130,10 +130,9 @@ namespace Microsoft.PSharp.TestingServices.RaceDetection
         /// </summary>
         public void RegisterRuntime(IMachineRuntime runtime)
         {
-            runtime.Assert(
-                (runtime as TestingRuntime) != null,
+            runtime.Assert((runtime as SystematicTestingRuntime) != null,
                 "Requires passed runtime to support method GetCurrentMachineId");
-            this.Runtime = runtime as TestingRuntime;
+            this.Runtime = runtime as SystematicTestingRuntime;
         }
 
         public void RegisterCreateMachine(MachineId source, MachineId target)

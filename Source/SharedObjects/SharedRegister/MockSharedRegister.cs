@@ -23,12 +23,12 @@ namespace Microsoft.PSharp.SharedObjects
         /// <summary>
         /// The testing runtime hosting this shared register.
         /// </summary>
-        private readonly TestingRuntime Runtime;
+        private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MockSharedRegister{T}"/> class.
         /// </summary>
-        public MockSharedRegister(T value, TestingRuntime runtime)
+        public MockSharedRegister(T value, SystematicTestingRuntime runtime)
         {
             this.Runtime = runtime;
             this.RegisterMachine = this.Runtime.CreateMachine(typeof(SharedRegisterMachine<T>));
