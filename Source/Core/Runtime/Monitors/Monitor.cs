@@ -213,7 +213,7 @@ namespace Microsoft.PSharp
         /// Deprecated in favor of Goto&lt;T&gt;().
         /// </summary>
         /// <param name="s">Type of the state</param>
-        [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
+        //[Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.

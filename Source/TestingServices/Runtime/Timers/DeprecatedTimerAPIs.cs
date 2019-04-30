@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.TestingServices.Deprecated.Timers
     /// <summary>
     /// A timer model, used for testing purposes.
     /// </summary>
-    [Obsolete("The ModelTimerMachine class is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
+   // [Obsolete("The ModelTimerMachine class is deprecated; use the new StartTimer/StartPeriodicTimer APIs in the Machine class instead.")]
     public class ModelTimerMachine : Machine
     {
         /// <summary>

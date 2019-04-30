@@ -371,7 +371,7 @@ namespace Microsoft.PSharp
         /// at the end of the current action. Deprecated in favor of Goto&lt;T&gt;().
         /// </summary>
         /// <param name="s">Type of the state</param>
-        [Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
+        //[Obsolete("Goto(typeof(T)) is deprecated; use Goto<T>() instead.")]
         protected void Goto(Type s)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Goto while halted.");
@@ -401,7 +401,7 @@ namespace Microsoft.PSharp
         /// Deprecated in favor of Push&lt;T&gt;().
         /// </summary>
         /// <param name="s">Type of the state</param>
-        [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
+       // [Obsolete("Push(typeof(T)) is deprecated; use Push<T>() instead.")]
         protected void Push(Type s)
         {
             this.Assert(!this.Info.IsHalted, $"Machine '{base.Id}' invoked Push while halted.");
