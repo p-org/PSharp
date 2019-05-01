@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="..\build.props" />
+  <PropertyGroup>
+    <Description>The Broadcast P# sample.</Description>
+    <AssemblyName>Broadcast</AssemblyName>
+    <RootNamespace>Broadcast</RootNamespace>
+    <ProjectGuid>{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}</ProjectGuid>
+  </PropertyGroup>
+  
+</Project>

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
+using Microsoft.PSharp.TestingServices.TraceUtils;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -35,6 +37,12 @@ namespace Microsoft.PSharp.TestingServices
         /// The bug trace, if any.
         /// </summary>
         private BugTrace BugTrace;
+        
+        /// <summary>
+        /// Trie which counts unique ( in the partial order sense ) traces.
+        /// </summary>
+        private CountingTrie<ulong> traceCountingTrie;
+        private int nTotalTraces;
 
         /// <summary>
         /// The reproducable trace, if any.
@@ -193,6 +201,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.Initialize();
+
         }
 
         /// <summary>
@@ -207,6 +216,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.RegisterPerIterationCallBack((arg) => { this.Reporter.ClearAll(); });
             }
+            traceCountingTrie = new CountingTrie<ulong>();
         }
 
         /// <summary>
@@ -228,6 +238,7 @@ namespace Microsoft.PSharp.TestingServices
 
             base.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
                 $"using '{base.Configuration.SchedulingStrategy}' strategy{options}.");
+
 
             Task task = new Task(() =>
             {
@@ -289,6 +300,12 @@ namespace Microsoft.PSharp.TestingServices
                         ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     }
                 }
+                finally
+                {
+                    base.Logger.WriteLine($"Hit {traceCountingTrie.GetChild(null, 0).UniqueCount}/{nTotalTraces} unique traces.");
+                }
+
+
             }, base.CancellationTokenSource.Token);
 
             return task;
@@ -408,6 +425,9 @@ namespace Microsoft.PSharp.TestingServices
                     this.BugTrace = runtime.BugTrace;
                     this.ConstructReproducableTrace(runtime);
                 }
+
+                // Record the unique linearization of the partial order.
+                this.RecordPartialOrder(runtime.BugTrace);
             }
             finally
             {
@@ -521,5 +541,105 @@ namespace Microsoft.PSharp.TestingServices
 
             return iteration % this.PrintGuard == 0;
         }
+
+
+        // Note - We also need to correct for machineId's.
+        private void RecordPartialOrder(BugTrace bugTrace)
+        {
+            SortedDictionary<ulong, Tuple<ulong, ulong>> machineIdRemap = new SortedDictionary<ulong, Tuple<ulong,ulong>>();
+            Dictionary<ulong, List<ulong>> inboxSenderSignatures = new Dictionary<ulong, List<ulong>>();
+            Dictionary<ulong, ulong> machineToCreatedCount = new Dictionary<ulong, ulong>();
+
+            foreach (BugTraceStep step in bugTrace)
+            {
+                // If the sender isn't added, it means it probably wasn't created by a machine
+                if( step.Type == BugTraceStepType.CreateMachine)
+                {
+                    ulong srcMachineId = step.Machine?.Value ?? 0;
+                    //if (!machineIdRemap.ContainsKey(srcMachineId) ) // TODO: Might not be required as BugTraceStep seems to capture this anyway
+                    //{
+                    //    machineIdRemap.Add(srcMachineId, new Tuple<ulong,ulong>(0, srcMachineId));
+                    //}
+
+                    if (!machineIdRemap.ContainsKey(step.TargetMachine.Value))
+                    {
+                        ulong nCreated = 0;
+                        if (!machineToCreatedCount.TryGetValue(srcMachineId, out nCreated))
+                        {
+                            nCreated = 0;
+                        }
+                        machineIdRemap.Add(step.TargetMachine.Value, new Tuple<ulong, ulong>(srcMachineId, nCreated));
+                        machineToCreatedCount[srcMachineId] = nCreated+1;
+                    }
+                }
+                if (step.Type == BugTraceStepType.SendEvent)
+                {
+                    if (!inboxSenderSignatures.ContainsKey(step.TargetMachine.Value))
+                    {
+                        inboxSenderSignatures.Add(step.TargetMachine.Value, new List<ulong>());
+                    }
+
+                    inboxSenderSignatures[step.TargetMachine.Value].Add(step.Machine.Value);
+                }// else { //do Nothing; }
+            }
+
+            /*
+            // Populate the machineIdRemap
+            //machineIdRemap.Add();
+            //foreach ()
+            //{
+
+            //}
+            */
+             List<ulong> traceSig = RemapAndGetUniqueSequence(inboxSenderSignatures, machineIdRemap);
+            traceCountingTrie.insert(traceSig);
+            nTotalTraces++;
+        }
+
+        private List<ulong> RemapAndGetUniqueSequence(Dictionary<ulong, List<ulong>> inboxSenderSignatures, SortedDictionary<ulong, Tuple<ulong, ulong>> machineIdRemap)
+        {
+            HashSet<ulong> reservedIds = new HashSet<ulong>();
+            ulong nToAssign = 1;
+            Dictionary<ulong, ulong> actualRemap = new Dictionary<ulong, ulong>();
+            SortedDictionary<ulong, ulong> reverseRemap = new SortedDictionary<ulong, ulong>();
+            foreach ( KeyValuePair<ulong, Tuple<ulong,ulong>> kvPair in machineIdRemap)
+            {
+                if( kvPair.Value.Item1 == 0)
+                {
+                    reservedIds.Add( kvPair.Key );
+                    actualRemap.Add(kvPair.Key, kvPair.Key);
+                    reverseRemap.Add(kvPair.Key, kvPair.Key);
+                }
+                else
+                {
+                    while ( reservedIds.Contains(nToAssign)) {
+                        nToAssign++;
+                    }
+                    ulong assignN = nToAssign++;
+                    actualRemap.Add(kvPair.Key, assignN);
+                    reverseRemap.Add(assignN, kvPair.Key);
+                }
+            }
+
+            List<ulong> seq = new List<ulong>();
+
+            foreach (KeyValuePair<ulong,ulong> kvPair in reverseRemap)
+            {
+                if (inboxSenderSignatures.ContainsKey(kvPair.Value))
+                {
+                    seq.Add(kvPair.Key);
+                    ulong nElementsInInbox = (ulong)inboxSenderSignatures[kvPair.Value].Count;
+                    seq.Add(nElementsInInbox);
+                    foreach (ulong senderSourceId in inboxSenderSignatures[kvPair.Value])
+                    {
+                        seq.Add(actualRemap[senderSourceId]);
+                    }
+                }
+            }
+
+            return seq;
+        }
+
+
     }
 }

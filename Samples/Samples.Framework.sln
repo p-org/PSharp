@@ -40,6 +40,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Timers", "Framework\Timers\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwoPhaseCommit", "Framework\TwoPhaseCommit\TwoPhaseCommit.csproj", "{B503F549-A8E1-48D6-BDBD-BFC0EB9B9650}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broadcast", "Framework\BroadcastForPartialOrders\Broadcast.csproj", "{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +104,10 @@ Global
 		{B503F549-A8E1-48D6-BDBD-BFC0EB9B9650}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B503F549-A8E1-48D6-BDBD-BFC0EB9B9650}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B503F549-A8E1-48D6-BDBD-BFC0EB9B9650}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC4B8531-A7D5-4F1A-A7E6-D5BB88D38D6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
