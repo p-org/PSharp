@@ -70,14 +70,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestIdempotentRegisterMonitorInvocation()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(M));
                 r.RegisterMonitor(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
             });
-
-            this.AssertSucceeded(test);
         }
     }
 }

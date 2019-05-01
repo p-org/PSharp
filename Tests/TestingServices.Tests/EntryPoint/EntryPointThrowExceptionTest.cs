@@ -27,24 +27,22 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestEntryPointThrowException()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithException<InvalidOperationException>(r =>
             {
                 MachineId m = r.CreateMachine(typeof(M));
                 throw new InvalidOperationException();
-            });
-
-            this.AssertFailedWithException(test, typeof(InvalidOperationException), true);
+            },
+            replay: true);
         }
 
         [Fact(Timeout=5000)]
         public void TestEntryPointNoMachinesThrowException()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithException<InvalidOperationException>(r =>
             {
                 throw new InvalidOperationException();
-            });
-
-            this.AssertFailedWithException(test, typeof(InvalidOperationException), true);
+            },
+            replay: true);
         }
     }
 }

@@ -59,8 +59,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.TaskMap.TryRemove(prevTaskId, out AsyncMachine machine);
                 this.TaskMap.TryAdd(task.Id, machine);
 
-                // Change the task previously associated with the currently executing machine operation to the new task.
-                MachineOperation op = this.Runtime.GetMachineOperation(machine.Id);
+                // Change the task previously associated with the currently executing operation to the new task.
+                AsyncOperation op = this.Runtime.GetAsynchronousOperation(machine.Id.Value);
                 op.Task = task;
 
                 IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId}' to '{task.Id}'.");

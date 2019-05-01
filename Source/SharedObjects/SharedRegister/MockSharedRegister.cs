@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public T Update(Func<T, T> func)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.UpdateEvent(func, currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
             return e.Value;
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public T GetValue()
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.RegisterMachine, SharedRegisterEvent.GetEvent(currentMachine.Id));
             var e = currentMachine.Receive(typeof(SharedRegisterResponseEvent<T>)).Result as SharedRegisterResponseEvent<T>;
             return e.Value;

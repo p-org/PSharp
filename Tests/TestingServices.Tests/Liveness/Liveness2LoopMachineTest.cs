@@ -114,15 +114,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.LivenessTemperatureThreshold = 200;
             configuration.SchedulingIterations = 1;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            var bugReport = "Monitor 'LivenessMonitor' detected potential liveness bug in hot state " +
-                "'CannotGetUserInput'.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'LivenessMonitor' detected potential liveness bug in hot state 'CannotGetUserInput'.",
+            replay: true);
         }
     }
 }

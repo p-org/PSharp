@@ -44,14 +44,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestEntryPointEventSending()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 MachineId m = r.CreateMachine(typeof(M));
                 r.SendEvent(m, new Transfer(0));
-            });
-
-            var bugReport = "Value is 0.";
-            this.AssertFailed(test, bugReport, true);
+            },
+            expectedError: "Value is 0.",
+            replay: true);
         }
     }
 }

@@ -517,17 +517,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new configuration.
+        /// Creates a new configuration with default values.
         /// </summary>
-        /// <returns>Configuration</returns>
         public static Configuration Create()
         {
             return new Configuration();
         }
 
         /// <summary>
-        /// Updates the configuration with verbose output enabled
-        /// and returns it.
+        /// Updates the configuration with verbose output enabled or disabled.
         /// </summary>
         /// <param name="isVerbose">If true, then messages are logged.</param>
         public Configuration WithVerbosityEnabled(bool isVerbose = true)
@@ -537,8 +535,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Updates the configuration with verbose output enabled
-        /// and returns it.
+        /// Updates the configuration with verbose output enabled or disabled.
         /// </summary>
         /// <param name="level">The verbosity level.</param>
         [Obsolete("WithVerbosityEnabled(int level) is deprecated; use WithVerbosityEnabled(bool isVerbose) instead.")]
@@ -549,23 +546,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Updates the configuration with debugging information enabled
-        /// or disabled and returns it.
+        /// Updates the configuration with the specified scheduling strategy.
         /// </summary>
-        /// <param name="isEnabled">Is debugging enabled</param>
-        /// <returns>Configuration</returns>
-        public Configuration WithDebuggingEnabled(bool isEnabled = true)
-        {
-            Debug.IsEnabled = isEnabled;
-            return this;
-        }
-
-        /// <summary>
-        /// Updates the configuration with the scheduling strategy
-        /// and returns it.
-        /// </summary>
-        /// <param name="strategy">SchedulingStrategy</param>
-        /// <returns>Configuration</returns>
+        /// <param name="strategy">The scheduling strategy.</param>
         public Configuration WithStrategy(SchedulingStrategy strategy)
         {
             this.SchedulingStrategy = strategy;
@@ -573,11 +556,9 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Updates the configuration with the number of iterations
-        /// and returns it.
+        /// Updates the configuration with the specified number of iterations to perform.
         /// </summary>
-        /// <param name="iterations">Number of iterations</param>
-        /// <returns>Configuration</returns>
+        /// <param name="iterations">The number of iterations to perform.</param>
         public Configuration WithNumberOfIterations(int iterations)
         {
             this.SchedulingIterations = iterations;
@@ -585,13 +566,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Updates the configuration with the specified number of scheduling steps
+        /// to perform per iteration (for both fair and unfair schedulers).
+        /// </summary>
+        /// <param name="maxSteps">The scheduling steps to perform per iteration.</param>
+        public Configuration WithMaxSteps(int maxSteps)
+        {
+            this.MaxSchedulingSteps = maxSteps;
+            return this;
+        }
+
+        /// <summary>
         /// Indicates whether the requested C# version is supported for for rewriting.
         /// </summary>
-        /// <param name="major">The major version required</param>
-        /// <param name="minor">The minor version required</param>
+        /// <param name="major">The required major version.</param>
+        /// <param name="minor">The required minor version.</param>
         public bool IsRewriteCSharpVersion(int major, int minor)
         {
-            // Return true if not set
+            // Return true if not set.
             return this.RewriteCSharpVersion.Major == 0
                 || this.RewriteCSharpVersion >= new Version(major, minor);
         }

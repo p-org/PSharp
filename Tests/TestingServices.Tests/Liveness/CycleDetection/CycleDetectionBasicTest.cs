@@ -85,13 +85,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: configuration);
         }
 
         [Fact(Timeout=5000)]
@@ -101,14 +100,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.EnableCycleDetection = true;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(false));
-            });
-
-            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'WatchDog' detected infinite execution that violates a liveness property.",
+            replay: true);
         }
     }
 }

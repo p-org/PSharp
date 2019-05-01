@@ -158,7 +158,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestDPOR1Reduces()
         {
-            var test = new Action<IMachineRuntime>(r =>
+            // DPOR: 1 schedule.
+            var runtime = this.Test(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
@@ -167,26 +168,32 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(sender1, new Ping());
                 r.SendEvent(sender2, new Ping());
                 r.SendEvent(sender3, new Ping());
-            });
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(10));
 
-            var configuration = GetConfiguration();
-            configuration.SchedulingIterations = 10;
-
-            // DPOR: 1 schedule.
-            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            var runtime = this.AssertSucceeded(configuration, test);
             Assert.Equal(1, runtime.TestReport.NumOfExploredUnfairSchedules);
 
             // DFS: at least 6 schedules.
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            runtime = this.AssertSucceeded(configuration, test);
+            runtime = this.Test(r =>
+            {
+                MachineId waiter = r.CreateMachine(typeof(Waiter));
+                MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
+                MachineId sender2 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
+                MachineId sender3 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter));
+                r.SendEvent(sender1, new Ping());
+                r.SendEvent(sender2, new Ping());
+                r.SendEvent(sender3, new Ping());
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DFS).WithNumberOfIterations(10));
+
             Assert.True(runtime.TestReport.NumOfExploredUnfairSchedules >= 6);
         }
 
         [Fact(Timeout=5000)]
         public void TestDPOR2NonDet()
         {
-            var test = new Action<IMachineRuntime>(r =>
+            // DPOR: 4 schedules because there are 2 nondet choices.
+            var runtime = this.Test(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 MachineId sender1 = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, false, true));
@@ -195,38 +202,28 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(sender1, new Ping());
                 r.SendEvent(sender2, new Ping());
                 r.SendEvent(sender3, new Ping());
-            });
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(10));
 
-            var configuration = GetConfiguration();
-            configuration.SchedulingIterations = 10;
-
-            // DPOR: 4 schedules because there are 2 nondet choices.
-            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            var runtime = this.AssertSucceeded(configuration, test);
             Assert.Equal(4, runtime.TestReport.NumOfExploredUnfairSchedules);
         }
 
         [Fact(Timeout=5000)]
         public void TestDPOR3CreatingMany()
         {
-            var test = new Action<IMachineRuntime>(r =>
+            this.Test(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(Waiter));
                 r.CreateMachine(typeof(LevelOne), new ReceiverAddressEvent(waiter));
                 r.CreateMachine(typeof(LevelOne), new ReceiverAddressEvent(waiter));
-            });
-
-            var configuration = GetConfiguration();
-            configuration.SchedulingIterations = 10;
-
-            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(10));
         }
 
         [Fact(Timeout=5000)]
         public void TestDPOR4UseReceive()
         {
-            var test = new Action<IMachineRuntime>(r =>
+            this.Test(r =>
             {
                 MachineId waiter = r.CreateMachine(typeof(ReceiveWaiter));
 
@@ -234,13 +231,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(a, new Ping());
                 var b = r.CreateMachine(typeof(Sender), new SenderInitEvent(waiter, true));
                 r.SendEvent(b, new Ping());
-            });
-
-            var configuration = GetConfiguration();
-            configuration.SchedulingIterations = 1000;
-
-            configuration.SchedulingStrategy = SchedulingStrategy.DPOR;
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(1000));
         }
     }
 }

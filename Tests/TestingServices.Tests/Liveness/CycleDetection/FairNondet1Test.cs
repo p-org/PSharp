@@ -115,13 +115,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 300;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: configuration);
         }
     }
 }

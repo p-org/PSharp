@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="restoredStateName">The name of the state being re-entered, if any</param>
         public virtual string FormatOnPopString(MachineId machineId, string currStateName, string restoredStateName)
         {
-            var curStateName = string.IsNullOrEmpty(currStateName) ? "[not recorded]" : currStateName;
+            currStateName = string.IsNullOrEmpty(currStateName) ? "[not recorded]" : currStateName;
             var reenteredStateName = restoredStateName ?? string.Empty;
             return $"<PopLog> Machine '{machineId}' popped state '{currStateName}' and reentered state '{reenteredStateName}'.";
         }
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.IO
         /// <param name="eventTypes">The types of the events being waited for, if any.</param>
         public virtual string FormatOnWaitString(MachineId machineId, string currStateName, params Type[] eventTypes)
         {
-            string eventNames = string.Empty;
+            string eventNames;
             if (eventTypes.Length == 0)
             {
                 eventNames = "'<missing>'";

@@ -179,15 +179,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(M));
                 r.CreateMachine(typeof(Master));
-            });
-
-            string bugReport = "Monitor 'M' detected liveness bug in hot state 'Init' " +
-                "at the end of program execution.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'M' detected liveness bug in hot state 'Init' at the end of program execution.",
+            replay: true);
         }
     }
 }

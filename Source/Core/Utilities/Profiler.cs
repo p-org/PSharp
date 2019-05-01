@@ -28,16 +28,16 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public void StopMeasuringExecutionTime()
         {
-            this.StopWatch.Stop();
+            if (this.StopWatch != null)
+            {
+                this.StopWatch.Stop();
+            }
         }
 
         /// <summary>
         /// Returns profilling results.
         /// </summary>
-        /// <returns>Seconds</returns>
-        public double Results()
-        {
-            return this.StopWatch.Elapsed.TotalSeconds;
-        }
+        public double Results() =>
+            this.StopWatch != null ? this.StopWatch.Elapsed.TotalSeconds : 0;
     }
 }

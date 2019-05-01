@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.SharedObjects
         {
             this.Runtime = runtime;
             this.CounterMachine = this.Runtime.CreateMachine(typeof(SharedCounterMachine));
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
             currentMachine.Receive(typeof(SharedCounterResponseEvent)).Wait();
         }
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public int GetValue()
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.GetEvent(currentMachine.Id));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public int Add(int value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.AddEvent(currentMachine.Id, value));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public int Exchange(int value)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.SetEvent(currentMachine.Id, value));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.SharedObjects
         /// </summary>
         public int CompareExchange(int value, int comparand)
         {
-            var currentMachine = this.Runtime.GetCurrentMachine();
+            var currentMachine = this.Runtime.GetExecutingMachine<Machine>();
             this.Runtime.SendEvent(this.CounterMachine, SharedCounterEvent.CasEvent(currentMachine.Id, value, comparand));
             var response = currentMachine.Receive(typeof(SharedCounterResponseEvent)).Result;
             return (response as SharedCounterResponseEvent).Value;

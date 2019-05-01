@@ -578,14 +578,6 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Logs the specified text.
-        /// </summary>
-        protected internal virtual void Log(string format, params object[] args)
-        {
-            this.Logger.WriteLine(format, args);
-        }
-
-        /// <summary>
         /// Installs the specified <see cref="ILogger"/>.
         /// </summary>
         public void SetLogger(ILogger logger)

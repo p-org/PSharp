@@ -64,13 +64,22 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Runs the P# testing engine.
+        /// Creates a new P# replaying engine.
         /// </summary>
-        public override ITestingEngine Run()
+        public static ReplayEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function)
         {
-            Task task = this.CreateBugReproducingTask();
-            this.Execute(task);
-            return this;
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            return new ReplayEngine(configuration, function);
+        }
+
+        /// <summary>
+        /// Creates a new P# replaying engine.
+        /// </summary>
+        public static ReplayEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function, string trace)
+        {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
+            configuration.ScheduleTrace = trace;
+            return new ReplayEngine(configuration, function);
         }
 
         /// <summary>
@@ -113,122 +122,130 @@ namespace Microsoft.PSharp.TestingServices
         {
         }
 
-        private Task CreateBugReproducingTask()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
+        /// </summary>
+        private ReplayEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
+            : base(configuration, function)
         {
-            Task task = new Task(
-                () =>
+        }
+
+        /// <summary>
+        /// Creates a new testing task.
+        /// </summary>
+        protected override Task CreateTestingTask()
+        {
+            return new Task(() =>
+            {
+                // Runtime used to serialize and test the program.
+                SystematicTestingRuntime runtime = null;
+
+                // Logger used to intercept the program output if no custom logger
+                // is installed and if verbosity is turned off.
+                InMemoryLogger runtimeLogger = null;
+
+                // Gets a handle to the standard output and error streams.
+                var stdOut = Console.Out;
+                var stdErr = Console.Error;
+
+                try
                 {
-                    // Runtime used to serialize and test the program.
-                    SystematicTestingRuntime runtime = null;
-
-                    // Logger used to intercept the program output if no custom logger
-                    // is installed and if verbosity is turned off.
-                    InMemoryLogger runtimeLogger = null;
-
-                    // Gets a handle to the standard output and error streams.
-                    var stdOut = Console.Out;
-                    var stdErr = Console.Error;
-
-                    try
+                    if (this.TestInitMethod != null)
                     {
-                        if (this.TestInitMethod != null)
-                        {
-                            // Initializes the test state.
-                            this.TestInitMethod.Invoke(null, Array.Empty<object>());
-                        }
-
-                        // Creates a new instance of the testing runtime.
-                        if (this.TestRuntimeFactoryMethod != null)
-                        {
-                            runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
-                                null,
-                                new object[] { this.Configuration, this.Strategy, this.Reporter });
-                        }
-                        else
-                        {
-                            runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
-                        }
-
-                        // If verbosity is turned off, then intercept the program log, and also redirect
-                        // the standard output and error streams into the runtime logger.
-                        if (!this.Configuration.IsVerbose)
-                        {
-                            runtimeLogger = new InMemoryLogger(true);
-                            runtime.SetLogger(runtimeLogger);
-
-                            var writer = new LogWriter(new DisposingLogger());
-                            Console.SetOut(writer);
-                            Console.SetError(writer);
-                        }
-
-                        // Runs the test inside the test-harness machine.
-                        if (this.TestAction != null)
-                        {
-                            runtime.RunTestHarness(this.TestAction, this.TestName);
-                        }
-                        else
-                        {
-                            runtime.RunTestHarnessAsync(this.TestFunction, this.TestName);
-                        }
-
-                        // Wait for the test to terminate.
-                        runtime.Wait();
-
-                        // Invokes user-provided cleanup for this iteration.
-                        if (this.TestIterationDisposeMethod != null)
-                        {
-                            // Disposes the test state.
-                            this.TestIterationDisposeMethod.Invoke(null, Array.Empty<object>());
-                        }
-
-                        // Invokes user-provided cleanup for all iterations.
-                        if (this.TestDisposeMethod != null)
-                        {
-                            // Disposes the test state.
-                            this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
-                        }
-
-                        this.InternalError = (this.Strategy as ReplayStrategy).ErrorText;
-
-                        // Checks that no monitor is in a hot state at termination. Only
-                        // checked if no safety property violations have been found.
-                        if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
-                        {
-                            runtime.CheckNoMonitorInHotStateAtTermination();
-                        }
-
-                        if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
-                        {
-                            this.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
-                        }
-
-                        TestReport report = runtime.Scheduler.GetReport();
-                        report.CoverageInfo.Merge(runtime.CoverageInfo);
-                        this.TestReport.Merge(report);
+                        // Initializes the test state.
+                        this.TestInitMethod.Invoke(null, Array.Empty<object>());
                     }
-                    catch (TargetInvocationException ex)
+
+                    // Creates a new instance of the testing runtime.
+                    if (this.TestRuntimeFactoryMethod != null)
                     {
-                        if (!(ex.InnerException is TaskCanceledException))
-                        {
-                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                        }
+                        runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                            null,
+                            new object[] { this.Configuration, this.Strategy, this.Reporter });
                     }
-                    finally
+                    else
                     {
-                        if (!this.Configuration.IsVerbose)
-                        {
-                            // Restores the standard output and error streams.
-                            Console.SetOut(stdOut);
-                            Console.SetError(stdErr);
-                        }
-
-                        // Cleans up the runtime.
-                        runtimeLogger?.Dispose();
-                        runtime?.Dispose();
+                        runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                     }
-                }, this.CancellationTokenSource.Token);
 
-            return task;
+                    // If verbosity is turned off, then intercept the program log, and also redirect
+                    // the standard output and error streams into the runtime logger.
+                    if (!this.Configuration.IsVerbose)
+                    {
+                        runtimeLogger = new InMemoryLogger(true);
+                        runtime.SetLogger(runtimeLogger);
+
+                        var writer = new LogWriter(new DisposingLogger());
+                        Console.SetOut(writer);
+                        Console.SetError(writer);
+                    }
+
+                    // Runs the test inside the test-harness machine.
+                    if (this.TestAction != null)
+                    {
+                        runtime.RunTestHarness(this.TestAction, this.TestName);
+                    }
+                    else
+                    {
+                        runtime.RunTestHarness(this.TestFunction, this.TestName);
+                    }
+
+                    // Wait for the test to terminate.
+                    runtime.WaitAsync().Wait();
+
+                    // Invokes user-provided cleanup for this iteration.
+                    if (this.TestIterationDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        this.TestIterationDisposeMethod.Invoke(null, Array.Empty<object>());
+                    }
+
+                    // Invokes user-provided cleanup for all iterations.
+                    if (this.TestDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
+                    }
+
+                    this.InternalError = (this.Strategy as ReplayStrategy).ErrorText;
+
+                    // Checks that no monitor is in a hot state at termination. Only
+                    // checked if no safety property violations have been found.
+                    if (!runtime.Scheduler.BugFound && this.InternalError.Length == 0)
+                    {
+                        runtime.CheckNoMonitorInHotStateAtTermination();
+                    }
+
+                    if (runtime.Scheduler.BugFound && this.InternalError.Length == 0)
+                    {
+                        this.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
+                    }
+
+                    TestReport report = runtime.Scheduler.GetReport();
+                    report.CoverageInfo.Merge(runtime.CoverageInfo);
+                    this.TestReport.Merge(report);
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
+                }
+                finally
+                {
+                    if (!this.Configuration.IsVerbose)
+                    {
+                        // Restores the standard output and error streams.
+                        Console.SetOut(stdOut);
+                        Console.SetError(stdErr);
+                    }
+
+                    // Cleans up the runtime.
+                    runtimeLogger?.Dispose();
+                    runtime?.Dispose();
+                }
+            }, this.CancellationTokenSource.Token);
         }
     }
 }
