@@ -17,7 +17,6 @@ namespace MultiPaxos
             public int TimeoutValue;
 
             public Config(MachineId id, int value)
-                : base(-1, -1)
             {
                 this.Target = id;
                 this.TimeoutValue = value;
@@ -29,7 +28,6 @@ namespace MultiPaxos
             public MachineId Timer;
 
             public TimeoutEvent(MachineId id)
-                : base(-1, -1)
             {
                 this.Timer = id;
             }

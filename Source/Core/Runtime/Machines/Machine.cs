@@ -22,9 +22,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a state-machine.
+    /// Implements an asynchronous communicating state machine. Inherit from this class
+    /// to declare states, state transitions and event handlers.
     /// </summary>
-    public abstract class Machine : BaseMachine
+    public abstract class Machine : AsyncMachine
     {
         /// <summary>
         /// Map from machine types to a set of all possible states types.
@@ -181,7 +182,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(BaseRuntime runtime, MachineId mid, IMachineStateManager stateManager, IEventQueue inbox)
+        internal void Initialize(MachineRuntime runtime, MachineId mid, IMachineStateManager stateManager, IEventQueue inbox)
         {
             this.Initialize(runtime, mid);
             this.StateManager = stateManager;
@@ -486,7 +487,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate)
         {
@@ -494,7 +495,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, object arg0)
         {
@@ -502,7 +503,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, object arg0, object arg1)
         {
@@ -510,7 +511,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
         {
@@ -518,7 +519,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, params object[] args)
         {

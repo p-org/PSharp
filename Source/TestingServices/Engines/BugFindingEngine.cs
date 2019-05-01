@@ -247,7 +247,7 @@ namespace Microsoft.PSharp.TestingServices
                             {
                                 // Increments the seed in the random number generator (if one is used), to
                                 // capture the seed used by the scheduling strategy in the next iteration.
-                                this.RandomNumberGenerator.Seed = this.RandomNumberGenerator.Seed + 1;
+                                this.RandomNumberGenerator.Seed += 1;
                             }
 
                             // Increases iterations if there is a specified timeout
@@ -335,8 +335,15 @@ namespace Microsoft.PSharp.TestingServices
                     Console.SetError(writer);
                 }
 
-                // Runs the test inside the P# test-harness machine.
-                runtime.RunTestHarness(this.TestMethod, this.TestAction);
+                // Runs the test inside the test-harness machine.
+                if (this.TestAction != null)
+                {
+                    runtime.RunTestHarness(this.TestAction, this.TestName);
+                }
+                else
+                {
+                    runtime.RunTestHarnessAsync(this.TestFunction, this.TestName);
+                }
 
                 // Wait for the test to terminate.
                 runtime.Wait();

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -26,12 +27,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Map from task ids to machines.
         /// </summary>
-        private readonly ConcurrentDictionary<int, Machine> TaskMap;
+        private readonly ConcurrentDictionary<int, AsyncMachine> TaskMap;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AsynchronousTaskScheduler"/> class.
         /// </summary>
-        internal AsynchronousTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, Machine> taskMap)
+        internal AsynchronousTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, AsyncMachine> taskMap)
         {
             this.Runtime = runtime;
             this.TaskMap = taskMap;
@@ -55,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 // this case, get the currently scheduled machine (this was the machine
                 // that spawned this task).
                 int prevTaskId = this.Runtime.Scheduler.ScheduledOperation.Task.Id;
-                this.TaskMap.TryRemove(prevTaskId, out Machine machine);
+                this.TaskMap.TryRemove(prevTaskId, out AsyncMachine machine);
                 this.TaskMap.TryAdd(task.Id, machine);
 
                 // Change the task previously associated with the currently executing machine operation to the new task.

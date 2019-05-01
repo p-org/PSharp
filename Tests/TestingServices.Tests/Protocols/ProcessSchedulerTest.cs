@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -90,26 +91,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Wakeup());
             }
 
-            private void OnWakeup()
+            private async Task OnWakeup()
             {
                 this.Send(this.RLockMachineId, new RLockMachine.SetReq(this.Id, false));
-                this.Receive(typeof(RLockMachine.SetResp)).Wait();
+                await this.Receive(typeof(RLockMachine.SetResp));
                 this.Send(this.LKMachineId, new LkMachine.Waiting(this.Id, false));
-                this.Receive(typeof(LkMachine.WaitResp)).Wait();
+                await this.Receive(typeof(LkMachine.WaitResp));
                 this.Send(this.RWantMachineId, new RWantMachine.ValueReq(this.Id));
-                var receivedEvent = this.Receive(typeof(RWantMachine.ValueResp)).Result;
+                var receivedEvent = await this.Receive(typeof(RWantMachine.ValueResp));
 
                 if ((receivedEvent as RWantMachine.ValueResp).Value == true)
                 {
                     this.Send(this.RWantMachineId, new RWantMachine.SetReq(this.Id, false));
-                    this.Receive(typeof(RWantMachine.SetResp)).Wait();
+                    await this.Receive(typeof(RWantMachine.SetResp));
 
                     this.Send(this.NodeMachineId, new Node.ValueReq(this.Id));
-                    var receivedEvent1 = this.Receive(typeof(Node.ValueResp)).Result;
+                    var receivedEvent1 = await this.Receive(typeof(Node.ValueResp));
                     if ((receivedEvent1 as Node.ValueResp).Value == MType.WakeUp)
                     {
                         this.Send(this.NodeMachineId, new Node.SetReq(this.Id, MType.Run));
-                        this.Receive(typeof(Node.SetResp)).Wait();
+                        await this.Receive(typeof(Node.SetResp));
                     }
                 }
 
@@ -167,27 +168,27 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Raise(new Progress());
             }
 
-            private void OnSleep()
+            private async Task OnSleep()
             {
                 this.Send(this.LKMachineId, new LkMachine.AtomicTestSet(this.Id));
-                this.Receive(typeof(LkMachine.AtomicTestSet_Resp)).Wait();
+                await this.Receive(typeof(LkMachine.AtomicTestSet_Resp));
                 while (true)
                 {
                     this.Send(this.RLockMachineId, new RLockMachine.ValueReq(this.Id));
-                    var receivedEvent = this.Receive(typeof(RLockMachine.ValueResp)).Result;
+                    var receivedEvent = await this.Receive(typeof(RLockMachine.ValueResp));
                     if ((receivedEvent as RLockMachine.ValueResp).Value == true)
                     {
                         this.Send(this.RWantMachineId, new RWantMachine.SetReq(this.Id, true));
-                        this.Receive(typeof(RWantMachine.SetResp)).Wait();
+                        await this.Receive(typeof(RWantMachine.SetResp));
                         this.Send(this.NodeMachineId, new Node.SetReq(this.Id, MType.WakeUp));
-                        this.Receive(typeof(Node.SetResp)).Wait();
+                        await this.Receive(typeof(Node.SetResp));
                         this.Send(this.LKMachineId, new LkMachine.SetReq(this.Id, false));
-                        this.Receive(typeof(LkMachine.SetResp)).Wait();
+                        await this.Receive(typeof(LkMachine.SetResp));
 
                         this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientSleep());
 
                         this.Send(this.NodeMachineId, new Node.Waiting(this.Id, MType.Run));
-                        this.Receive(typeof(Node.WaitResp)).Wait();
+                        await this.Receive(typeof(Node.WaitResp));
 
                         this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientProgress());
                     }
@@ -200,15 +201,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Send(this.Id, new Progress());
             }
 
-            private void OnProgress()
+            private async Task OnProgress()
             {
                 this.Send(this.RLockMachineId, new RLockMachine.ValueReq(this.Id));
-                var receivedEvent = this.Receive(typeof(RLockMachine.ValueResp)).Result;
+                var receivedEvent = await this.Receive(typeof(RLockMachine.ValueResp));
                 this.Assert((receivedEvent as RLockMachine.ValueResp).Value == false);
                 this.Send(this.RLockMachineId, new RLockMachine.SetReq(this.Id, true));
-                this.Receive(typeof(RLockMachine.SetResp)).Wait();
+                await this.Receive(typeof(RLockMachine.SetResp));
                 this.Send(this.LKMachineId, new LkMachine.SetReq(this.Id, false));
-                this.Receive(typeof(LkMachine.SetResp)).Wait();
+                await this.Receive(typeof(LkMachine.SetResp));
                 this.Send(this.Id, new Sleep());
             }
         }

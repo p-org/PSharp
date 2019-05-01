@@ -64,11 +64,11 @@ namespace Microsoft.PSharp.Core.Tests
         {
         }
 
-        private class M_Halts : Event
+        private class MHalts : Event
         {
         }
 
-        private class SE_Returns : Event
+        private class SEReturns : Event
         {
         }
 
@@ -122,10 +122,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestSyncSendBlocks()
+        public async Task TestSyncSendBlocks()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -136,12 +135,10 @@ namespace Microsoft.PSharp.Core.Tests
                 };
 
                 r.CreateMachine(typeof(M1), new Config1(tcs));
-                tcs.Task.Wait(1000);
 
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
 
         private class M2 : Machine
@@ -181,10 +178,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestSendCycleDoesNotDeadlock()
+        public async Task TestSendCycleDoesNotDeadlock()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -195,12 +191,10 @@ namespace Microsoft.PSharp.Core.Tests
                 };
 
                 r.CreateMachine(typeof(M2), new Config1(tcs));
-                tcs.Task.Wait();
 
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
 
         private class M3 : Machine
@@ -216,7 +210,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcs = (this.ReceivedEvent as Config1).Tcs;
                 var m = await this.Runtime.CreateMachineAndExecute(typeof(N3));
                 var handled = await this.Runtime.SendEventAndExecuteAsync(m, new E3());
-                this.Monitor<SafetyMonitor>(new SE_Returns());
+                this.Monitor<SafetyMonitor>(new SEReturns());
                 this.Assert(handled);
                 tcs.TrySetResult(true);
             }
@@ -237,7 +231,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             protected override void OnHalt()
             {
-                this.Monitor<SafetyMonitor>(new M_Halts());
+                this.Monitor<SafetyMonitor>(new MHalts());
             }
         }
 
@@ -248,8 +242,8 @@ namespace Microsoft.PSharp.Core.Tests
 
             [Start]
             [Hot]
-            [OnEventDoAction(typeof(M_Halts), nameof(OnMHalts))]
-            [OnEventDoAction(typeof(SE_Returns), nameof(OnSEReturns))]
+            [OnEventDoAction(typeof(MHalts), nameof(OnMHalts))]
+            [OnEventDoAction(typeof(SEReturns), nameof(OnSEReturns))]
             private class Init : MonitorState
             {
             }
@@ -274,12 +268,11 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestMachineHaltsOnSendExec()
+        public async Task TestMachineHaltsOnSendExec()
         {
             var config = GetConfiguration();
             config.EnableMonitorsInProduction = true;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -291,12 +284,10 @@ namespace Microsoft.PSharp.Core.Tests
 
                 r.RegisterMonitor(typeof(SafetyMonitor));
                 r.CreateMachine(typeof(M3), new Config1(tcs));
-                tcs.Task.Wait();
 
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
-            });
-
-            this.Run(config, test);
+            }, config);
         }
 
         private class M4 : Machine
@@ -351,10 +342,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestHandledExceptionOnSendExec()
+        public async Task TestHandledExceptionOnSendExec()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -365,19 +355,16 @@ namespace Microsoft.PSharp.Core.Tests
                 };
 
                 r.CreateMachine(typeof(M4), new Config2(true, tcs));
-                tcs.Task.Wait();
 
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestUnHandledExceptionOnSendExec()
+        public async Task TestUnHandledExceptionOnSendExec()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -394,13 +381,11 @@ namespace Microsoft.PSharp.Core.Tests
                 };
 
                 r.CreateMachine(typeof(M4), new Config2(false, tcs));
-                tcs.Task.Wait();
 
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
                 Assert.StartsWith("Exception of type 'System.Exception' was thrown", message);
             });
-
-            this.Run(config, test);
         }
 
         private class M5 : Machine
@@ -430,10 +415,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestUnhandledEventOnSendExec()
+        public async Task TestUnhandledEventOnSendExec()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -450,15 +434,13 @@ namespace Microsoft.PSharp.Core.Tests
                 };
 
                 r.CreateMachine(typeof(M5), new Config1(tcs));
-                tcs.Task.Wait();
 
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
                 Assert.Equal(
                     "Machine 'Microsoft.PSharp.Core.Tests.SendAndExecuteTest+N5(1)' received event " +
                     "'Microsoft.PSharp.Core.Tests.SendAndExecuteTest+E3' that cannot be handled.", message);
             });
-
-            this.Run(config, test);
         }
     }
 }

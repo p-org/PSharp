@@ -233,73 +233,68 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestBasicTimerOperation()
+        public async Task TestBasicTimerOperation()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T1), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestBasicPeriodicTimerOperation()
+        public async Task TestBasicPeriodicTimerOperation()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T2), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestDropTimeoutsAfterTimerDisposal()
+        public async Task TestDropTimeoutsAfterTimerDisposal()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T3), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestIllegalDueTimeSpecification()
+        public async Task TestIllegalDueTimeSpecification()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T4), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestIllegalPeriodSpecification()
+        public async Task TestIllegalPeriodSpecification()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(T5), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
     }
 }

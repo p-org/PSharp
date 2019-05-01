@@ -199,10 +199,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnExceptionCalledOnce1()
+        public async Task TestOnExceptionCalledOnce1()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -217,19 +216,16 @@ namespace Microsoft.PSharp.Core.Tests
                 var m = r.CreateMachine(typeof(M1a), e);
                 r.SendEvent(m, new F());
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
                 Assert.True(e.X == 1);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnExceptionCalledOnce2()
+        public async Task TestOnExceptionCalledOnce2()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -242,19 +238,16 @@ namespace Microsoft.PSharp.Core.Tests
                 var e = new E(tcs);
                 r.CreateMachine(typeof(M1b), e);
 
-                tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
                 Assert.True(e.X == 1);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnExceptionCalledOnceAsync1()
+        public async Task TestOnExceptionCalledOnceAsync1()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -269,19 +262,16 @@ namespace Microsoft.PSharp.Core.Tests
                 var m = r.CreateMachine(typeof(M2a), e);
                 r.SendEvent(m, new F());
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
                 Assert.True(e.X == 1);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnExceptionCalledOnceAsync2()
+        public async Task TestOnExceptionCalledOnceAsync2()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -294,19 +284,16 @@ namespace Microsoft.PSharp.Core.Tests
                 var e = new E(tcs);
                 r.CreateMachine(typeof(M2b), e);
 
-                tcs.Task.Wait(5000); // timeout so the test doesn't deadlock on failure
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
                 Assert.True(e.X == 1);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnExceptionCanHalt()
+        public async Task TestOnExceptionCanHalt()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -319,19 +306,16 @@ namespace Microsoft.PSharp.Core.Tests
                 var e = new E(tcs);
                 r.CreateMachine(typeof(M3), e);
 
-                tcs.Task.Wait();
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
                 Assert.False(failed);
-                Assert.True(tcs.Task.Result);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestUnHandledEventCanHalt()
+        public async Task TestUnHandledEventCanHalt()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -345,12 +329,10 @@ namespace Microsoft.PSharp.Core.Tests
                 var m = r.CreateMachine(typeof(M4), e);
                 r.SendEvent(m, new F());
 
-                tcs.Task.Wait();
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
                 Assert.False(failed);
-                Assert.True(tcs.Task.Result);
             });
-
-            this.Run(config, test);
         }
     }
 }

@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices;
 using Xunit;
 using Xunit.Abstractions;

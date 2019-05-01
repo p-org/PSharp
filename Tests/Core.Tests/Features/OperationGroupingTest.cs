@@ -20,6 +20,26 @@ namespace Microsoft.PSharp.Core.Tests
         private static Guid OperationGroup1 = Guid.NewGuid();
         private static Guid OperationGroup2 = Guid.NewGuid();
 
+        private class SetupEvent : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public SetupEvent(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class SetupMultipleEvent : Event
+        {
+            public TaskCompletionSource<bool>[] Tcss;
+
+            public SetupMultipleEvent(params TaskCompletionSource<bool>[] tcss)
+            {
+                this.Tcss = tcss;
+            }
+        }
+
         private class E : Event
         {
             public MachineId Id;
@@ -50,13 +70,28 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                tcs.SetResult(this.OperationGroupId == Guid.Empty);
             }
+        }
+
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingSingleMachineNoSend()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M1), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         private class M2 : Machine
         {
+            private TaskCompletionSource<bool> Tcs;
+
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
@@ -66,18 +101,33 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.Send(this.Id, new E());
             }
 
             private void CheckEvent()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == Guid.Empty);
             }
         }
 
-        private class M2S : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingSingleMachineSend()
         {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M2), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M3 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
@@ -87,17 +137,30 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.Runtime.SendEvent(this.Id, new E(OperationGroup1));
             }
 
             private void CheckEvent()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
             }
         }
 
-        private class M3 : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingSingleMachineSendStarter()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M3), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M4A : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -107,11 +170,12 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                this.CreateMachine(typeof(M4));
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.CreateMachine(typeof(M4B), new SetupEvent(tcs));
             }
         }
 
-        private class M4 : Machine
+        private class M4B : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -121,12 +185,25 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                tcs.SetResult(this.OperationGroupId == Guid.Empty);
             }
         }
 
-        private class M5 : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingTwoMachinesCreate()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M4A), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M5A : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -136,27 +213,48 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var target = this.CreateMachine(typeof(M6));
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                var target = this.CreateMachine(typeof(M5B), new SetupEvent(tcs));
                 this.Send(target, new E());
             }
         }
 
-        private class M6 : Machine
+        private class M5B : Machine
         {
+            private TaskCompletionSource<bool> Tcs;
+
             [Start]
+            [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
             private class Init : MachineState
             {
             }
 
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+            }
+
             private void CheckEvent()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == Guid.Empty);
             }
         }
 
-        private class M5S : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingTwoMachinesSend()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M5A), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M6A : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -166,28 +264,16 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var target = this.CreateMachine(typeof(M6S));
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                var target = this.CreateMachine(typeof(M6B), new SetupEvent(tcs));
                 this.Runtime.SendEvent(target, new E(OperationGroup1));
             }
         }
 
-        private class M6S : Machine
+        private class M6B : Machine
         {
-            [Start]
-            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            private class Init : MachineState
-            {
-            }
+            private TaskCompletionSource<bool> Tcs;
 
-            private void CheckEvent()
-            {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-            }
-        }
-
-        private class M7 : Machine
-        {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
@@ -197,199 +283,244 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var target = this.CreateMachine(typeof(M8));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
             }
 
             private void CheckEvent()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
             }
         }
 
-        private class M8 : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingTwoMachinesSendStarter()
         {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M6A), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M7A : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
             [Start]
+            [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
             private class Init : MachineState
             {
             }
 
+            private void InitOnEntry()
+            {
+                var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
+                this.Tcs = tcss[0];
+                var target = this.CreateMachine(typeof(M7B), new SetupEvent(tcss[1]));
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+            }
+
             private void CheckEvent()
             {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
+            }
+        }
+
+        private class M7B : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+            }
+
+            private void CheckEvent()
+            {
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
                 this.Send((this.ReceivedEvent as E).Id, new E());
             }
         }
 
-        private class M7S : Machine
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingTwoMachinesSendBack()
         {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            private class Init : MachineState
+            await this.RunAsync(async r =>
             {
-            }
+                var tcs1 = new TaskCompletionSource<bool>();
+                var tcs2 = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M7A), new SetupMultipleEvent(tcs1, tcs2));
 
-            private void InitOnEntry()
-            {
-                var target = this.CreateMachine(typeof(M8S));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
-            }
+                var result = await GetResultAsync(tcs1.Task);
+                Assert.True(result);
 
-            private void CheckEvent()
-            {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup2, $"OperationGroupId is not '{OperationGroup2}', but {id}.");
-            }
-        }
-
-        private class M8S : Machine
-        {
-            [Start]
-            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            private class Init : MachineState
-            {
-            }
-
-            private void CheckEvent()
-            {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
-            }
-        }
-
-        private class M9S : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            private class Init : MachineState
-            {
-            }
-
-            private void InitOnEntry()
-            {
-                var target = this.CreateMachine(typeof(M10S));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
-            }
-
-            private void CheckEvent()
-            {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup2, $"OperationGroupId is not '{OperationGroup2}', but {id}.");
-            }
-        }
-
-        private class M10S : Machine
-        {
-            [Start]
-            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
-            private class Init : MachineState
-            {
-            }
-
-            private void CheckEvent()
-            {
-                this.CreateMachine(typeof(M11S));
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
-            }
-        }
-
-        private class M11S : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            private class Init : MachineState
-            {
-            }
-
-            private void InitOnEntry()
-            {
-                var id = this.OperationGroupId;
-                this.Assert(id == OperationGroup1, $"OperationGroupId is not '{OperationGroup1}', but {id}.");
-            }
-        }
-
-        private void AssertSucceeded(Type machine)
-        {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
-            {
-                var failed = false;
-                var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += (ex) =>
-                {
-                    failed = true;
-                    tcs.SetResult(true);
-                };
-
-                r.CreateMachine(machine);
-
-                tcs.Task.Wait(100);
-                Assert.False(failed);
+                result = await GetResultAsync(tcs2.Task);
+                Assert.True(result);
             });
+        }
 
-            this.Run(config, test);
+        private class M8A : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
+                this.Tcs = tcss[0];
+                var target = this.CreateMachine(typeof(M8B), new SetupEvent(tcss[1]));
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+            }
+
+            private void CheckEvent()
+            {
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup2);
+            }
+        }
+
+        private class M8B : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+            }
+
+            private void CheckEvent()
+            {
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public async Task TestOperationGroupingTwoMachinesSendBackStarter()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs1 = new TaskCompletionSource<bool>();
+                var tcs2 = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M8A), new SetupMultipleEvent(tcs1, tcs2));
+
+                var result = await GetResultAsync(tcs1.Task);
+                Assert.True(result);
+
+                result = await GetResultAsync(tcs2.Task);
+                Assert.True(result);
+            });
+        }
+
+        private class M9A : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
+                this.Tcs = tcss[0];
+                var target = this.CreateMachine(typeof(M9B), new SetupMultipleEvent(tcss[1], tcss[2]));
+                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+            }
+
+            private void CheckEvent()
+            {
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup2);
+            }
+        }
+
+        private class M9B : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private TaskCompletionSource<bool> TargetTcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(E), nameof(CheckEvent))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
+                this.Tcs = tcss[0];
+                this.TargetTcs = tcss[1];
+            }
+
+            private void CheckEvent()
+            {
+                this.CreateMachine(typeof(M9C), new SetupEvent(this.TargetTcs));
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
+            }
+        }
+
+        private class M9C : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                tcs.SetResult(this.OperationGroupId == OperationGroup1);
+            }
         }
 
         [Fact(Timeout=5000)]
-        public void TestOperationGroupingSingleMachineNoSend()
+        public async Task TestOperationGroupingThreeMachinesSendStarter()
         {
-            this.AssertSucceeded(typeof(M1));
-        }
+            await this.RunAsync(async r =>
+            {
+                var tcs1 = new TaskCompletionSource<bool>();
+                var tcs2 = new TaskCompletionSource<bool>();
+                var tcs3 = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M9A), new SetupMultipleEvent(tcs1, tcs2, tcs3));
 
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingSingleMachineSend()
-        {
-            this.AssertSucceeded(typeof(M2));
-        }
+                var result = await GetResultAsync(tcs1.Task);
+                Assert.True(result);
 
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingSingleMachineSendStarter()
-        {
-            this.AssertSucceeded(typeof(M2S));
-        }
+                result = await GetResultAsync(tcs2.Task);
+                Assert.True(result);
 
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingTwoMachinesCreate()
-        {
-            this.AssertSucceeded(typeof(M3));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingTwoMachinesSend()
-        {
-            this.AssertSucceeded(typeof(M5));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingTwoMachinesSendStarter()
-        {
-            this.AssertSucceeded(typeof(M5S));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingTwoMachinesSendBack()
-        {
-            this.AssertSucceeded(typeof(M7));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingTwoMachinesSendBackStarter()
-        {
-            this.AssertSucceeded(typeof(M7S));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestOperationGroupingThreeMachinesSendStarter()
-        {
-            this.AssertSucceeded(typeof(M9S));
+                result = await GetResultAsync(tcs3.Task);
+                Assert.True(result);
+            });
         }
     }
 }

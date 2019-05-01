@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// <summary>
     /// Runtime for testing a machine in isolation.
     /// </summary>
-    internal sealed class MachineTestingRuntime : BaseRuntime
+    internal sealed class MachineTestingRuntime : MachineRuntime
     {
         /// <summary>
         /// The machine being tested.
@@ -218,7 +218,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal override void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, SendOptions options)
         {
             this.Assert(sender is null || this.Machine.Id.Equals(sender.Id),
                 string.Format("Only machine '{0}' can send an event during this test.", this.Machine.Id.ToString()));
@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        internal override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender, SendOptions options)
         {
             this.SendEvent(target, e, sender, options);
             return this.QuiescenceCompletionSource.Task;
@@ -308,13 +308,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
-        internal override void Monitor(Type type, BaseMachine sender, Event e)
+        internal override void Monitor(Type type, AsyncMachine sender, Event e)
         {
             // No-op in this runtime mode.
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate)
         {
@@ -325,7 +325,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate, string s, object arg0)
         {
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate, string s, object arg0, object arg1)
         {
@@ -347,7 +347,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
         {
@@ -358,7 +358,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         public override void Assert(bool predicate, string s, params object[] args)
         {
@@ -372,7 +372,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(AsyncMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -391,7 +391,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(AsyncMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -400,7 +400,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(AsyncMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);

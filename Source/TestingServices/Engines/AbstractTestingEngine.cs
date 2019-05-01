@@ -11,6 +11,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,11 +52,6 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestRuntimeFactoryMethod;
 
         /// <summary>
-        /// A P# test method.
-        /// </summary>
-        internal MethodInfo TestMethod;
-
-        /// <summary>
         /// The P# test initialization method.
         /// </summary>
         internal MethodInfo TestInitMethod;
@@ -71,9 +67,19 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestIterationDisposeMethod;
 
         /// <summary>
-        /// A P# test action.
+        /// The action to test.
         /// </summary>
         internal Action<IMachineRuntime> TestAction;
+
+        /// <summary>
+        /// The function to test.
+        /// </summary>
+        internal Func<IMachineRuntime, Task> TestFunction;
+
+        /// <summary>
+        /// The name of the test.
+        /// </summary>
+        internal string TestName;
 
         /// <summary>
         /// Set of callbacks to invoke at the end
@@ -252,10 +258,15 @@ namespace Microsoft.PSharp.TestingServices
             this.TestAction = action;
         }
 
+        protected AbstractTestingEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
+        {
+            this.Initialize(configuration);
+            this.TestFunction = function;
+        }
+
         /// <summary>
         /// Initialized the testing engine.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         private void Initialize(Configuration configuration)
         {
             this.Configuration = configuration;
@@ -510,21 +521,37 @@ namespace Microsoft.PSharp.TestingServices
 
             var testMethod = filteredTestMethods[0];
 
-            if (testMethod.ReturnType != typeof(void) ||
-                testMethod.ContainsGenericParameters ||
-                testMethod.IsAbstract || testMethod.IsVirtual ||
-                testMethod.IsConstructor ||
+            bool hasExpectedReturnType = (testMethod.ReturnType == typeof(void) &&
+                testMethod.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) == null) ||
+                (testMethod.ReturnType == typeof(Task) &&
+                testMethod.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null);
+            bool hasExpectedParameters = !testMethod.ContainsGenericParameters &&
+                testMethod.GetParameters().Length is 1 &&
+                testMethod.GetParameters()[0].ParameterType == typeof(IMachineRuntime);
+
+            if (testMethod.IsAbstract || testMethod.IsVirtual || testMethod.IsConstructor ||
                 !testMethod.IsPublic || !testMethod.IsStatic ||
-                testMethod.GetParameters().Length != 1 ||
-                testMethod.GetParameters()[0].ParameterType != typeof(IMachineRuntime))
+                !hasExpectedReturnType || !hasExpectedParameters)
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(TestAttribute).FullName}] public static void " +
+                    $"{testMethod.Name}(IMachineRuntime runtime) {{ ... }}\n" +
+                    "or:\n" +
+                    $"  [{typeof(TestAttribute).FullName}] public static async Task " +
                     $"{testMethod.Name}(IMachineRuntime runtime) {{ ... }}");
             }
 
-            this.TestMethod = testMethod;
+            if (testMethod.ReturnType == typeof(void))
+            {
+                this.TestAction = (Action<IMachineRuntime>)Delegate.CreateDelegate(typeof(Action<IMachineRuntime>), testMethod);
+            }
+            else
+            {
+                this.TestFunction = (Func<IMachineRuntime, Task>)Delegate.CreateDelegate(typeof(Func<IMachineRuntime, Task>), testMethod);
+            }
+
+            this.TestName = $"{testMethod.DeclaringType}.{testMethod.Name}";
         }
 
         /// <summary>

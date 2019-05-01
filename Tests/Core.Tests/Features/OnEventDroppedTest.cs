@@ -51,10 +51,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnDroppedCalled1()
+        public async Task TestOnDroppedCalled1()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -68,11 +67,9 @@ namespace Microsoft.PSharp.Core.Tests
                 var m = r.CreateMachine(typeof(M1));
                 r.SendEvent(m, new Halt());
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.True(called);
             });
-
-            this.Run(config, test);
         }
 
         private class M2 : Machine
@@ -91,10 +88,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnDroppedCalled2()
+        public async Task TestOnDroppedCalled2()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -107,18 +103,15 @@ namespace Microsoft.PSharp.Core.Tests
 
                 var m = r.CreateMachine(typeof(M2));
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.True(called);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestOnDroppedParams()
+        public async Task TestOnDroppedParams()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var called = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -135,11 +128,9 @@ namespace Microsoft.PSharp.Core.Tests
 
                 r.SendEvent(m, new Halt());
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.True(called);
             });
-
-            this.Run(config, test);
         }
 
         private class EventProcessed : Event
@@ -226,12 +217,11 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestProcessedOrDropped()
+        public async Task TestProcessedOrDropped()
         {
             var config = GetConfiguration();
             config.EnableMonitorsInProduction = true;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
 
@@ -252,10 +242,9 @@ namespace Microsoft.PSharp.Core.Tests
                 var m = r.CreateMachine(typeof(M3c));
                 r.CreateMachine(typeof(M3a), new E(m));
                 r.CreateMachine(typeof(M3b), new E(m));
-                tcs.Task.Wait(5000);
-            });
 
-            this.Run(config, test);
+                await WaitAsync(tcs.Task);
+            }, config);
         }
     }
 }

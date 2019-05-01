@@ -16,7 +16,6 @@ namespace MultiPaxos
             public int Request;
 
             public monitor_client_sent(int req)
-                : base(-1, -1)
             {
                 this.Request = req;
             }
@@ -27,7 +26,6 @@ namespace MultiPaxos
             public int ProposeVal;
 
             public monitor_proposer_sent(int val)
-                : base(-1, -1)
             {
                 this.ProposeVal = val;
             }
@@ -38,7 +36,6 @@ namespace MultiPaxos
             public int ChosenVal;
 
             public monitor_proposer_chosen(int val)
-                : base(-1, -1)
             {
                 this.ChosenVal = val;
             }

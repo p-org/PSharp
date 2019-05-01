@@ -417,7 +417,7 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been created.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
-        /// <param name="creator">Id of the host machine, null otherwise.</param>
+        /// <param name="creator">Id of the creator machine, null otherwise.</param>
         public virtual void OnCreateMachine(MachineId machineId, MachineId creator)
         {
             if (this.IsVerbose)
@@ -430,7 +430,7 @@ namespace Microsoft.PSharp.IO
         /// Returns a string formatted for the <see cref="OnCreateMachine"/> event and its parameters.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
-        /// <param name="creator">Id of the host machine, null otherwise.</param>
+        /// <param name="creator">Id of the creator machine, null otherwise.</param>
         public virtual string FormatOnCreateMachineString(MachineId machineId, MachineId creator)
         {
             var source = creator is null ? "the runtime" : $"machine '{creator.Name}'";
