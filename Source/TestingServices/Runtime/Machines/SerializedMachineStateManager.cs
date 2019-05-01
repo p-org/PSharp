@@ -8,13 +8,14 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Threading;
 
 namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// Implements a state manager that is used by a serialized machine during testing.
     /// </summary>
-    internal class SerializedMachineStateManager : IMachineStateManager
+    internal sealed class SerializedMachineStateManager : IMachineStateManager
     {
         /// <summary>
         /// The runtime that executes the machine being managed.
@@ -48,6 +49,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal bool IsTransitionStatementCalledInCurrentAction;
 
         /// <summary>
+        /// True if the machine is currently executing an asynchronous handler
+        /// that returns a <see cref="MachineTask"/>, else false.
+        /// </summary>
+        internal bool IsInsideMachineTaskHandler;
+
+        /// <summary>
         /// True if the machine is executing an on exit action, else false.
         /// </summary>
         internal bool IsInsideOnExit;
@@ -63,6 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.OperationGroupId = operationGroupId;
             this.ProgramCounter = 0;
             this.IsTransitionStatementCalledInCurrentAction = false;
+            this.IsInsideMachineTaskHandler = false;
             this.IsInsideOnExit = false;
         }
 

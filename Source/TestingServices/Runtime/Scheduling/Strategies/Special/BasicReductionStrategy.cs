@@ -171,7 +171,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             {
                 case ReductionStrategy.ForceSchedule:
                     {
-                        var partialOrderOps = ops.Where(op => op.IsEnabled && IsPartialOrderOperation(op.Type)).ToList();
+                        var partialOrderOps = ops.Where(op => op.Status is AsyncOperationStatus.Enabled &&
+                            IsPartialOrderOperation(op.Type)).ToList();
 
                         // If we are being forced:
                         if (next != null)
@@ -202,7 +203,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 case ReductionStrategy.OmitSchedulingPoints:
                     {
                         // Otherwise, don't schedule before non-Send.
-                        bool continueWithCurrent = current.IsEnabled && IsPartialOrderOperation(current.Type);
+                        bool continueWithCurrent = current.Status is AsyncOperationStatus.Enabled &&
+                            IsPartialOrderOperation(current.Type);
 
                         // We are being forced:
                         if (next != null)

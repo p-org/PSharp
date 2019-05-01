@@ -175,7 +175,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestHotStateMonitor()
         {
-            var configuration = GetConfiguration();
+            var configuration = GetConfiguration().WithVerbosityEnabled();
+            configuration.EnableDebugging = true;
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 

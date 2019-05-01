@@ -6,7 +6,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
     /// Signals that a machine has reached quiescence.

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -573,6 +572,16 @@ namespace Microsoft.PSharp
         public Configuration WithMaxSteps(int maxSteps)
         {
             this.MaxSchedulingSteps = maxSteps;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with the specified seed for random scheduling strategies.
+        /// </summary>
+        /// <param name="seed">The seed for random scheduling strategies.</param>
+        public Configuration WithRandomSchedulingSeed(int seed)
+        {
+            this.RandomSchedulingSeed = seed;
             return this;
         }
 

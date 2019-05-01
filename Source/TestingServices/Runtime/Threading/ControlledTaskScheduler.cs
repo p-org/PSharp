@@ -11,8 +11,9 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Scheduling;
 
-namespace Microsoft.PSharp.TestingServices.Scheduling
+namespace Microsoft.PSharp.TestingServices.Threading
 {
     /// <summary>
     /// A task scheduler that can be controlled during testing.
@@ -25,31 +26,33 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
-        /// Map from task that are controlled by the runtime to machines.
+        /// Map from ids of tasks that are controlled by the runtime to operations.
         /// </summary>
-        private readonly ConcurrentDictionary<int, AsyncMachine> ControlledTaskMap;
+        private readonly ConcurrentDictionary<int, MachineOperation> ControlledTaskMap;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ControlledTaskScheduler"/> class.
         /// </summary>
-        internal ControlledTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, AsyncMachine> controlledTaskMap)
+        internal ControlledTaskScheduler(SystematicTestingRuntime runtime,
+            ConcurrentDictionary<int, MachineOperation> controlledTaskMap)
         {
             this.Runtime = runtime;
             this.ControlledTaskMap = controlledTaskMap;
         }
 
         /// <summary>
-        /// Enqueues the given task. If the task does not correspond to a P# machine,
-        /// then it wraps it in a task machine and schedules it.
+        /// Enqueues the given task.
         /// </summary>
         protected override void QueueTask(Task task)
         {
             if (Task.CurrentId.HasValue &&
-                this.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out AsyncMachine machine))
+                this.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out MachineOperation op) &&
+                !this.ControlledTaskMap.ContainsKey(task.Id))
             {
-                // The task was spawned by user-code (e.g. due to async/await).
-                this.ControlledTaskMap.TryAdd(task.Id, machine);
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{Task.CurrentId.Value}' to '{task.Id}'.");
+                // If the task does not correspond to a machine operation, then associate
+                // it with the currently executing machine operation and schedule it.
+                this.ControlledTaskMap.TryAdd(task.Id, op);
+                IO.Debug.WriteLine($"<ScheduleDebug> Operation '{op.SourceId}' is associated with task '{task.Id}'.");
             }
 
             this.Execute(task);

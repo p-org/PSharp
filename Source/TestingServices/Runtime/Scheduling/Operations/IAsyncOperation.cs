@@ -16,20 +16,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         AsyncOperationType Type { get; }
 
         /// <summary>
-        /// Unique id of the source of this operation.
+        /// Unique id of the source of the operation.
         /// </summary>
         ulong SourceId { get; }
 
         /// <summary>
-        /// Unique name of the source of this operation.
+        /// Unique name of the source of the operation.
         /// </summary>
         string SourceName { get; }
 
         /// <summary>
-        /// True if this operation is enabled, else false.
-        /// Only enabled operations can be scheduled.
+        /// The status of the operation. An operation can be scheduled only
+        /// if it is <see cref="AsyncOperationStatus.Enabled"/>.
         /// </summary>
-        bool IsEnabled { get; set; }
+        AsyncOperationStatus Status { get; set; }
 
         /// <summary>
         /// The target of the operation (which can be the source).

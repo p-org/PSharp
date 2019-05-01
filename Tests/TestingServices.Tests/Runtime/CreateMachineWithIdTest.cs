@@ -207,7 +207,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var m2 = r.CreateMachine(typeof(M2));
                 r.CreateMachine(m2, typeof(M2));
             },
-            expectedError: "Machine with id '' is already bound to an existing machine.",
+            expectedError: "Machine id '' is used by an existing machine.",
             replay: true);
         }
 

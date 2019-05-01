@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private bool GetNextHelper(ref IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
-            var enabledOperations = ops.Where(op => op.IsEnabled).ToList();
+            var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             if (enabledOperations.Count == 0)
             {
                 return false;

@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 orderedMachines.AddRange(ops.GetRange(0, currentMachineIdx));
             }
 
-            var enabledOperations = orderedMachines.Where(op => op.IsEnabled).ToList();
+            var enabledOperations = orderedMachines.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             if (enabledOperations.Count == 0)
             {
                 next = null;

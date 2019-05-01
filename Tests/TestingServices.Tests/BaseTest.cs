@@ -7,7 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,26 +23,37 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        protected ITestingEngine Test(Action<IMachineRuntime> test, Configuration configuration = null)
+        protected ITestingEngine Test(Action test, Configuration configuration = null) =>
+            this.Test(test as Delegate, configuration);
+
+        protected ITestingEngine Test(Action<IMachineRuntime> test, Configuration configuration = null) =>
+            this.Test(test as Delegate, configuration);
+
+        protected ITestingEngine Test(Func<MachineTask> test, Configuration configuration = null) =>
+            this.Test(test as Delegate, configuration);
+
+        protected ITestingEngine Test(Func<IMachineRuntime, MachineTask> test, Configuration configuration = null) =>
+            this.Test(test as Delegate, configuration);
+
+        private ITestingEngine Test(Delegate test, Configuration configuration)
         {
             configuration = configuration ?? GetConfiguration();
-            BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
-            return this.Test(engine);
-        }
 
-        protected ITestingEngine Test(Func<IMachineRuntime, Task> test, Configuration configuration = null)
-        {
-            configuration = configuration ?? GetConfiguration();
-            BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
-            return this.Test(engine);
-        }
+            ILogger logger;
+            if (configuration.IsVerbose)
+            {
+                logger = new Common.TestOutputLogger(this.TestOutput, true);
+            }
+            else
+            {
+                logger = new DisposingLogger();
+            }
 
-        private ITestingEngine Test(BugFindingEngine engine)
-        {
-            var logger = new Common.TestOutputLogger(this.TestOutput);
+            BugFindingEngine engine = null;
 
             try
             {
+                engine = BugFindingEngine.Create(configuration, test);
                 engine.SetLogger(logger);
                 engine.Run();
 
@@ -60,26 +72,67 @@ namespace Microsoft.PSharp.TestingServices.Tests
             return engine;
         }
 
+        protected void TestWithError(Action test, Configuration configuration = null, string expectedError = null,
+            bool replay = false)
+        {
+            this.TestWithError(test as Delegate, configuration, new string[] { expectedError }, replay);
+        }
+
         protected void TestWithError(Action<IMachineRuntime> test, Configuration configuration = null,
             string expectedError = null, bool replay = false)
         {
-            configuration = configuration ?? GetConfiguration();
-            this.TestWithError(test, configuration, new string[] { expectedError }, replay);
+            this.TestWithError(test as Delegate, configuration, new string[] { expectedError }, replay);
         }
 
-        protected void TestWithError(Func<IMachineRuntime, Task> test, Configuration configuration = null,
+        protected void TestWithError(Func<MachineTask> test, Configuration configuration = null, string expectedError = null,
+            bool replay = false)
+        {
+            this.TestWithError(test as Delegate, configuration, new string[] { expectedError }, replay);
+        }
+
+        protected void TestWithError(Func<IMachineRuntime, MachineTask> test, Configuration configuration = null,
             string expectedError = null, bool replay = false)
         {
-            configuration = configuration ?? GetConfiguration();
-            this.TestWithError(test, configuration, new string[] { expectedError }, replay);
+            this.TestWithError(test as Delegate, configuration, new string[] { expectedError }, replay);
+        }
+
+        protected void TestWithError(Action test, Configuration configuration = null, string[] expectedErrors = null,
+            bool replay = false)
+        {
+            this.TestWithError(test as Delegate, configuration, expectedErrors, replay);
         }
 
         protected void TestWithError(Action<IMachineRuntime> test, Configuration configuration = null,
             string[] expectedErrors = null, bool replay = false)
         {
+            this.TestWithError(test as Delegate, configuration, expectedErrors, replay);
+        }
+
+        protected void TestWithError(Func<MachineTask> test, Configuration configuration = null, string[] expectedErrors = null,
+            bool replay = false)
+        {
+            this.TestWithError(test as Delegate, configuration, expectedErrors, replay);
+        }
+
+        protected void TestWithError(Func<IMachineRuntime, MachineTask> test, Configuration configuration = null,
+            string[] expectedErrors = null, bool replay = false)
+        {
+            this.TestWithError(test as Delegate, configuration, expectedErrors, replay);
+        }
+
+        private void TestWithError(Delegate test, Configuration configuration, string[] expectedErrors, bool replay)
+        {
             configuration = configuration ?? GetConfiguration();
 
-            var logger = new Common.TestOutputLogger(this.TestOutput);
+            ILogger logger;
+            if (configuration.IsVerbose)
+            {
+                logger = new Common.TestOutputLogger(this.TestOutput, true);
+            }
+            else
+            {
+                logger = new DisposingLogger();
+            }
 
             try
             {
@@ -109,83 +162,33 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        protected void TestWithError(Func<IMachineRuntime, Task> test, Configuration configuration = null,
-            IEnumerable<string> expectedErrors = null, bool replay = false)
+        protected void TestWithException<TException>(Action test, Configuration configuration = null, bool replay = false)
+            where TException : Exception
         {
-            configuration = configuration ?? GetConfiguration();
-
-            var logger = new Common.TestOutputLogger(this.TestOutput);
-
-            try
-            {
-                var bfEngine = BugFindingEngine.Create(configuration, test);
-                bfEngine.SetLogger(logger);
-                bfEngine.Run();
-
-                CheckErrors(bfEngine, expectedErrors);
-
-                if (replay && !configuration.EnableCycleDetection)
-                {
-                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
-                    rEngine.SetLogger(logger);
-                    rEngine.Run();
-
-                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, expectedErrors);
-                }
-            }
-            catch (Exception ex)
-            {
-                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
-            }
-            finally
-            {
-                logger.Dispose();
-            }
+            this.TestWithException<TException>(test as Delegate, configuration, replay);
         }
 
         protected void TestWithException<TException>(Action<IMachineRuntime> test, Configuration configuration = null,
             bool replay = false)
             where TException : Exception
         {
-            configuration = configuration ?? GetConfiguration();
-
-            Type exceptionType = typeof(TException);
-            Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
-                $"Type '{exceptionType}' is not an exception type.");
-
-            var logger = new Common.TestOutputLogger(this.TestOutput);
-
-            try
-            {
-                var bfEngine = BugFindingEngine.Create(configuration, test);
-                bfEngine.SetLogger(logger);
-                bfEngine.Run();
-
-                CheckErrors(bfEngine, exceptionType);
-
-                if (replay && !configuration.EnableCycleDetection)
-                {
-                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
-                    rEngine.SetLogger(logger);
-                    rEngine.Run();
-
-                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, exceptionType);
-                }
-            }
-            catch (Exception ex)
-            {
-                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
-            }
-            finally
-            {
-                logger.Dispose();
-            }
+            this.TestWithException<TException>(test as Delegate, configuration, replay);
         }
 
-        protected void TestWithException<TException>(Func<IMachineRuntime, Task> test, Configuration configuration = null,
+        protected void TestWithException<TException>(Func<MachineTask> test, Configuration configuration = null, bool replay = false)
+            where TException : Exception
+        {
+            this.TestWithException<TException>(test as Delegate, configuration, replay);
+        }
+
+        protected void TestWithException<TException>(Func<IMachineRuntime, MachineTask> test, Configuration configuration = null,
             bool replay = false)
+            where TException : Exception
+        {
+            this.TestWithException<TException>(test as Delegate, configuration, replay);
+        }
+
+        private void TestWithException<TException>(Delegate test, Configuration configuration, bool replay)
             where TException : Exception
         {
             configuration = configuration ?? GetConfiguration();
@@ -194,7 +197,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");
 
-            var logger = new Common.TestOutputLogger(this.TestOutput);
+            ILogger logger;
+            if (configuration.IsVerbose)
+            {
+                logger = new Common.TestOutputLogger(this.TestOutput, true);
+            }
+            else
+            {
+                logger = new DisposingLogger();
+            }
 
             try
             {

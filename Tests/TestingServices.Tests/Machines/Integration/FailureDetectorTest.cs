@@ -518,7 +518,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(100813)]
         public void TestFailureDetectorSafetyBug(int seed)
@@ -541,7 +541,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             replay: true);
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(4986)]
         public void TestFailureDetectorLivenessBug(int seed)
@@ -564,7 +564,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             replay: true);
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout= 10000)]
         public void TestFailureDetectorLivenessBugWithCycleReplay()
         {
             var configuration = GetConfiguration();

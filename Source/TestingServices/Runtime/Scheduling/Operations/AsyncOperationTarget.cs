@@ -6,7 +6,7 @@
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// The target of an operation performed by an asynchronous task.
+    /// The target of an asynchronous operation.
     /// </summary>
     public enum AsyncOperationTarget
     {

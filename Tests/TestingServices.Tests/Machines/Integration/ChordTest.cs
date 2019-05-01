@@ -869,7 +869,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(0)]
         public void TestLivenessBugInChordProtocol(int seed)
@@ -891,7 +891,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             replay: true);
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(2)]
         public void TestLivenessBugInChordProtocolWithCycleReplay(int seed)

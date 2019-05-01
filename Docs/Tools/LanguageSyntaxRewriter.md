@@ -1,6 +1,6 @@
-P# Compiler
-===========
-The P# compiler can be used to parse a P# program, rewrite it to C# and finally compile it to an executable. To invoke the compiler use the following command:
+P# state-machine language syntax rewriter
+=========================================
+The P# state-machine language syntax rewriter can be used to parse a P# program, rewrite it to C# and finally compile it to an executable. To invoke the compiler use the following command:
 
 ```
 .\PSharpCompiler.exe /s:${SOLUTION_PATH}\${SOLUTION_NAME}.sln

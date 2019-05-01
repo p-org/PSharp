@@ -619,7 +619,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(3163)]
         public void TestProcessSchedulerLivenessBugWithCycleReplay(int seed)

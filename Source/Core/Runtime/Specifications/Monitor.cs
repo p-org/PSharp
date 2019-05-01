@@ -393,22 +393,32 @@ namespace Microsoft.PSharp
             {
                 action.Invoke(this, null);
             }
-            catch (ExecutionCanceledException ex)
-            {
-#pragma warning disable CA2200 // Rethrow to preserve stack details.
-                throw ex;
-#pragma warning restore CA2200 // Rethrow to preserve stack details.
-            }
-            catch (TaskSchedulerException ex)
-            {
-#pragma warning disable CA2200 // Rethrow to preserve stack details.
-                throw ex;
-#pragma warning restore CA2200 // Rethrow to preserve stack details.
-            }
             catch (Exception ex)
             {
-                // Reports the unhandled exception.
-                this.ReportUnhandledException(ex, action.Name);
+                Exception innerException = ex;
+                while (innerException is TargetInvocationException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is ExecutionCanceledException)
+                {
+                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from Monitor '{this.GetType().Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from Monitor '{this.GetType().Name}'.");
+                }
+                else
+                {
+                    // Reports the unhandled exception.
+                    this.ReportUnhandledException(innerException, action.Name);
+                }
             }
         }
 

@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(m1, typeof(M2));
                 r.CreateMachine(m1, typeof(M2));
             },
-            expectedError: "Machine with id '' is already bound to an existing machine.",
+            expectedError: "Machine id '' is used by an existing machine.",
             replay: true);
         }
 
@@ -247,7 +247,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(typeof(M6));
                 r.CreateMachine(typeof(M6));
             },
-            expectedError: "Machine with id '' is already bound to an existing machine.",
+            expectedError: "Machine id '' is used by an existing machine.",
             replay: true);
         }
 

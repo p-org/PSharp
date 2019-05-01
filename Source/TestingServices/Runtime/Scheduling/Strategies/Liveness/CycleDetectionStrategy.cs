@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             if (this.IsReplayingCycle)
             {
-                var enabledOperations = ops.Where(op => op.IsEnabled).ToList();
+                var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
                 if (enabledOperations.Count == 0)
                 {
                     next = null;

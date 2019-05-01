@@ -9,9 +9,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.Runtime
@@ -21,6 +23,11 @@ namespace Microsoft.PSharp.Runtime
     /// </summary>
     internal abstract class MachineRuntime : IMachineRuntime
     {
+        /// <summary>
+        /// The currently installed <see cref="MachineTask"/> scheduler.
+        /// </summary>
+        internal static MachineTaskScheduler CurrentScheduler { get; set; } = MachineTaskScheduler.Default;
+
         /// <summary>
         /// The configuration used by the runtime.
         /// </summary>
@@ -281,6 +288,63 @@ namespace Microsoft.PSharp.Runtime
             Guid opGroupId, SendOptions options);
 
         /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal abstract MachineTask CreateMachineTask(Action action, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal abstract MachineTask CreateMachineTask(Func<Task> function, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal abstract MachineTask<TResult> CreateMachineTask<TResult>(Func<TResult> function,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal abstract MachineTask<TResult> CreateMachineTask<TResult>(Func<Task<TResult>> function,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
+        /// </summary>
+        internal abstract MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal abstract MachineTask CreateCompletionMachineTask(Task task);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal abstract MachineTask<TResult> CreateCompletionMachineTask<TResult>(Task<TResult> task);
+
+        /// <summary>
+        /// Asynchronously waits for the specified tasks to complete.
+        /// </summary>
+        internal abstract MachineTask WaitAllTasksAsync(IEnumerable<Task> tasks);
+
+        /// <summary>
+        /// Asynchronously waits for all specified tasks to complete.
+        /// </summary>
+        internal abstract MachineTask<TResult[]> WaitAllTasksAsync<TResult>(IEnumerable<Task<TResult>> tasks);
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal abstract MachineTask<Task> WaitAnyTaskAsync(IEnumerable<Task> tasks);
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal abstract MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks);
+
+        /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
         /// </summary>
         internal abstract IMachineTimer CreateMachineTimer(TimerInfo info, Machine owner);
@@ -373,11 +437,9 @@ namespace Microsoft.PSharp.Runtime
         /// or null if no such machine exists.
         /// </summary>
         internal TMachine GetMachineFromId<TMachine>(MachineId id)
-            where TMachine : AsyncMachine
-        {
-            return id != null && this.MachineMap.TryGetValue(id, out AsyncMachine value) &&
-                value is TMachine machine ? machine : null;
-        }
+            where TMachine : AsyncMachine =>
+            id != null && this.MachineMap.TryGetValue(id, out AsyncMachine value) &&
+            value is TMachine machine ? machine : null;
 
         /// <summary>
         /// Notifies that a machine entered a state.
@@ -385,7 +447,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyEnteredState(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -394,7 +455,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyEnteredState(Monitor monitor)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -403,7 +463,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyExitedState(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -412,7 +471,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyExitedState(Monitor monitor)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -421,7 +479,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -430,7 +487,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -439,7 +495,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -448,7 +503,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyCompletedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -457,7 +511,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyInvokedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -466,7 +519,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyCompletedOnExitAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -475,7 +527,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyInvokedAction(Monitor monitor, MethodInfo action, Event receivedEvent)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -484,7 +535,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyRaisedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -493,7 +543,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyRaisedEvent(Monitor monitor, Event e, EventInfo eventInfo)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -502,7 +551,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -511,7 +559,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyPop(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -520,7 +567,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceiveCalled(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -529,7 +575,14 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyHandleRaisedEvent(Machine machine, Event e)
         {
-            // Override to implement the notification.
+        }
+
+        /// <summary>
+        /// Notifies that a machine is waiting for the specified task to complete.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyWaitTask(AsyncMachine machine, Task task)
+        {
         }
 
         /// <summary>
@@ -538,7 +591,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -547,7 +599,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -557,7 +608,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -566,7 +616,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyHalted(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -576,7 +625,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDefaultEventHandlerCheck(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>
@@ -585,7 +633,6 @@ namespace Microsoft.PSharp.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void NotifyDefaultHandlerFired(Machine machine)
         {
-            // Override to implement the notification.
         }
 
         /// <summary>

@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public void TestBubbleSortAlgorithm()
         {
             this.Test(r =>

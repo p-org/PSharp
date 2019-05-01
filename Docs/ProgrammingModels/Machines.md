@@ -1,7 +1,19 @@
-Writing your first P# program
-=============================
-A P# program consists of one or more state-machines (which we simply refer to as machines). Each P# machine has an input queue, states, state transitions, event handlers, fields and methods. Machines run concurrently with each other, each executing an event handling loop that dequeues an event from the input queue and handles it by executing a sequence of operations. Each operation might update a field, create a new machine, or send an event to another machine. In P#, create machine operations and send operations are non-blocking. In the case of a send operation the message is simply enqueued into the input queue of the target machine.
+Programming model: asynchronous communicating state-machines
+============================================================
+The _asynchronous communicating state-machines_ programming model of P# is an actor-based programming model that exposes the `Machine` type. Using this programming model allows you to create new asynchronous state-machines and send events from one machine to another.
 
+A program written using this programming model consists of one or more state-machines (which we simply refer to as machines). Each P# machine has an input queue, states, state transitions, event handlers, fields and methods. Machines run concurrently with each other, each executing a sequential event handling loop that dequeues an event from the input queue and handles it by executing a sequence of operations. Each operation might update a field, create a new machine, or send an event to another machine. In P#, create machine operations and send operations are non-blocking. In the case of a send operation the message is simply enqueued into the input queue of the target machine.
+
+Different ways to write your code
+=================================
+This programming model is provided as a _.NET library_ which you can install via nuget and directly use from inside a C# program. Alternatively, we expose this programming model as a _language extension_ of C# that provides syntactic sugar for writing machines. You can pick and choose whichever approach you prefer. In more details:
+- The P# library  can be used to build an entire system from scratch (see an example [here](https://github.com/p-org/PSharp/blob/master/Samples/PingPong/PingPong.PSharpLibrary/Server.cs)). This approach is slightly more verbose than the above, but allows full integration with Visual Studio.
+- The P# _language extension_ of C# can be used to build an entire system from scratch (see an example [here](https://github.com/p-org/PSharp/blob/master/Samples/PingPong/PingPong.PSharpLanguage/Server.psharp)). The surface P# syntax directly extends C# with new language constructs, which allows for rapid prototyping. However, to use the surface syntax, a developer has to use the P# state-machine language syntax rewriter, which is built on top of [Roslyn](https://github.com/dotnet/roslyn). The main disadvantage of this approach is that P# does not yet fully integrate with the Visual Studio integrated development environment (IDE), although we are actively working on this (see [here](https://github.com/p-org/PSharp/issues/128)), and thus does not support high-productivity features such as IntelliSense (e.g. for auto-completition and automated refactoring).
+
+Note that many examples in our documentation will use the P# surface syntax, since it is less verbose.
+
+Writing your first program using machines
+=========================================
 We will now show how to write a program using the surface syntax of P#, but the same principles apply when using P# as a C# library (we show the example program using the P# library below).
 
 The source code of a P# program is a collection of `event` and `machine` declarations and, optionally, other top-level C# declarations, such as `class` and `struct`. All top-level declarations must be declared inside a `namespace`, as in C#. If someone uses the surface syntax of P#, then events and machines must be declared inside a `.psharp` file, while C# top-level declarations must be declared in a `.cs` file. On the other hand, if someone uses P# as a C# library, all the code must be written inside a `.cs` file.

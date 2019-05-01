@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.Runtime
@@ -372,6 +374,73 @@ namespace Microsoft.PSharp.Runtime
                 return;
             }
         }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Action action, CancellationToken cancellationToken) =>
+            new MachineTask(Task.Run(action, cancellationToken));
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Func<Task> function, CancellationToken cancellationToken) =>
+            new MachineTask(Task.Run(function, cancellationToken));
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<TResult> function,
+            CancellationToken cancellationToken) =>
+            new MachineTask<TResult>(Task.Run(function, cancellationToken));
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<Task<TResult>> function,
+            CancellationToken cancellationToken) =>
+            new MachineTask<TResult>(Task.Run(function, cancellationToken));
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken) =>
+            new MachineTask(Task.Delay(millisecondsDelay, cancellationToken));
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask CreateCompletionMachineTask(Task task) => new MachineTask(task);
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask<TResult> CreateCompletionMachineTask<TResult>(Task<TResult> task) =>
+            new MachineTask<TResult>(task);
+
+        /// <summary>
+        /// Asynchronously waits for the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask WaitAllTasksAsync(IEnumerable<Task> tasks) =>
+            new MachineTask(Task.WhenAll(tasks));
+
+        /// <summary>
+        /// Asynchronously waits for all specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
+            new MachineTask<TResult[]>(Task.WhenAll(tasks));
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task> WaitAnyTaskAsync(IEnumerable<Task> tasks) =>
+            new MachineTask<Task>(Task.WhenAny(tasks));
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
+            new MachineTask<Task<TResult>>(Task.WhenAny(tasks));
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.

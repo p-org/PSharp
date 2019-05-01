@@ -20,6 +20,7 @@ using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -67,14 +68,9 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestIterationDisposeMethod;
 
         /// <summary>
-        /// The action to test.
+        /// The method to test.
         /// </summary>
-        internal Action<IMachineRuntime> TestAction;
-
-        /// <summary>
-        /// The function to test.
-        /// </summary>
-        internal Func<IMachineRuntime, Task> TestFunction;
+        internal Delegate TestMethod;
 
         /// <summary>
         /// The name of the test.
@@ -319,16 +315,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
         /// </summary>
-        protected AbstractTestingEngine(Configuration configuration, Action<IMachineRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration, Delegate testMethod)
         {
             this.Initialize(configuration);
-            this.TestAction = action;
-        }
-
-        protected AbstractTestingEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
-        {
-            this.Initialize(configuration);
-            this.TestFunction = function;
+            this.TestMethod = testMethod;
         }
 
         /// <summary>
@@ -390,12 +380,10 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
                 this.Strategy = new DFSStrategy(this.Configuration.MaxUnfairSchedulingSteps);
-                this.Configuration.PerformFullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
             {
                 this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration.MaxUnfairSchedulingSteps);
-                this.Configuration.PerformFullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DPOR)
             {
@@ -521,36 +509,48 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit(msg);
             }
 
-            var testMethod = filteredTestMethods[0];
+            MethodInfo testMethod = filteredTestMethods[0];
+            ParameterInfo[] testParams = testMethod.GetParameters();
 
             bool hasExpectedReturnType = (testMethod.ReturnType == typeof(void) &&
                 testMethod.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) == null) ||
-                (testMethod.ReturnType == typeof(Task) &&
+                (testMethod.ReturnType == typeof(MachineTask) &&
                 testMethod.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null);
             bool hasExpectedParameters = !testMethod.ContainsGenericParameters &&
-                testMethod.GetParameters().Length is 1 &&
-                testMethod.GetParameters()[0].ParameterType == typeof(IMachineRuntime);
+                (testParams.Length is 0 ||
+                (testParams.Length is 1 && testParams[0].ParameterType == typeof(IMachineRuntime)));
 
             if (testMethod.IsAbstract || testMethod.IsVirtual || testMethod.IsConstructor ||
                 !testMethod.IsPublic || !testMethod.IsStatic ||
                 !hasExpectedReturnType || !hasExpectedParameters)
             {
                 Error.ReportAndExit("Incorrect test method declaration. Please " +
-                    "declare the test method as follows:\n" +
-                    $"  [{typeof(TestAttribute).FullName}] public static void " +
-                    $"{testMethod.Name}(IMachineRuntime runtime) {{ ... }}\n" +
-                    "or:\n" +
-                    $"  [{typeof(TestAttribute).FullName}] public static async Task " +
-                    $"{testMethod.Name}(IMachineRuntime runtime) {{ ... }}");
+                    "use one of the following supported declarations:\n\n" +
+                    $"  [{typeof(TestAttribute).FullName}]\n" +
+                    $"  public static void {testMethod.Name}() {{ ... }}\n\n" +
+                    $"  [{typeof(TestAttribute).FullName}]\n" +
+                    $"  public static void {testMethod.Name}(IMachineRuntime runtime) {{ ... await ... }}\n\n" +
+                    $"  [{typeof(TestAttribute).FullName}]\n" +
+                    $"  public static async MachineTask {testMethod.Name}() {{ ... }}\n\n" +
+                    $"  [{typeof(TestAttribute).FullName}]\n" +
+                    $"  public static async MachineTask {testMethod.Name}(IMachineRuntime runtime) {{ ... await ... }}");
             }
 
-            if (testMethod.ReturnType == typeof(void))
+            if (testMethod.ReturnType == typeof(void) && testParams.Length == 1)
             {
-                this.TestAction = (Action<IMachineRuntime>)Delegate.CreateDelegate(typeof(Action<IMachineRuntime>), testMethod);
+                this.TestMethod = Delegate.CreateDelegate(typeof(Action<IMachineRuntime>), testMethod);
+            }
+            else if (testMethod.ReturnType == typeof(void))
+            {
+                this.TestMethod = Delegate.CreateDelegate(typeof(Action), testMethod);
+            }
+            else if (testParams.Length == 1)
+            {
+                this.TestMethod = Delegate.CreateDelegate(typeof(Func<IMachineRuntime, MachineTask>), testMethod);
             }
             else
             {
-                this.TestFunction = (Func<IMachineRuntime, Task>)Delegate.CreateDelegate(typeof(Func<IMachineRuntime, Task>), testMethod);
+                this.TestMethod = Delegate.CreateDelegate(typeof(Func<MachineTask>), testMethod);
             }
 
             this.TestName = $"{testMethod.DeclaringType}.{testMethod.Name}";

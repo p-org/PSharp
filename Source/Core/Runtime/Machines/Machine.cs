@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;
 
@@ -82,7 +83,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private readonly Dictionary<string, CachedAction> ActionMap;
+        private readonly Dictionary<string, CachedHandler> ActionMap;
 
         /// <summary>
         /// The inbox of the machine. Incoming events are enqueued here.
@@ -184,7 +185,7 @@ namespace Microsoft.PSharp
         {
             this.StateStack = new Stack<MachineState>();
             this.ActionHandlerStack = new Stack<Dictionary<Type, EventActionHandler>>();
-            this.ActionMap = new Dictionary<string, CachedAction>();
+            this.ActionMap = new Dictionary<string, CachedHandler>();
             this.Timers = new Dictionary<TimerInfo, IMachineTimer>();
             this.IsHalted = false;
             this.IsPopInvoked = false;
@@ -738,7 +739,7 @@ namespace Microsoft.PSharp
         {
             this.Runtime.NotifyEnteredState(this);
 
-            CachedAction entryAction = null;
+            CachedHandler entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
             {
                 entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
@@ -768,7 +769,7 @@ namespace Microsoft.PSharp
         {
             this.Runtime.NotifyExitedState(this);
 
-            CachedAction exitAction = null;
+            CachedHandler exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)
             {
                 exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
@@ -787,7 +788,7 @@ namespace Microsoft.PSharp
             // if there is one available.
             if (eventHandlerExitActionName != null)
             {
-                CachedAction eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                CachedHandler eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                 this.Runtime.NotifyInvokedOnExitAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
                 await this.ExecuteAction(eventHandlerExitAction);
                 this.Runtime.NotifyCompletedOnExitAction(this, eventHandlerExitAction.MethodInfo, this.ReceivedEvent);
@@ -800,7 +801,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="action">The machine action being executed when the failure occurred.</param>
         /// <param name="ex">The exception being tested.</param>
-        private bool InvokeOnFailureExceptionFilter(CachedAction action, Exception ex)
+        private bool InvokeOnFailureExceptionFilter(CachedHandler action, Exception ex)
         {
             // This is called within the exception filter so the stack has not yet been unwound.
             // If OnFailure does not fail-fast, return false to process the exception normally.
@@ -811,28 +812,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the specified action.
         /// </summary>
-        private async Task ExecuteAction(CachedAction cachedAction)
+        private async Task ExecuteAction(CachedHandler cachedAction)
         {
             try
             {
-                if (cachedAction.IsAsync)
-                {
-                    try
-                    {
-                        // We have no reliable stack for awaited operations.
-                        await cachedAction.ExecuteAsync();
-                    }
-                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
-                    {
-                        // User handled the exception, return normally.
-                    }
-                }
-                else
+                if (cachedAction.Handler is Action action)
                 {
                     // Use an exception filter to call OnFailure before the stack has been unwound.
                     try
                     {
-                        cachedAction.Execute();
+                        action();
                     }
                     catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
@@ -842,6 +831,30 @@ namespace Microsoft.PSharp
                     {
                         // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
                         // false to process the exception normally.
+                    }
+                }
+                else if (cachedAction.Handler is Func<Task> taskFunc)
+                {
+                    try
+                    {
+                        // We have no reliable stack for awaited operations.
+                        await taskFunc();
+                    }
+                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // User handled the exception, return normally.
+                    }
+                }
+                else if (cachedAction.Handler is Func<MachineTask> machineTaskFunc)
+                {
+                    try
+                    {
+                        // We have no reliable stack for awaited operations.
+                        await machineTaskFunc();
+                    }
+                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    {
+                        // user handled the exception, return normally
                     }
                 }
             }
@@ -1392,7 +1405,7 @@ namespace Microsoft.PSharp
             // Populates the map of actions for this machine instance.
             foreach (var kvp in MachineActionMap[machineType])
             {
-                this.ActionMap.Add(kvp.Key, new CachedAction(kvp.Value, this));
+                this.ActionMap.Add(kvp.Key, new CachedHandler(kvp.Value, this));
             }
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
@@ -1494,7 +1507,8 @@ namespace Microsoft.PSharp
 
             if (method.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)
             {
-                this.Assert(method.ReturnType == typeof(Task), "Async action '{0}' in machine '{1}' must have 'Task' return type.",
+                this.Assert(method.ReturnType == typeof(Task) || method.ReturnType == typeof(MachineTask),
+                    "Async action '{0}' in machine '{1}' must have 'Task' or 'MachineTask' return type.",
                     method.Name, this.GetType().Name);
             }
             else

@@ -8,8 +8,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tests;
+using Microsoft.PSharp.TestingServices.Threading;
 using Microsoft.PSharp.Tests.Common;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 using Xunit.Abstractions;
 
@@ -18,6 +21,10 @@ using BaseCoreTest = Microsoft.PSharp.Core.Tests.BaseTest;
 
 namespace Microsoft.PSharp.Tests.Launcher
 {
+#pragma warning disable SA1005 // Single line comments must begin with single space
+#pragma warning disable CA1801 // Parameter not used
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable CA2200 // Rethrow to preserve stack details.
     public sealed class CoreTest : BaseCoreTest
     {
         public CoreTest(ITestOutputHelper output)
@@ -25,12 +32,10 @@ namespace Microsoft.PSharp.Tests.Launcher
         {
         }
 
-#pragma warning disable CA1822 // Mark members as static
         public async Task Run()
         {
             await Task.CompletedTask;
         }
-#pragma warning restore CA1822 // Mark members as static
     }
 
     public class BugFindingTest : BaseBugFindingTest
@@ -40,22 +45,17 @@ namespace Microsoft.PSharp.Tests.Launcher
         {
         }
 
-#pragma warning disable CA1801 // Parameter not used
         [Test]
-        public static void Execute(IMachineRuntime r)
+        public static async Task Execute(IMachineRuntime r)
         {
         }
-#pragma warning restore CA1801 // Parameter not used
     }
 
     public static class Assert
     {
         public static void True(bool predicate, string message = null)
         {
-            if (!predicate)
-            {
-                throw new InvalidOperationException(message ?? string.Empty);
-            }
+            Specification.Assert(predicate, message ?? string.Empty);
         }
 
         public static void Equal<T>(T expected, T actual)
@@ -73,4 +73,8 @@ namespace Microsoft.PSharp.Tests.Launcher
             await test.Run();
         }
     }
+#pragma warning restore CA2200 // Rethrow to preserve stack details.
+#pragma warning restore CA1822 // Mark members as static
+#pragma warning restore CA1801 // Parameter not used
+#pragma warning restore SA1005 // Single line comments must begin with single space
 }

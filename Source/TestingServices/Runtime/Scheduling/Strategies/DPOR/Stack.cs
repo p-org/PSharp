@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
             {
                 list.Add(new TaskEntry(
                     (int)op.SourceId,
-                    op.IsEnabled,
+                    op.Status is AsyncOperationStatus.Enabled,
                     op.Type,
                     op.Target,
                     (int)op.TargetId,

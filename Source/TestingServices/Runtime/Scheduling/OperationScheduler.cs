@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,16 +13,22 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Provides methods for controlling the schedule of asynchronous operations.
     /// </summary>
-    internal sealed class BugFindingScheduler
+    internal sealed class OperationScheduler
     {
         /// <summary>
-        /// The P# testing runtime.
+        /// The configuration used by the scheduler.
+        /// </summary>
+        internal readonly Configuration Configuration;
+
+        /// <summary>
+        /// The testing runtime.
         /// </summary>
         private readonly SystematicTestingRuntime Runtime;
 
@@ -33,7 +40,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Map from unique ids to asynchronous operations.
         /// </summary>
-        private readonly Dictionary<ulong, AsyncOperation> OperationMap;
+        private readonly Dictionary<ulong, MachineOperation> OperationMap;
+
+        /// <summary>
+        /// Map from ids of tasks that are controlled by the runtime to operations.
+        /// </summary>
+        internal readonly ConcurrentDictionary<int, MachineOperation> ControlledTaskMap;
+
+        /// <summary>
+        /// The program schedule trace.
+        /// </summary>
+        internal ScheduleTrace ScheduleTrace;
 
         /// <summary>
         /// The scheduler completion source.
@@ -48,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// The currently scheduled asynchronous operation.
         /// </summary>
-        internal AsyncOperation ScheduledOperation { get; private set; }
+        internal MachineOperation ScheduledOperation { get; private set; }
 
         /// <summary>
         /// Number of scheduled steps.
@@ -71,13 +88,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal string BugReport { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BugFindingScheduler"/> class.
+        /// Initializes a new instance of the <see cref="OperationScheduler"/> class.
         /// </summary>
-        internal BugFindingScheduler(SystematicTestingRuntime runtime, ISchedulingStrategy strategy)
+        internal OperationScheduler(SystematicTestingRuntime runtime, ISchedulingStrategy strategy,
+            ScheduleTrace trace, Configuration configuration)
         {
+            this.Configuration = configuration;
             this.Runtime = runtime;
             this.Strategy = strategy;
-            this.OperationMap = new Dictionary<ulong, AsyncOperation>();
+            this.OperationMap = new Dictionary<ulong, MachineOperation>();
+            this.ControlledTaskMap = new ConcurrentDictionary<int, MachineOperation>();
+            this.ScheduleTrace = trace;
             this.CompletionSource = new TaskCompletionSource<bool>();
             this.IsSchedulerRunning = true;
             this.BugFound = false;
@@ -104,20 +125,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             // Checks if concurrency not controlled by the runtime was used.
-            this.Runtime.AssertNoExternalConcurrencyUsed();
+            this.CheckNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            AsyncOperation current = this.ScheduledOperation;
+            MachineOperation current = this.ScheduledOperation;
             current.SetNextOperation(type, target, targetId);
+
+            // Try enable any operation that is currently waiting, but has
+            // its dependencies already satisfied.
+            foreach (var op in this.OperationMap.Values)
+            {
+                op.TryEnable();
+                Debug.WriteLine("<ScheduleDebug> Operation '{0}' has status '{1}'.", op.SourceId, op.Status);
+            }
 
             // Get and order the operations by their id.
             var ops = this.OperationMap.Values.OrderBy(op => op.SourceId).Select(op => op as IAsyncOperation).ToList();
             if (!this.Strategy.GetNext(out IAsyncOperation next, ops, current))
             {
                 // Checks if the program has livelocked.
-                this.CheckIfProgramHasLivelocked(ops.Select(op => op as AsyncOperation));
+                this.CheckIfProgramHasLivelocked(ops.Select(op => op as MachineOperation));
 
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
@@ -125,10 +154,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new ExecutionCanceledException();
             }
 
-            this.ScheduledOperation = next as AsyncOperation;
-            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.SourceId);
+            this.ScheduledOperation = next as MachineOperation;
+            this.ScheduleTrace.AddSchedulingChoice(next.SourceId);
 
-            Debug.WriteLine($"<ScheduleDebug> Schedule '{next.SourceName}' with task id '{this.ScheduledOperation.Task.Id}'.");
+            Debug.WriteLine($"<ScheduleDebug> Scheduling the next operation of '{next.SourceName}'.");
 
             if (current != next)
             {
@@ -141,20 +170,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 lock (current)
                 {
-                    if (!current.IsInboxHandlerRunning)
+                    if (!current.IsHandlerRunning)
                     {
                         return;
                     }
 
-                    while (!current.IsActive)
+                    if (!this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
                     {
-                        Debug.WriteLine($"<ScheduleDebug> Sleep '{current.SourceName}' with task id '{current.Task.Id}'.");
-                        System.Threading.Monitor.Wait(current);
-                        Debug.WriteLine($"<ScheduleDebug> Wake up '{current.SourceName}' with task id '{current.Task.Id}'.");
+                        this.ControlledTaskMap.TryAdd(Task.CurrentId.Value, current);
+                        Debug.WriteLine($"<ScheduleDebug> Operation '{current.SourceId}' is associated with task '{Task.CurrentId}'.");
                     }
 
-                    if (!current.IsEnabled)
+                    while (!current.IsActive)
                     {
+                        Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                        System.Threading.Monitor.Wait(current);
+                        Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                    }
+
+                    Debug.WriteLine($"<ScheduleDebug> Woke up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                    if (current.Status != AsyncOperationStatus.Enabled)
+                    {
+                        Debug.WriteLine($"<ScheduleDebug> Woke[2] up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
                         throw new ExecutionCanceledException();
                     }
                 }
@@ -167,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
         {
             // Checks if concurrency not controlled by the runtime was used.
-            this.Runtime.AssertNoExternalConcurrencyUsed();
+            this.CheckNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
@@ -181,11 +218,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (uniqueId is null)
             {
-                this.Runtime.ScheduleTrace.AddNondeterministicBooleanChoice(choice);
+                this.ScheduleTrace.AddNondeterministicBooleanChoice(choice);
             }
             else
             {
-                this.Runtime.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
+                this.ScheduleTrace.AddFairNondeterministicBooleanChoice(uniqueId, choice);
             }
 
             return choice;
@@ -197,7 +234,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {
             // Checks if concurrency not controlled by the runtime was used.
-            this.Runtime.AssertNoExternalConcurrencyUsed();
+            this.CheckNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
@@ -209,7 +246,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new ExecutionCanceledException();
             }
 
-            this.Runtime.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
+            this.ScheduleTrace.AddNondeterministicIntegerChoice(choice);
 
             return choice;
         }
@@ -217,7 +254,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Waits for the specified asynchronous operation to start.
         /// </summary>
-        internal void WaitForOperationToStart(AsyncOperation op)
+        internal void WaitForOperationToStart(MachineOperation op)
         {
             lock (op)
             {
@@ -228,7 +265,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    while (!op.IsInboxHandlerRunning)
+                    while (!op.IsHandlerRunning)
                     {
                         System.Threading.Monitor.Wait(op);
                     }
@@ -237,10 +274,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Notify that the specified asynchronous operation has been created.
+        /// Notify that the specified asynchronous operation has been created
+        /// and will start executing on the specified task.
         /// </summary>
-        internal void NotifyOperationCreated(AsyncOperation op)
+        internal void NotifyOperationCreated(MachineOperation op, Task task)
         {
+            this.ControlledTaskMap.TryAdd(task.Id, op);
             if (!this.OperationMap.ContainsKey(op.SourceId))
             {
                 if (this.OperationMap.Count == 0)
@@ -251,28 +290,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.OperationMap.Add(op.SourceId, op);
             }
 
-            Debug.WriteLine($"<ScheduleDebug> Created '{op.SourceName}' with task id '{op.Task.Id}'.");
+            Debug.WriteLine($"<ScheduleDebug> Registering the current operation of '{op.SourceName}'.");
         }
 
         /// <summary>
         /// Notify that the specified asynchronous operation has started.
         /// </summary>
-        internal static void NotifyOperationStarted(AsyncOperation op)
+        internal static void NotifyOperationStarted(MachineOperation op)
         {
-            Debug.WriteLine($"<ScheduleDebug> Started '{op.SourceName}' with task id '{op.Task.Id}'.");
+            Debug.WriteLine($"<ScheduleDebug> Starting the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
 
             lock (op)
             {
-                op.IsInboxHandlerRunning = true;
+                op.IsHandlerRunning = true;
                 System.Threading.Monitor.PulseAll(op);
                 while (!op.IsActive)
                 {
-                    Debug.WriteLine($"<ScheduleDebug> Sleep '{op.SourceName}' with task id '{op.Task.Id}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
                     System.Threading.Monitor.Wait(op);
-                    Debug.WriteLine($"<ScheduleDebug> Wake up '{op.SourceName}' with task id '{op.Task.Id}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
                 }
 
-                if (!op.IsEnabled)
+                if (op.Status != AsyncOperationStatus.Enabled)
                 {
                     throw new ExecutionCanceledException();
                 }
@@ -282,11 +321,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that a monitor was registered.
         /// </summary>
-        internal void NotifyMonitorRegistered(AsyncOperation op)
-        {
-            this.OperationMap.Add(op.SourceId, op);
-            Debug.WriteLine($"<ScheduleDebug> Created monitor of '{op.SourceName}'.");
-        }
+        // internal void NotifyMonitorRegistered(MachineOperation op)
+        // {
+        //    this.OperationMap.Add(op.SourceId, op);
+        //    Debug.WriteLine($"<ScheduleDebug> Created monitor of '{op.SourceName}'.");
+        // }
 
         /// <summary>
         /// Notify that an assertion has failed.
@@ -298,11 +337,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.BugReport = text;
 
                 this.Runtime.Logger.OnError($"<ErrorLog> {text}");
-                this.Runtime.Logger.OnStrategyError(this.Runtime.Configuration.SchedulingStrategy, this.Strategy.GetDescription());
+                this.Runtime.Logger.OnStrategyError(this.Configuration.SchedulingStrategy, this.Strategy.GetDescription());
 
                 this.BugFound = true;
 
-                if (this.Runtime.Configuration.AttachDebugger)
+                if (this.Configuration.AttachDebugger)
                 {
                     System.Diagnostics.Debugger.Break();
                 }
@@ -327,7 +366,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var enabledSchedulableIds = new HashSet<ulong>();
             foreach (var machineInfo in this.OperationMap.Values)
             {
-                if (machineInfo.IsEnabled)
+                if (machineInfo.Status is AsyncOperationStatus.Enabled)
                 {
                     enabledSchedulableIds.Add(machineInfo.SourceId);
                 }
@@ -341,7 +380,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal TestReport GetReport()
         {
-            TestReport report = new TestReport(this.Runtime.Configuration);
+            TestReport report = new TestReport(this.Configuration);
 
             if (this.BugFound)
             {
@@ -389,14 +428,37 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Checks that no task that is not controlled by the runtime is currently executing.
+        /// </summary>
+        internal void CheckNoExternalConcurrencyUsed()
+        {
+            if (!this.IsSchedulerRunning)
+            {
+                throw new ExecutionCanceledException();
+            }
+
+            if (!Task.CurrentId.HasValue || !this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
+            {
+                this.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture,
+                    "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
+                    Task.CurrentId.HasValue ? Task.CurrentId.Value.ToString() : "<unknown>"));
+            }
+        }
+
+        /// <summary>
         /// Checks for a livelock. This happens when there are no more enabled operations,
         /// but there is one or more blocked operations that are waiting to receive an event
         /// or for a task to complete.
         /// </summary>
-        private void CheckIfProgramHasLivelocked(IEnumerable<AsyncOperation> ops)
+        private void CheckIfProgramHasLivelocked(IEnumerable<MachineOperation> ops)
         {
-            var blockedOnReceiveOperations = ops.Where(op => op.IsWaitingToReceive).ToList();
-            if (blockedOnReceiveOperations.Count == 0)
+            var blockedOnReceiveOperations = ops.Where(op => op.Status is AsyncOperationStatus.BlockedOnReceive).ToList();
+            var blockedOnWaitOperations = ops.Where(op => op.Status is AsyncOperationStatus.BlockedOnWaitAll ||
+                op.Status is AsyncOperationStatus.BlockedOnWaitAny).ToList();
+            var blockedOnResourceSynchronization = ops.Where(op => op.Status is AsyncOperationStatus.BlockedOnResource).ToList();
+            if (blockedOnReceiveOperations.Count == 0 &&
+                blockedOnWaitOperations.Count == 0 &&
+                blockedOnResourceSynchronization.Count == 0)
             {
                 return;
             }
@@ -421,7 +483,46 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 message += "waiting to receive an event, but no other controlled tasks are enabled.";
             }
 
-            this.Runtime.Scheduler.NotifyAssertionFailure(message);
+            if (blockedOnWaitOperations.Count > 0)
+            {
+                for (int i = 0; i < blockedOnWaitOperations.Count; i++)
+                {
+                    message += string.Format(CultureInfo.InvariantCulture, " '{0}'", blockedOnWaitOperations[i].SourceName);
+                    if (i == blockedOnWaitOperations.Count - 2)
+                    {
+                        message += " and";
+                    }
+                    else if (i < blockedOnWaitOperations.Count - 1)
+                    {
+                        message += ",";
+                    }
+                }
+
+                message += blockedOnWaitOperations.Count == 1 ? " is " : " are ";
+                message += "waiting for a task to complete, but no other controlled tasks are enabled.";
+            }
+
+            if (blockedOnResourceSynchronization.Count > 0)
+            {
+                for (int i = 0; i < blockedOnResourceSynchronization.Count; i++)
+                {
+                    message += string.Format(CultureInfo.InvariantCulture, " '{0}'", blockedOnResourceSynchronization[i].SourceName);
+                    if (i == blockedOnResourceSynchronization.Count - 2)
+                    {
+                        message += " and";
+                    }
+                    else if (i < blockedOnResourceSynchronization.Count - 1)
+                    {
+                        message += ",";
+                    }
+                }
+
+                message += blockedOnResourceSynchronization.Count == 1 ? " is " : " are ";
+                message += "waiting to access a concurrent resource that is acquired by another task, ";
+                message += "but no other controlled tasks are enabled.";
+            }
+
+            this.NotifyAssertionFailure(message);
         }
 
         /// <summary>
@@ -432,12 +533,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
-                int bound = this.Strategy.IsFair() ? this.Runtime.Configuration.MaxFairSchedulingSteps : this.Runtime.Configuration.MaxUnfairSchedulingSteps;
+                int bound = this.Strategy.IsFair() ? this.Configuration.MaxFairSchedulingSteps :
+                    this.Configuration.MaxUnfairSchedulingSteps;
                 string message = $"Scheduling steps bound of {bound} reached.";
 
-                if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
+                if (this.Configuration.ConsiderDepthBoundHitAsBug)
                 {
-                    this.Runtime.Scheduler.NotifyAssertionFailure(message);
+                    this.NotifyAssertionFailure(message);
                 }
                 else
                 {
@@ -459,7 +561,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private void Stop()
         {
             this.IsSchedulerRunning = false;
-            this.KillRemainingMachines();
+            this.KillRemainingOperations();
 
             // Check if the completion source is completed. If not synchronize on
             // it (as it can only be set once) and set its result.
@@ -476,20 +578,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Kills any remaining machines at the end of the schedule.
+        /// Kills any remaining operations at the end of the schedule.
         /// </summary>
-        private void KillRemainingMachines()
+        private void KillRemainingOperations()
         {
-            foreach (var machine in this.OperationMap.Values)
+            foreach (var op in this.OperationMap.Values)
             {
-                machine.IsActive = true;
-                machine.IsEnabled = false;
+                op.IsActive = true;
+                op.Status = AsyncOperationStatus.Completed;
 
-                if (machine.IsInboxHandlerRunning)
+                if (op.IsHandlerRunning)
                 {
-                    lock (machine)
+                    lock (op)
                     {
-                        System.Threading.Monitor.PulseAll(machine);
+                        System.Threading.Monitor.PulseAll(op);
                     }
                 }
             }

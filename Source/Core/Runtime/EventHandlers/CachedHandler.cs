@@ -7,17 +7,19 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Threading;
+
 namespace Microsoft.PSharp.Runtime
 {
-    internal class CachedAction
+    /// <summary>
+    /// A machine handler that has been cached for performance optimization.
+    /// </summary>
+    internal class CachedHandler
     {
         internal readonly MethodInfo MethodInfo;
-        private readonly Action Action;
-        private readonly Func<Task> TaskFunc;
+        internal readonly Delegate Handler;
 
-        internal bool IsAsync => this.TaskFunc != null;
-
-        internal CachedAction(MethodInfo methodInfo, Machine machine)
+        internal CachedHandler(MethodInfo methodInfo, Machine machine)
         {
             this.MethodInfo = methodInfo;
 
@@ -26,22 +28,16 @@ namespace Microsoft.PSharp.Runtime
             // so call through the delegate instead (which is also much faster than Invoke).
             if (methodInfo.ReturnType == typeof(void))
             {
-                this.Action = (Action)Delegate.CreateDelegate(typeof(Action), machine, methodInfo);
+                this.Handler = Delegate.CreateDelegate(typeof(Action), machine, methodInfo);
+            }
+            else if (methodInfo.ReturnType == typeof(MachineTask))
+            {
+                this.Handler = Delegate.CreateDelegate(typeof(Func<MachineTask>), machine, methodInfo);
             }
             else
             {
-                this.TaskFunc = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), machine, methodInfo);
+                this.Handler = Delegate.CreateDelegate(typeof(Func<Task>), machine, methodInfo);
             }
-        }
-
-        internal void Execute()
-        {
-            this.Action();
-        }
-
-        internal async Task ExecuteAsync()
-        {
-            await this.TaskFunc();
         }
     }
 }

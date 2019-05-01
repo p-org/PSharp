@@ -10,8 +10,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
+using Microsoft.PSharp.TestingServices.Specifications;
+using Microsoft.PSharp.TestingServices.Threading;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -29,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration)
+        internal static ReplayEngine Create(Configuration configuration)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration);
@@ -38,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Assembly assembly)
+        internal static ReplayEngine Create(Configuration configuration, Assembly assembly)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             return new ReplayEngine(configuration, assembly);
@@ -47,39 +51,20 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Action<IMachineRuntime> action)
+        internal static ReplayEngine Create(Configuration configuration, Delegate testMethod)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
-            return new ReplayEngine(configuration, action);
+            return new ReplayEngine(configuration, testMethod);
         }
 
         /// <summary>
         /// Creates a new P# replaying engine.
         /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Action<IMachineRuntime> action, string trace)
+        internal static ReplayEngine Create(Configuration configuration, Delegate testMethod, string trace)
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             configuration.ScheduleTrace = trace;
-            return new ReplayEngine(configuration, action);
-        }
-
-        /// <summary>
-        /// Creates a new P# replaying engine.
-        /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function)
-        {
-            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
-            return new ReplayEngine(configuration, function);
-        }
-
-        /// <summary>
-        /// Creates a new P# replaying engine.
-        /// </summary>
-        public static ReplayEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function, string trace)
-        {
-            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
-            configuration.ScheduleTrace = trace;
-            return new ReplayEngine(configuration, function);
+            return new ReplayEngine(configuration, testMethod);
         }
 
         /// <summary>
@@ -117,16 +102,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
         /// </summary>
-        private ReplayEngine(Configuration configuration, Action<IMachineRuntime> action)
-            : base(configuration, action)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ReplayEngine"/> class.
-        /// </summary>
-        private ReplayEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
-            : base(configuration, function)
+        private ReplayEngine(Configuration configuration, Delegate testMethod)
+            : base(configuration, testMethod)
         {
         }
 
@@ -168,6 +145,10 @@ namespace Microsoft.PSharp.TestingServices
                         runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                     }
 
+                    // Set the current specification checker and threading scheduler.
+                    Specification.CurrentChecker = new SpecificationChecker(runtime);
+                    MachineRuntime.CurrentScheduler = new ControlledMachineTaskScheduler(runtime);
+
                     // If verbosity is turned off, then intercept the program log, and also redirect
                     // the standard output and error streams into the runtime logger.
                     if (!this.Configuration.IsVerbose)
@@ -181,14 +162,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
 
                     // Runs the test inside the test-harness machine.
-                    if (this.TestAction != null)
-                    {
-                        runtime.RunTestHarness(this.TestAction, this.TestName);
-                    }
-                    else
-                    {
-                        runtime.RunTestHarness(this.TestFunction, this.TestName);
-                    }
+                    runtime.RunTestHarness(this.TestMethod, this.TestName);
 
                     // Wait for the test to terminate.
                     runtime.WaitAsync().Wait();
@@ -225,11 +199,22 @@ namespace Microsoft.PSharp.TestingServices
                     report.CoverageInfo.Merge(runtime.CoverageInfo);
                     this.TestReport.Merge(report);
                 }
-                catch (TargetInvocationException ex)
+                catch (Exception ex)
                 {
-                    if (!(ex.InnerException is TaskCanceledException))
+                    Exception innerException = ex;
+                    while (innerException is TargetInvocationException)
                     {
-                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is AggregateException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (!(innerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(innerException).Throw();
                     }
                 }
                 finally

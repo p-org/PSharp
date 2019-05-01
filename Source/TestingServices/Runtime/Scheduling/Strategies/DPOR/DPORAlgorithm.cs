@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
                         break;
                     }
 
-                    case AsyncOperationType.WaitForQuiescence:
+                    case AsyncOperationType.Acquire:
                         for (int j = 0; j < this.TaskIdToLastOpIndex.Length; j++)
                         {
                             if (j == step.Id || this.TaskIdToLastOpIndex[j] == 0)

@@ -17,9 +17,11 @@ using Microsoft.PSharp.TestingServices.Coverage;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.StateCaching;
+using Microsoft.PSharp.TestingServices.Threading;
 using Microsoft.PSharp.TestingServices.Timers;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;
 
@@ -31,24 +33,25 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal sealed class SystematicTestingRuntime : MachineRuntime
     {
         /// <summary>
-        /// Stores the machine id of each machine executing in a given asynchronous context.
+        /// Stores the runtime that executes each operation in a given asynchronous context.
         /// </summary>
-        private static readonly AsyncLocal<MachineId> AsyncLocalMachineId = new AsyncLocal<MachineId>();
+        private static readonly AsyncLocal<SystematicTestingRuntime> AsyncLocalRuntime =
+            new AsyncLocal<SystematicTestingRuntime>();
 
         /// <summary>
-        /// The bug-finding scheduler.
+        /// The asynchronous operation scheduler.
         /// </summary>
-        internal BugFindingScheduler Scheduler;
+        internal OperationScheduler Scheduler;
 
         /// <summary>
         /// The controlled task scheduler.
         /// </summary>
-        internal ControlledTaskScheduler TaskScheduler;
+        private readonly ControlledTaskScheduler TaskScheduler;
 
         /// <summary>
-        /// The P# program schedule trace.
+        /// The controlled synchronization context.
         /// </summary>
-        internal ScheduleTrace ScheduleTrace;
+        // private readonly ControlledSynchronizationContext SyncContext;
 
         /// <summary>
         /// The bug trace.
@@ -77,14 +80,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly List<Monitor> Monitors;
 
         /// <summary>
-        /// Map from unique ids to asynchronous operations.
+        /// Map from unique ids to operations.
         /// </summary>
-        private readonly ConcurrentDictionary<ulong, AsyncOperation> MachineOperations;
-
-        /// <summary>
-        /// Map from task that are controlled by the runtime to machines.
-        /// </summary>
-        private readonly ConcurrentDictionary<int, AsyncMachine> ControlledTaskMap;
+        private readonly ConcurrentDictionary<ulong, MachineOperation> MachineOperations;
 
         /// <summary>
         /// Map that stores all unique names and their corresponding machine ids.
@@ -104,21 +102,18 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
-        internal SystematicTestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
+        internal SystematicTestingRuntime(Configuration configuration, ISchedulingStrategy strategy,
+            IRegisterRuntimeOperation reporter)
             : base(configuration)
         {
             this.Monitors = new List<Monitor>();
-            this.MachineOperations = new ConcurrentDictionary<ulong, AsyncOperation>();
-            this.ControlledTaskMap = new ConcurrentDictionary<int, AsyncMachine>();
+            this.MachineOperations = new ConcurrentDictionary<ulong, MachineOperation>();
             this.RootTaskId = Task.CurrentId;
             this.CreatedMachineIds = new HashSet<MachineId>();
             this.NameValueToMachineId = new ConcurrentDictionary<string, MachineId>();
 
-            this.ScheduleTrace = new ScheduleTrace();
             this.BugTrace = new BugTrace();
             this.StateCache = new StateCache(this);
-
-            this.TaskScheduler = new ControlledTaskScheduler(this, this.ControlledTaskMap);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
 
@@ -137,20 +132,20 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 strategy = new BasicReductionStrategy(strategy, reductionStrategy);
             }
 
+            var scheduleTrace = new ScheduleTrace();
             if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
             {
-                this.Scheduler = new BugFindingScheduler(this,
-                    new CycleDetectionStrategy(configuration, this.StateCache, this.ScheduleTrace, this.Monitors, strategy));
+                strategy = new CycleDetectionStrategy(configuration, this.StateCache,
+                    scheduleTrace, this.Monitors, strategy);
             }
             else if (configuration.EnableLivenessChecking)
             {
-                this.Scheduler = new BugFindingScheduler(this,
-                    new TemperatureCheckingStrategy(configuration, this.Monitors, strategy));
+                strategy = new TemperatureCheckingStrategy(configuration, this.Monitors, strategy);
             }
-            else
-            {
-                this.Scheduler = new BugFindingScheduler(this, strategy);
-            }
+
+            this.Scheduler = new OperationScheduler(this, strategy, scheduleTrace, this.Configuration);
+            this.TaskScheduler = new ControlledTaskScheduler(this, this.Scheduler.ControlledTaskMap);
+            // this.SyncContext = new ControlledSynchronizationContext(this);
         }
 
         /// <summary>
@@ -296,102 +291,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Runs the specified test inside a synchronous test harness machine.
         /// </summary>
-        internal void RunTestHarness(Action<IMachineRuntime> testAction, string testName)
+        internal void RunTestHarness(Delegate test, string testName)
         {
             this.Assert(Task.CurrentId != null, "The test harness machine must execute inside a task.");
-            this.Assert(testAction != null, "The test harness machine cannot execute a null test.");
+            this.Assert(test != null, "The test harness machine cannot execute a null test.");
 
-            TestHarnessMachine harness = new TestHarnessMachine(testAction, testName);
-            this.RunTestHarness(harness);
-        }
+            testName = string.IsNullOrEmpty(testName) ? "anonymous" : testName;
+            this.Logger.WriteLine($"<TestLog> Running test '{testName}'.");
 
-        /// <summary>
-        /// Runs the specified test inside an test harness machine.
-        /// </summary>
-        internal void RunTestHarness(Func<IMachineRuntime, Task> testFunction, string testName)
-        {
-            this.Assert(Task.CurrentId != null, "The test harness machine must execute inside a task.");
-            this.Assert(testFunction != null, "The test harness machine cannot execute a null test.");
-
-            TestHarnessMachine harness = new TestHarnessMachine(testFunction, testName);
-            this.RunTestHarness(harness);
-        }
-
-        /// <summary>
-        /// Runs the specified test harness machine.
-        /// </summary>
-        private void RunTestHarness(TestHarnessMachine harness)
-        {
-            MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
-            AsyncOperation op = this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
-            harness.Initialize(this, mid);
-
-            bool result = this.MachineMap.TryAdd(mid, harness);
-            this.Assert(result, "Machine id '{0}' is used by an existing machine.", mid.Value);
-
-            Task task = new Task(async () =>
-            {
-                // Set the id of the executing machine in the local asynchronous context,
-                // allowing future retrieval in the same asynchronous call stack.
-                AsyncLocalMachineId.Value = mid;
-
-                try
-                {
-                    BugFindingScheduler.NotifyOperationStarted(op);
-
-                    await harness.RunAsync();
-
-                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of the test harness machine.");
-                    op.NotifyCompleted();
-                    this.Scheduler.ScheduleNextOperation(AsyncOperationType.Stop, AsyncOperationTarget.Task, harness.Id.Value);
-                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of the test harness machine.");
-                }
-                catch (Exception ex)
-                {
-                    Exception innerException = ex;
-                    while (innerException is TargetInvocationException)
-                    {
-                        innerException = innerException.InnerException;
-                    }
-
-                    if (innerException is AggregateException)
-                    {
-                        innerException = innerException.InnerException;
-                    }
-
-                    if (innerException is ExecutionCanceledException)
-                    {
-                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown in the test harness.");
-                    }
-                    else if (innerException is TaskSchedulerException)
-                    {
-                        IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown in the test harness.");
-                    }
-                    else
-                    {
-                        // Reports the unhandled exception.
-                        string message = string.Format(CultureInfo.InvariantCulture,
-                            $"Exception '{ex.GetType()}' was thrown in {harness.TestName}, " +
-                            $"'{ex.Source}':\n" +
-                            $"   {ex.Message}\n" +
-                            $"The stack trace is:\n{ex.StackTrace}");
-                        this.Scheduler.NotifyAssertionFailure(message, killTasks: true, cancelExecution: false);
-                    }
-                }
-                finally
-                {
-                    this.MachineMap.TryRemove(mid, out AsyncMachine _);
-                }
-            });
-
-            this.ControlledTaskMap.TryAdd(task.Id, harness);
-
-            op.NotifyCreated(task, 0);
-            this.Scheduler.NotifyOperationCreated(op);
-
-            task.Start(this.TaskScheduler);
-
-            this.Scheduler.WaitForOperationToStart(op);
+            var machine = new TestEntryPointWorkMachine(this, test);
+            this.DispatchWork(machine, null);
         }
 
         /// <summary>
@@ -496,10 +405,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             Machine machine = MachineFactory.Create(type);
-            this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
             IMachineStateManager stateManager = new SerializedMachineStateManager(this, machine, opGroupId);
             IEventQueue eventQueue = new SerializedMachineEventQueue(stateManager, machine);
-
             machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
@@ -509,12 +416,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             bool result = this.MachineMap.TryAdd(mid, machine);
-            this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.", mid.Value);
+            this.Assert(result, "Machine id '{0}' is used by an existing machine.", mid.Value);
 
             this.Assert(!this.CreatedMachineIds.Contains(mid),
                 "MachineId '{0}' of a previously halted machine cannot be reused to create a new machine of type '{1}'",
                 mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
+            this.MachineOperations.GetOrAdd(mid.Value, new MachineOperation(machine));
 
             this.Logger.OnCreateMachine(mid, creator?.Id);
 
@@ -637,14 +545,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             SendOptions options, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo;
-            if (sender is Machine)
+            if (sender is Machine senderMachine)
             {
-                originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().FullName,
-                    NameResolver.GetStateNameForLogging((sender as Machine).CurrentState));
+                originInfo = new EventOriginInfo(sender.Id, senderMachine.GetType().FullName,
+                    NameResolver.GetStateNameForLogging(senderMachine.CurrentState));
             }
             else
             {
-                // Message comes from outside P#.
+                // Message comes from the environment.
                 originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
@@ -673,7 +581,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Runs a new asynchronous machine event handler.
+        /// Runs a new asynchronous event handler for the specified machine.
         /// This is a fire and forget invocation.
         /// </summary>
         /// <param name="machine">Machine that executes this event handler.</param>
@@ -683,17 +591,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
         private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
         {
-            AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
+            MachineOperation op = this.GetAsynchronousOperation(machine.Id.Value);
 
             Task task = new Task(async () =>
             {
-                // Set the id of the executing machine in the local asynchronous context,
+                // Set the executing runtime in the local asynchronous context,
                 // allowing future retrieval in the same asynchronous call stack.
-                AsyncLocalMachineId.Value = machine.Id;
+                AsyncLocalRuntime.Value = this;
 
                 try
                 {
-                    BugFindingScheduler.NotifyOperationStarted(op);
+                    OperationScheduler.NotifyOperationStarted(op);
 
                     if (isFresh)
                     {
@@ -707,8 +615,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                         this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, machine.OperationGroupId, null, out EventInfo _);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{op.Task.Id}'.");
-                    op.NotifyCompleted();
+                    IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' on task '{Task.CurrentId}'.");
+                    op.OnCompleted();
 
                     if (machine.IsHalted)
                     {
@@ -719,7 +627,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                         this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
                     }
 
-                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' with task id '{op.Task.Id}'.");
+                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' on task '{Task.CurrentId}'.");
                     ResetProgramCounter(machine);
                 }
                 catch (Exception ex)
@@ -767,14 +675,362 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             });
 
-            this.ControlledTaskMap.TryAdd(task.Id, machine);
-
-            op.NotifyCreated(task, enablingEvent?.SendStep ?? 0);
-            this.Scheduler.NotifyOperationCreated(op);
+            op.OnCreated(enablingEvent?.SendStep ?? 0);
+            this.Scheduler.NotifyOperationCreated(op, task);
 
             task.Start(this.TaskScheduler);
-
             this.Scheduler.WaitForOperationToStart(op);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Action action, CancellationToken cancellationToken)
+        {
+            this.Assert(action != null, "The task cannot execute a null action.");
+            var machine = new ActionWorkMachine(this, action);
+            this.DispatchWork(machine, null);
+            return new ControlledMachineTask(this, machine.AwaiterTask, MachineTaskType.ExplicitTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Func<Task> function, CancellationToken cancellationToken)
+        {
+            this.Assert(function != null, "The task cannot execute a null function.");
+            var machine = new FuncWorkMachine(this, function);
+            this.DispatchWork(machine, null);
+            return new ControlledMachineTask(this, machine.AwaiterTask, MachineTaskType.ExplicitTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<TResult> function,
+            CancellationToken cancellationToken)
+        {
+            this.Assert(function != null, "The task cannot execute a null function.");
+            var machine = new FuncWorkMachine<TResult>(this, function);
+            this.DispatchWork(machine, null);
+            return new ControlledMachineTask<TResult>(this, machine.AwaiterTask, MachineTaskType.ExplicitTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<Task<TResult>> function,
+            CancellationToken cancellationToken)
+        {
+            this.Assert(function != null, "The task cannot execute a null function.");
+            var machine = new FuncTaskWorkMachine<TResult>(this, function);
+            this.DispatchWork(machine, null);
+            return new ControlledMachineTask<TResult>(this, machine.AwaiterTask, MachineTaskType.ExplicitTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken)
+        {
+            if (millisecondsDelay == 0)
+            {
+                // If the delay is 0, then complete synchronously.
+                return MachineTask.CompletedTask;
+            }
+
+            var machine = new DelayWorkMachine(this);
+            this.DispatchWork(machine, null);
+            return new ControlledMachineTask(this, machine.AwaiterTask, MachineTaskType.ExplicitTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask CreateCompletionMachineTask(Task task)
+        {
+            if (AsyncLocalRuntime.Value != this)
+            {
+                throw new ExecutionCanceledException();
+            }
+
+            this.Scheduler.CheckNoExternalConcurrencyUsed();
+            // var machine = new TaskCompletionWorkMachine(this, task);
+            // this.DispatchWork(machine, task);
+            return new ControlledMachineTask(this, task, MachineTaskType.CompletionSourceTask);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask<TResult> CreateCompletionMachineTask<TResult>(Task<TResult> task)
+        {
+            if (AsyncLocalRuntime.Value != this)
+            {
+                throw new ExecutionCanceledException();
+            }
+
+            this.Scheduler.CheckNoExternalConcurrencyUsed();
+            // var machine = new TaskCompletionWorkMachine<TResult>(this, task);
+            // this.DispatchWork(machine, task);
+            return new ControlledMachineTask<TResult>(this, /*machine.AwaiterTask*/task,
+                MachineTaskType.CompletionSourceTask);
+        }
+
+        /// <summary>
+        /// Asynchronously waits for the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask WaitAllTasksAsync(IEnumerable<Task> tasks)
+        {
+            this.Assert(tasks != null, "Cannot wait for a null array of tasks to complete.");
+            this.Assert(tasks.Count() > 0, "Cannot wait for zero tasks to complete.");
+
+            AsyncMachine caller = this.GetExecutingMachine<AsyncMachine>();
+            if (caller is null)
+            {
+                // TODO: throw an error, as a non-controlled task is awaiting?
+                return new MachineTask(Task.WhenAll(tasks));
+            }
+
+            MachineOperation callerOp = this.GetAsynchronousOperation(caller.Id.Value);
+            foreach (var task in tasks)
+            {
+                if (!task.IsCompleted)
+                {
+                    callerOp.OnWaitTask(task, true);
+                }
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAll)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            }
+
+            return MachineTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// Asynchronously waits for all specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(IEnumerable<Task<TResult>> tasks)
+        {
+            this.Assert(tasks != null, "Cannot wait for a null array of tasks to complete.");
+            this.Assert(tasks.Count() > 0, "Cannot wait for zero tasks to complete.");
+
+            AsyncMachine caller = this.GetExecutingMachine<AsyncMachine>();
+            if (caller is null)
+            {
+                // TODO: throw an error, as a non-controlled task is awaiting?
+                return new MachineTask<TResult[]>(Task.WhenAll(tasks));
+            }
+
+            int size = 0;
+            MachineOperation callerOp = this.GetAsynchronousOperation(caller.Id.Value);
+            foreach (var task in tasks)
+            {
+                size++;
+                if (!task.IsCompleted)
+                {
+                    callerOp.OnWaitTask(task, true);
+                }
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAll)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            }
+
+            int idx = 0;
+            TResult[] result = new TResult[size];
+            foreach (var task in tasks)
+            {
+                result[idx] = task.Result;
+                idx++;
+            }
+
+            return MachineTask.FromResult(result);
+        }
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task> WaitAnyTaskAsync(IEnumerable<Task> tasks)
+        {
+            this.Assert(tasks != null, "Cannot wait for a null array of tasks to complete.");
+            this.Assert(tasks.Count() > 0, "Cannot wait for zero tasks to complete.");
+
+            AsyncMachine caller = this.GetExecutingMachine<AsyncMachine>();
+            if (caller is null)
+            {
+                // TODO: throw an error, as a non-controlled task is awaiting?
+                return new MachineTask<Task>(Task.WhenAny(tasks));
+            }
+
+            MachineOperation callerOp = this.GetAsynchronousOperation(caller.Id.Value);
+            foreach (var task in tasks)
+            {
+                if (!task.IsCompleted)
+                {
+                    callerOp.OnWaitTask(task, false);
+                }
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAny)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            }
+
+            Task result = null;
+            foreach (var task in tasks)
+            {
+                if (task.IsCompleted)
+                {
+                    result = task;
+                    break;
+                }
+            }
+
+            return MachineTask.FromResult(result);
+        }
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks)
+        {
+            this.Assert(tasks != null, "Cannot wait for a null array of tasks to complete.");
+            this.Assert(tasks.Count() > 0, "Cannot wait for zero tasks to complete.");
+
+            AsyncMachine caller = this.GetExecutingMachine<AsyncMachine>();
+            if (caller is null)
+            {
+                // TODO: throw an error, as a non-controlled task is awaiting?
+                return new MachineTask<Task<TResult>>(Task.WhenAny(tasks));
+            }
+
+            int size = 0;
+            MachineOperation callerOp = this.GetAsynchronousOperation(caller.Id.Value);
+            foreach (var task in tasks)
+            {
+                size++;
+                if (!task.IsCompleted)
+                {
+                    callerOp.OnWaitTask(task, false);
+                }
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAny)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            }
+
+            Task<TResult> result = null;
+            foreach (var task in tasks)
+            {
+                if (task.IsCompleted)
+                {
+                    result = task;
+                    break;
+                }
+            }
+
+            return MachineTask.FromResult(result);
+        }
+
+        /// <summary>
+        /// Schedules the specified work machine to be executed asynchronously.
+        /// This is a fire and forget invocation.
+        /// </summary>
+        internal void DispatchWork(WorkMachine machine, Task parentTask)
+        {
+            // this.Scheduler.ScheduleNextOperation(AsyncOperationType.Create, AsyncOperationTarget.Task, ulong.MaxValue);
+
+            MachineOperation op = new MachineOperation(machine);
+
+            this.MachineOperations.GetOrAdd(machine.Id.Value, op);
+            this.MachineMap.TryAdd(machine.Id, machine);
+            this.CreatedMachineIds.Add(machine.Id);
+
+            // TODO: change to custom log.
+            this.Logger.OnCreateMachine(machine.Id, null);
+
+            Task task = new Task(async () =>
+            {
+                // Set the executing runtime in the local asynchronous context,
+                // allowing future retrieval in the same asynchronous call stack.
+                AsyncLocalRuntime.Value = this;
+
+                // SynchronizationContext.SetSynchronizationContext(this.SyncContext);
+
+                try
+                {
+                    OperationScheduler.NotifyOperationStarted(op);
+
+                    await machine.ExecuteAsync();
+
+                    IO.Debug.WriteLine($"<ScheduleDebug> Completed '{machine.Id}' on task '{Task.CurrentId}'.");
+                    op.OnCompleted();
+
+                    this.Scheduler.ScheduleNextOperation(AsyncOperationType.Stop, AsyncOperationTarget.Task, machine.Id.Value);
+
+                    IO.Debug.WriteLine($"<ScheduleDebug> Terminated '{machine.Id}' on task '{Task.CurrentId}'.");
+                }
+                catch (Exception ex)
+                {
+                    Exception innerException = ex;
+                    while (innerException is TargetInvocationException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is AggregateException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is ExecutionCanceledException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                    }
+                    else if (innerException is TaskSchedulerException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from machine '{machine.Id}'.");
+                    }
+                    else
+                    {
+                        // Reports the unhandled exception.
+                        string message = string.Format(CultureInfo.InvariantCulture,
+                            $"Exception '{ex.GetType()}' was thrown in machine {machine.Id}, " +
+                            $"'{ex.Source}':\n" +
+                            $"   {ex.Message}\n" +
+                            $"The stack trace is:\n{ex.StackTrace}");
+                        this.Scheduler.NotifyAssertionFailure(message, killTasks: true, cancelExecution: false);
+                    }
+                }
+                finally
+                {
+                    // TODO: properly cleanup machine tasks.
+                    this.MachineMap.TryRemove(machine.Id, out AsyncMachine _);
+                }
+            });
+
+            op.OnCreated(0);
+            if (parentTask != null)
+            {
+                op.OnWaitTask(parentTask);
+            }
+
+            this.Scheduler.NotifyOperationCreated(op, task);
+
+            task.Start();
+            // task.Start(this.TaskScheduler);
+            this.Scheduler.WaitForOperationToStart(op);
+
+            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Yield, AsyncOperationTarget.Task, machine.Id.Value);
         }
 
         /// <summary>
@@ -811,8 +1067,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             MachineId mid = new MachineId(type, null, this);
 
-            AsyncOperation op = this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
-            this.Scheduler.NotifyMonitorRegistered(op);
+            // MachineOperation op = this.MachineOperations.GetOrAdd(mid.Value, new MachineOperation(mid));
+            // this.Scheduler.NotifyMonitorRegistered(op);
 
             Monitor monitor = Activator.CreateInstance(type) as Monitor;
             monitor.Initialize(this, mid);
@@ -970,17 +1226,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Asserts that no task that is not controlled by the runtime is currently executing.
-        /// </summary>
-        internal void AssertNoExternalConcurrencyUsed()
-        {
-            var machine = this.GetExecutingMachine<AsyncMachine>();
-            this.Assert(machine != null && Task.CurrentId.HasValue && this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value),
-                "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
-                Task.CurrentId.HasValue ? Task.CurrentId.Value.ToString() : "<unknown>");
-        }
-
-        /// <summary>
         /// Checks that no monitor is in a hot state upon program termination.
         /// If the program is still running, then this method returns without
         /// performing a check.
@@ -1010,11 +1255,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override bool GetNondeterministicBooleanChoice(AsyncMachine caller, int maxValue)
         {
-            if (caller is null)
-            {
-                caller = this.GetExecutingMachine<Machine>();
-            }
-
+            caller = caller ?? this.GetExecutingMachine<Machine>();
             this.AssertCorrectCallerMachine(caller as Machine, "Random");
             if (caller is Machine machine)
             {
@@ -1037,11 +1278,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override bool GetFairNondeterministicBooleanChoice(AsyncMachine caller, string uniqueId)
         {
-            if (caller is null)
-            {
-                caller = this.GetExecutingMachine<Machine>();
-            }
-
+            caller = caller ?? this.GetExecutingMachine<Machine>();
             this.AssertCorrectCallerMachine(caller as Machine, "FairRandom");
             if (caller is Machine machine)
             {
@@ -1064,11 +1301,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override int GetNondeterministicIntegerChoice(AsyncMachine caller, int maxValue)
         {
-            if (caller is null)
-            {
-                caller = this.GetExecutingMachine<Machine>();
-            }
-
+            caller = caller ?? this.GetExecutingMachine<Machine>();
             this.AssertCorrectCallerMachine(caller as Machine, "RandomInteger");
             if (caller is Machine)
             {
@@ -1129,6 +1362,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            if (action.ReturnType == typeof(MachineTask))
+            {
+                (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = true;
+            }
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1146,6 +1383,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyCompletedAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1158,6 +1396,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyInvokedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            if (action.ReturnType == typeof(MachineTask))
+            {
+                (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = true;
+            }
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1175,6 +1417,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyCompletedOnEntryAction(Machine machine, MethodInfo action, Event receivedEvent)
         {
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1188,6 +1431,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             (machine.StateManager as SerializedMachineStateManager).IsInsideOnExit = true;
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            if (action.ReturnType == typeof(MachineTask))
+            {
+                (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = true;
+            }
 
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
@@ -1206,6 +1453,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             (machine.StateManager as SerializedMachineStateManager).IsInsideOnExit = false;
             (machine.StateManager as SerializedMachineStateManager).IsTransitionStatementCalledInCurrentAction = false;
+            (machine.StateManager as SerializedMachineStateManager).IsInsideMachineTaskHandler = false;
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = false;
@@ -1253,7 +1501,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
+            MachineOperation op = this.GetAsynchronousOperation(machine.Id.Value);
 
             // Skip `Receive` if the last operation exited the previous event handler,
             // to avoid scheduling duplicate `Receive` operations.
@@ -1321,13 +1569,36 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
+        /// Notifies that a machine is waiting for the specified task to complete.
+        /// </summary>
+        internal override void NotifyWaitTask(AsyncMachine machine, Task task)
+        {
+            this.Assert(task != null, "Cannot wait for a null task to complete.");
+            MachineOperation callerOp = this.GetAsynchronousOperation(machine.Id.Value);
+            if (callerOp == null)
+            {
+                return;
+            }
+
+            if (!task.IsCompleted)
+            {
+                callerOp.OnWaitTask(task);
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAll)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, machine.Id.Value);
+            }
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive an event of one of the specified types.
         /// </summary>
         internal override void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
-            AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
-            op.IsEnabled = false;
-            op.IsWaitingToReceive = true;
+            MachineOperation op = this.GetAsynchronousOperation(machine.Id.Value);
+            op.OnWaitEvent(eventTypes);
 
             string eventNames;
             var eventWaitTypesArray = eventTypes.ToArray();
@@ -1374,10 +1645,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Reporter.RegisterDequeue(eventInfo.OriginInfo?.SenderMachineId, machine.Id, e, (ulong)eventInfo.SendStep);
             }
 
-            AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
-            op.IsWaitingToReceive = false;
-            op.IsEnabled = true;
-            op.MatchingSendIndex = (ulong)eventInfo.SendStep;
+            MachineOperation op = this.GetAsynchronousOperation(machine.Id.Value);
+            op.OnReceivedEvent((ulong)eventInfo.SendStep);
 
             if (this.Configuration.ReportActivityCoverage)
             {
@@ -1393,7 +1662,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
 
-            AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
+            MachineOperation op = this.GetAsynchronousOperation(machine.Id.Value);
             op.MatchingSendIndex = (ulong)eventInfo.SendStep;
 
             if (this.Configuration.EnableDataRaceDetection)
@@ -1620,27 +1889,32 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal TMachine GetExecutingMachine<TMachine>()
             where TMachine : AsyncMachine
         {
-            var machine = this.GetMachineFromId<TMachine>(AsyncLocalMachineId.Value);
-            if (machine == null && Task.CurrentId.HasValue &&
-                this.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out AsyncMachine value))
+            if (Task.CurrentId.HasValue &&
+                this.Scheduler.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out MachineOperation op) &&
+                op?.Machine is TMachine machine)
             {
-                machine = value as TMachine;
+                return machine;
             }
 
-            return machine;
+            return null;
         }
 
         /// <summary>
         /// Gets the id of the currently executing machine.
         /// </summary>
-        internal MachineId GetCurrentMachineId() => AsyncLocalMachineId.Value;
+        internal MachineId GetCurrentMachineId() => this.GetExecutingMachine<AsyncMachine>()?.Id;
 
         /// <summary>
         /// Gets the asynchronous operation associated with the specified id.
         /// </summary>
-        internal AsyncOperation GetAsynchronousOperation(ulong id)
+        internal MachineOperation GetAsynchronousOperation(ulong id)
         {
-            this.MachineOperations.TryGetValue(id, out AsyncOperation op);
+            if (!this.IsRunning)
+            {
+                throw new ExecutionCanceledException();
+            }
+
+            this.MachineOperations.TryGetValue(id, out MachineOperation op);
             return op;
         }
 
@@ -1657,7 +1931,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                 foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
                 {
-                    hash = (hash * 31) + machine.GetCachedState();
+                    if (machine is Machine m)
+                    {
+                        hash = (hash * 31) + m.GetCachedState();
+                    }
+
                     hash = (hash * 31) + (int)this.GetAsynchronousOperation(machine.Id.Value).Type;
                 }
 
@@ -1692,7 +1970,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Monitors.Clear();
                 this.MachineMap.Clear();
                 this.MachineOperations.Clear();
-                this.ControlledTaskMap.Clear();
             }
 
             base.Dispose(disposing);

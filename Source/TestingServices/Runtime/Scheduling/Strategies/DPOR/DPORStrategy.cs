@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             int currentSchedulableId = (int)current.SourceId;
 
             // "Yield" and "Waiting for quiescence" hack.
-            if (ops.TrueForAll(op => !op.IsEnabled))
+            if (ops.TrueForAll(op => op.Status != AsyncOperationStatus.Enabled))
             {
                 if (ops.Exists(op => op.Type is AsyncOperationType.Yield))
                 {
@@ -93,17 +93,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     {
                         if (op.Type is AsyncOperationType.Yield)
                         {
-                            op.IsEnabled = true;
+                            op.Status = AsyncOperationStatus.Enabled;
                         }
                     }
                 }
-                else if (ops.Exists(op => op.Type is AsyncOperationType.WaitForQuiescence))
+                else if (ops.Exists(op => op.Type is AsyncOperationType.Acquire))
                 {
                     foreach (var op in ops)
                     {
-                        if (op.Type is AsyncOperationType.WaitForQuiescence)
+                        if (op.Type is AsyncOperationType.Acquire)
                         {
-                            op.IsEnabled = true;
+                            op.Status = AsyncOperationStatus.Enabled;
                         }
                     }
                 }
@@ -190,16 +190,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             next = ops[nextTid];
 
             // TODO: Part of yield hack.
-            if (!next.IsEnabled && next.Type is AsyncOperationType.Yield)
+            if (next.Status != AsyncOperationStatus.Enabled && next.Type is AsyncOperationType.Yield)
             {
                 // Uncomment to avoid waking a yielding task.
                 // next = null;
                 // TODO: let caller know that this is not deadlock.
                 // return false;
-                next.IsEnabled = true;
+                next.Status = AsyncOperationStatus.Enabled;
             }
 
-            Debug.Assert(next.IsEnabled, "Not enabled.");
+            Debug.Assert(next.Status is AsyncOperationStatus.Enabled, "Not enabled.");
             return true;
         }
 

@@ -14,10 +14,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Specifications;
+using Microsoft.PSharp.TestingServices.Threading;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -45,17 +49,9 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
-        public static BugFindingEngine Create(Configuration configuration, Action<IMachineRuntime> action)
+        internal static BugFindingEngine Create(Configuration configuration, Delegate testMethod)
         {
-            return new BugFindingEngine(configuration, action);
-        }
-
-        /// <summary>
-        /// Creates a new P# bug-finding engine.
-        /// </summary>
-        public static BugFindingEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function)
-        {
-            return new BugFindingEngine(configuration, function);
+            return new BugFindingEngine(configuration, testMethod);
         }
 
         /// <summary>
@@ -157,22 +153,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
-        private BugFindingEngine(Configuration configuration, Action<IMachineRuntime> action)
-            : base(configuration, action)
-        {
-            if (this.Configuration.EnableDataRaceDetection)
-            {
-                this.Reporter = new RaceDetectionEngine(configuration, this.Logger, this.TestReport);
-            }
-
-            this.Initialize();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
-        /// </summary>
-        private BugFindingEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
-            : base(configuration, function)
+        private BugFindingEngine(Configuration configuration, Delegate testMethod)
+            : base(configuration, testMethod)
         {
             if (this.Configuration.EnableDataRaceDetection)
             {
@@ -329,6 +311,10 @@ namespace Microsoft.PSharp.TestingServices
                     runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
                 }
 
+                // Set the current specification checker and threading scheduler.
+                Specification.CurrentChecker = new SpecificationChecker(runtime);
+                MachineRuntime.CurrentScheduler = new ControlledMachineTaskScheduler(runtime);
+
                 if (this.Configuration.EnableDataRaceDetection)
                 {
                     this.Reporter.RegisterRuntime(runtime);
@@ -347,14 +333,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 // Runs the test inside the test-harness machine.
-                if (this.TestAction != null)
-                {
-                    runtime.RunTestHarness(this.TestAction, this.TestName);
-                }
-                else
-                {
-                    runtime.RunTestHarness(this.TestFunction, this.TestName);
-                }
+                runtime.RunTestHarness(this.TestMethod, this.TestName);
 
                 // Wait for the test to terminate.
                 runtime.WaitAsync().Wait();
@@ -472,9 +451,9 @@ namespace Microsoft.PSharp.TestingServices
                     Append(Environment.NewLine);
             }
 
-            for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
+            for (int idx = 0; idx < runtime.Scheduler.ScheduleTrace.Count; idx++)
             {
-                ScheduleStep step = runtime.ScheduleTrace[idx];
+                ScheduleStep step = runtime.Scheduler.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
                     stringBuilder.Append($"({step.ScheduledOperationId})");
@@ -488,7 +467,7 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append(step.IntegerChoice.Value);
                 }
 
-                if (idx < runtime.ScheduleTrace.Count - 1)
+                if (idx < runtime.Scheduler.ScheduleTrace.Count - 1)
                 {
                     stringBuilder.Append(Environment.NewLine);
                 }

@@ -1226,7 +1226,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(79)]
         public void TestMultipleLeadersInRaftProtocol(int seed)

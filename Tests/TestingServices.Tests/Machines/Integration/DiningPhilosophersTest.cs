@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Theory(Timeout = 5000)]
+        [Theory(Timeout = 10000)]
         // [ClassData(typeof(SeedGenerator))]
         [InlineData(52)]
         public void TestDiningPhilosophersLivenessBugWithCycleReplay(int seed)

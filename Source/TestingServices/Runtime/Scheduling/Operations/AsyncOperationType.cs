@@ -6,47 +6,57 @@
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// The type of an operation performed by an asynchronous task.
+    /// The type of an asynchronous operation
     /// </summary>
     public enum AsyncOperationType
     {
         /// <summary>
-        /// An asynchronous task starts executing.
+        /// An asynchronous operation performs a default context switch.
         /// </summary>
-        Start = 0,
+        Default = 0,
 
         /// <summary>
-        /// An asynchronous task creates another asynchronous task.
+        /// An asynchronous operation starts executing.
+        /// </summary>
+        Start,
+
+        /// <summary>
+        /// An asynchronous operation creates another asynchronous operation.
         /// </summary>
         Create,
 
         /// <summary>
-        /// An asynchronous task sends an event.
+        /// An asynchronous operation sends an event.
         /// </summary>
         Send,
 
         /// <summary>
-        /// An asynchronous task receives an event.
+        /// An asynchronous operation receives an event.
         /// </summary>
         Receive,
 
         /// <summary>
-        /// An asynchronous task stops executing.
+        /// An asynchronous operation stops executing.
         /// </summary>
         Stop,
 
         /// <summary>
-        /// An asynchronous task yields.
+        /// An asynchronous operation yields.
         /// </summary>
         Yield,
 
         /// <summary>
-        /// An asynchronous task waits to reach quiescence.
+        /// An asynchronous operation acquires a synchronized resource.
         /// </summary>
-        WaitForQuiescence,
+        Acquire,
 
         /// <summary>
-        /// An asynchronous task waits for another asynchronous task to stop.
+        /// An asynchronous operation releases a synchronized resource.
+        /// </summary>
+        Release,
+
+        /// <summary>
+        /// An asynchronous operation waits for another asynchronous operation to stop.
         /// </summary>
         Join
     }

@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public virtual bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
-            var enabledOperations = ops.Where(op => op.IsEnabled).ToList();
+            var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             if (enabledOperations.Count == 0)
             {
                 next = null;

@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Timers;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.TestingServices.Runtime
@@ -92,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -100,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
@@ -108,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// be used to access its payload, and cannot be handled.
         /// </summary>
         public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -117,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -126,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -136,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -145,7 +147,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -154,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -164,27 +166,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// is handled.
         /// </summary>
         public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         public override void SendEvent(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEvent' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
         public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecuteAsync' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
         public override Task<bool> SendEventAndExecute(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null) =>
-            throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecute' is not supported in this testing mode.");
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
@@ -296,6 +298,74 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             });
         }
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Action action, CancellationToken cancellationToken) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(Func<Task> function, CancellationToken cancellationToken) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<TResult> function,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
+        /// </summary>
+        internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<Task<TResult>> function,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
+        /// </summary>
+        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask CreateCompletionMachineTask(Task task) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
+        /// </summary>
+        internal override MachineTask<TResult> CreateCompletionMachineTask<TResult>(Task<TResult> task) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Asynchronously waits for the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask WaitAllTasksAsync(IEnumerable<Task> tasks) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Asynchronously waits for all specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task> WaitAnyTaskAsync(IEnumerable<Task> tasks) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Asynchronously waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.

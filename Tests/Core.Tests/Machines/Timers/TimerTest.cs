@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public async Task TestBasicTimerOperation()
         {
             await this.RunAsync(async r =>
@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public async Task TestBasicPeriodicTimerOperation()
         {
             await this.RunAsync(async r =>
@@ -258,7 +258,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public async Task TestDropTimeoutsAfterTimerDisposal()
         {
             await this.RunAsync(async r =>
@@ -271,7 +271,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public async Task TestIllegalDueTimeSpecification()
         {
             await this.RunAsync(async r =>
@@ -284,7 +284,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout=10000)]
         public async Task TestIllegalPeriodSpecification()
         {
             await this.RunAsync(async r =>
