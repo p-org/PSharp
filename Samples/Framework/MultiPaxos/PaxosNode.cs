@@ -16,7 +16,6 @@ namespace MultiPaxos
             public int MyRank;
 
             public Config(int id)
-                : base(-1, -1)
             {
                 this.MyRank = id;
             }
@@ -27,7 +26,6 @@ namespace MultiPaxos
             public List<MachineId> Nodes;
 
             public AllNodes(List<MachineId> nodes)
-                : base(-1, -1)
             {
                 this.Nodes = nodes;
             }
@@ -41,7 +39,6 @@ namespace MultiPaxos
             public int MyRank;
 
             public Prepare(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int myRank)
-                : base(-1, -1)
             {
                 this.Node = id;
                 this.NextSlotForProposer = nextSlot;
@@ -58,7 +55,6 @@ namespace MultiPaxos
             public int Value;
 
             public Accepted(int slot, int round, int server, int value)
-                : base(-1, -1)
             {
                 this.Slot = slot;
                 this.Round = round;
@@ -75,7 +71,6 @@ namespace MultiPaxos
             public int Value;
 
             public Chosen(int slot, int round, int server, int value)
-                : base(-1, -1)
             {
                 this.Slot = slot;
                 this.Round = round;
@@ -92,7 +87,6 @@ namespace MultiPaxos
             public int Value;
 
             public Agree(int slot, int round, int server, int value)
-                : base(-1, -1)
             {
                 this.Slot = slot;
                 this.Round = round;
@@ -109,7 +103,6 @@ namespace MultiPaxos
             public int ProposeVal;
 
             public Accept(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int proposeVal)
-                : base(-1, -1)
             {
                 this.Node = id;
                 this.NextSlotForProposer = nextSlot;
@@ -124,7 +117,6 @@ namespace MultiPaxos
             public Tuple<int, int> Proposal;
 
             public Reject(int round, Tuple<int, int> proposal)
-                : base(-1, -1)
             {
                 this.Round = round;
                 this.Proposal = proposal;
@@ -137,7 +129,6 @@ namespace MultiPaxos
             public int V2;
 
             public Update(int v1, int v2)
-                : base(-1, -1)
             {
                 this.V1 = v1;
                 this.V2 = v2;

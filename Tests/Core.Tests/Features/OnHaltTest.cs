@@ -155,34 +155,10 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        private void AssertSucceeded(Type machine)
+        [Fact(Timeout=5000)]
+        public async Task TestHaltCalled()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
-            {
-            });
-
-            this.Run(config, test);
-
-            var runtime = PSharpRuntime.Create();
-            var failed = false;
-            var tcs = new TaskCompletionSource<bool>();
-            runtime.OnFailure += (ex) =>
-            {
-                failed = true;
-                tcs.TrySetResult(true);
-            };
-
-            runtime.CreateMachine(machine, new E(tcs));
-
-            tcs.Task.Wait(5000);
-            Assert.False(failed);
-        }
-
-        private void AssertFailed(Type machine)
-        {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -192,43 +168,91 @@ namespace Microsoft.PSharp.Core.Tests
                     tcs.SetResult(true);
                 };
 
-                r.CreateMachine(machine);
+                r.CreateMachine(typeof(M1));
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestHaltCalled()
+        public async Task TestReceiveOnHalt()
         {
-            this.AssertFailed(typeof(M1));
+            await this.RunAsync(async r =>
+            {
+                var failed = false;
+                var tcs = new TaskCompletionSource<bool>();
+                r.OnFailure += (ex) =>
+                {
+                    failed = true;
+                    tcs.SetResult(true);
+                };
+
+                r.CreateMachine(typeof(M2a));
+
+                await WaitAsync(tcs.Task);
+                Assert.True(failed);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestReceiveOnHalt()
+        public async Task TestRaiseOnHalt()
         {
-            this.AssertFailed(typeof(M2a));
+            await this.RunAsync(async r =>
+            {
+                var failed = false;
+                var tcs = new TaskCompletionSource<bool>();
+                r.OnFailure += (ex) =>
+                {
+                    failed = true;
+                    tcs.SetResult(true);
+                };
+
+                r.CreateMachine(typeof(M2b));
+
+                await WaitAsync(tcs.Task);
+                Assert.True(failed);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestRaiseOnHalt()
+        public async Task TestGotoOnHalt()
         {
-            this.AssertFailed(typeof(M2b));
+            await this.RunAsync(async r =>
+            {
+                var failed = false;
+                var tcs = new TaskCompletionSource<bool>();
+                r.OnFailure += (ex) =>
+                {
+                    failed = true;
+                    tcs.SetResult(true);
+                };
+
+                r.CreateMachine(typeof(M2c));
+
+                await WaitAsync(tcs.Task);
+                Assert.True(failed);
+            });
         }
 
         [Fact(Timeout=5000)]
-        public void TestGotoOnHalt()
+        public async Task TestAPIsOnHalt()
         {
-            this.AssertFailed(typeof(M2c));
-        }
+            await this.RunAsync(async r =>
+            {
+                var failed = false;
+                var tcs = new TaskCompletionSource<bool>();
+                r.OnFailure += (ex) =>
+                {
+                    failed = true;
+                    tcs.TrySetResult(true);
+                };
 
-        [Fact(Timeout=5000)]
-        public void TestAPIsOnHalt()
-        {
-            this.AssertSucceeded(typeof(M3));
+                r.CreateMachine(typeof(M3), new E(tcs));
+
+                await WaitAsync(tcs.Task);
+                Assert.False(failed);
+            });
         }
     }
 }

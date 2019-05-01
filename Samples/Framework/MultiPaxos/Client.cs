@@ -16,7 +16,6 @@ namespace MultiPaxos
             public List<MachineId> Servers;
 
             public Config(List<MachineId> servers)
-                : base(-1, -1)
             {
                 this.Servers = servers;
             }

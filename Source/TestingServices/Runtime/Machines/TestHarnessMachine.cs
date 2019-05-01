@@ -5,34 +5,57 @@
 
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp.TestingServices.Runtime
 {
     /// <summary>
-    /// The P# test harness machine. This is the root machine
-    /// that executes a test method during testing.
+    /// Implements a test harness machine that executes the synchronous
+    /// test entry point during systematic testing.
     /// </summary>
-    internal sealed class TestHarnessMachine : BaseMachine
+    internal sealed class TestHarnessMachine : AsyncMachine
     {
-        /// <summary>
-        /// The test method.
-        /// </summary>
-        private readonly MethodInfo TestMethod;
-
         /// <summary>
         /// The test action.
         /// </summary>
         private readonly Action<IMachineRuntime> TestAction;
 
         /// <summary>
+        /// The test function.
+        /// </summary>
+        private readonly Func<IMachineRuntime, Task> TestFunction;
+
+        /// <summary>
+        /// The test name.
+        /// </summary>
+        private readonly string TestName;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
         /// </summary>
-        internal TestHarnessMachine(MethodInfo testMethod, Action<IMachineRuntime> testAction)
+        internal TestHarnessMachine(Action<IMachineRuntime> testAction, string testName)
+            : this(testName)
         {
-            this.TestMethod = testMethod;
             this.TestAction = testAction;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
+        /// </summary>
+        internal TestHarnessMachine(Func<IMachineRuntime, Task> testFunction, string testName)
+            : this(testName)
+        {
+            this.TestFunction = testFunction;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
+        /// </summary>
+        private TestHarnessMachine(string testName)
+        {
+            this.TestName = string.IsNullOrEmpty(testName) ? "anonymous test" : $"test '{testName}'";
         }
 
         /// <summary>
@@ -40,20 +63,28 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal void Run()
         {
+            this.Runtime.Log($"<TestHarnessLog> Running {this.TestName}.");
+
             try
             {
-                // Starts the test.
-                if (this.TestAction != null)
-                {
-                    this.Runtime.Log("<TestHarnessLog> Running anonymous test method.");
-                    this.TestAction(this.Id.Runtime);
-                }
-                else
-                {
-                    this.Runtime.Log("<TestHarnessLog> Running test method " +
-                        $"'{this.TestMethod.DeclaringType}.{this.TestMethod.Name}'.");
-                    this.TestMethod.Invoke(null, new object[] { this.Id.Runtime });
-                }
+                this.TestAction(this.Id.Runtime);
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException;
+            }
+        }
+
+        /// <summary>
+        /// Runs the test harness asynchronously.
+        /// </summary>
+        internal Task RunAsync()
+        {
+            this.Runtime.Log($"<TestHarnessLog> Running {this.TestName}.");
+
+            try
+            {
+                return this.TestFunction(this.Id.Runtime);
             }
             catch (TargetInvocationException ex)
             {
@@ -67,22 +98,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal void ReportUnhandledException(Exception ex)
         {
-            if (this.TestAction != null)
-            {
-                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                    $"in anonymous test method, " +
-                    $"'{ex.Source}':\n" +
-                    $"   {ex.Message}\n" +
-                    $"The stack trace is:\n{ex.StackTrace}");
-            }
-            else
-            {
-                this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                    $"in test method '{this.TestMethod.DeclaringType}.{this.TestMethod.Name}', " +
-                    $"'{ex.Source}':\n" +
-                    $"   {ex.Message}\n" +
-                    $"The stack trace is:\n{ex.StackTrace}");
-            }
+            this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
+                $"in {this.TestName}, " +
+                $"'{ex.Source}':\n" +
+                $"   {ex.Message}\n" +
+                $"The stack trace is:\n{ex.StackTrace}");
         }
     }
 }

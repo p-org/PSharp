@@ -93,19 +93,18 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout=10000)]
-        public void TestNoMemoryLeakInEventSending()
+        [Fact(Timeout=15000)]
+        public async Task TestNoMemoryLeakInEventSending()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
-                tcs.Task.Wait();
+
+                await WaitAsync(tcs.Task, 15000);
+
                 (r as ProductionRuntime).Stop();
             });
-
-            this.Run(config, test);
         }
     }
 }

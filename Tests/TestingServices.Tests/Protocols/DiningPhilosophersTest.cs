@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -160,14 +161,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Goto<Trying>();
             }
 
-            private void TryAccess()
+            private async Task TryAccess()
             {
                 this.Send(this.left, new Lock.TryLock(this.Id));
-                var ev = this.Receive(typeof(Lock.LockResp)).Result;
+                var ev = await this.Receive(typeof(Lock.LockResp));
                 if ((ev as Lock.LockResp).LockResult)
                 {
                     this.Send(this.right, new Lock.TryLock(this.Id));
-                    var evr = this.Receive(typeof(Lock.LockResp)).Result;
+                    var evr = await this.Receive(typeof(Lock.LockResp));
                     if ((evr as Lock.LockResp).LockResult)
                     {
                         this.Goto<Done>();

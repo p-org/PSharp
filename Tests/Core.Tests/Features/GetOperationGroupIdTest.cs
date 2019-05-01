@@ -19,6 +19,16 @@ namespace Microsoft.PSharp.Core.Tests
 
         private static Guid OperationGroup = Guid.NewGuid();
 
+        private class SetupEvent : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public SetupEvent(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
         private class E : Event
         {
             public MachineId Id;
@@ -40,13 +50,28 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
-                var id = this.Runtime.GetCurrentOperationGroupId(this.Id);
-                this.Assert(id == Guid.Empty, $"OperationGroupId is not '{Guid.Empty}', but {id}.");
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                tcs.SetResult(this.OperationGroupId == Guid.Empty);
             }
+        }
+
+        [Fact(Timeout = 5000)]
+        public async Task TestGetOperationGroupIdNotSet()
+        {
+            await this.RunAsync(async r =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M1), new SetupEvent(tcs));
+
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         private class M2 : Machine
         {
+            private TaskCompletionSource<bool> Tcs;
+
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventDoAction(typeof(E), nameof(CheckEvent))]
@@ -56,48 +81,27 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void InitOnEntry()
             {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.Runtime.SendEvent(this.Id, new E(this.Id, OperationGroup));
             }
 
             private void CheckEvent()
             {
-                var id = this.Runtime.GetCurrentOperationGroupId(this.Id);
-                this.Assert(id == OperationGroup, $"OperationGroupId is not '{OperationGroup}', but {id}.");
+                this.Tcs.SetResult(this.OperationGroupId == OperationGroup);
             }
         }
 
-        private void AssertSucceeded(Type machine)
+        [Fact(Timeout=5000)]
+        public async Task TestGetOperationGroupIdSet()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
-                var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
-                r.OnFailure += (ex) =>
-                {
-                    failed = true;
-                    tcs.SetResult(true);
-                };
+                r.CreateMachine(typeof(M2), new SetupEvent(tcs));
 
-                r.CreateMachine(machine);
-
-                tcs.Task.Wait(100);
-                Assert.False(failed);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
             });
-
-            this.Run(config, test);
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestGetOperationGroupIdNotSet()
-        {
-            this.AssertSucceeded(typeof(M1));
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestGetOperationGroupIdSet()
-        {
-            this.AssertSucceeded(typeof(M2));
         }
     }
 }

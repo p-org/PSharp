@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The runtime that executes this monitor.
         /// </summary>
-        private BaseRuntime Runtime;
+        private MachineRuntime Runtime;
 
         /// <summary>
         /// The monitor state.
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="runtime">The runtime that executes this monitor.</param>
         /// <param name="mid">The monitor id.</param>
-        internal void Initialize(BaseRuntime runtime, MachineId mid)
+        internal void Initialize(MachineRuntime runtime, MachineId mid)
         {
             this.Id = mid;
             this.Runtime = runtime;
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate)
         {
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         protected void Assert(bool predicate, string s, params object[] args)
         {

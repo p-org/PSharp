@@ -96,21 +96,20 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public void TestReceiveEvent()
+        public async Task TestReceiveEvent()
         {
-            var configuration = GetConfiguration();
             for (int i = 0; i < 100; i++)
             {
-                var test = new Action<IMachineRuntime>((r) =>
+                await this.RunAsync(async r =>
                 {
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
                     r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 10000));
-                    Assert.True(tcs.Task.Result);
-                });
 
-                this.Run(configuration, test);
+                    var result = await GetResultAsync(tcs.Task);
+                    Assert.True(result);
+                });
             }
         }
 
@@ -173,21 +172,20 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public void TestReceiveEventAlternate()
+        public async Task TestReceiveEventAlternate()
         {
-            var configuration = GetConfiguration();
             for (int i = 0; i < 100; i++)
             {
-                var test = new Action<IMachineRuntime>((r) =>
+                await this.RunAsync(async r =>
                 {
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
                     r.CreateMachine(typeof(M3), new SetupTcsEvent(tcs, 10000));
-                    Assert.True(tcs.Task.Result);
-                });
 
-                this.Run(configuration, test);
+                    var result = await GetResultAsync(tcs.Task);
+                    Assert.True(result);
+                });
             }
         }
 
@@ -242,21 +240,20 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 15000)]
-        public void TestReceiveEventExchange()
+        public async Task TestReceiveEventExchange()
         {
-            var configuration = GetConfiguration();
             for (int i = 0; i < 100; i++)
             {
-                var test = new Action<IMachineRuntime>((r) =>
+                await this.RunAsync(async r =>
                 {
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
                     r.CreateMachine(typeof(M5), new SetupTcsEvent(tcs, 10000));
-                    Assert.True(tcs.Task.Result);
-                });
 
-                this.Run(configuration, test);
+                    var result = await GetResultAsync(tcs.Task);
+                    Assert.True(result);
+                });
             }
         }
     }

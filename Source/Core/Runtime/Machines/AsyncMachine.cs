@@ -9,16 +9,16 @@ using System.ComponentModel;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Abstract class representing a P# machine.
+    /// Implements a machine that can execute asynchronously.
     /// </summary>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract class BaseMachine
+    public abstract class AsyncMachine
     {
         /// <summary>
         /// The runtime that executes this machine.
         /// </summary>
-        internal BaseRuntime Runtime { get; private set; }
+        internal MachineRuntime Runtime { get; private set; }
 
         /// <summary>
         /// The unique machine id.
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(BaseRuntime runtime, MachineId mid)
+        internal void Initialize(MachineRuntime runtime, MachineId mid)
         {
             this.Runtime = runtime;
             this.Id = mid;
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         public override bool Equals(object obj)
         {
-            if (obj is BaseMachine m &&
+            if (obj is AsyncMachine m &&
                 this.GetType() == m.GetType())
             {
                 return this.Id.Value == m.Id.Value;

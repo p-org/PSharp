@@ -17,9 +17,9 @@ using Microsoft.PSharp.Timers;
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
-    /// Runtime for executing machines.
+    /// Runtime for executing machines asynchronously.
     /// </summary>
-    internal abstract class BaseRuntime : IMachineRuntime
+    internal abstract class MachineRuntime : IMachineRuntime
     {
         /// <summary>
         /// The configuration used by the runtime.
@@ -57,9 +57,9 @@ namespace Microsoft.PSharp.Runtime
         public event OnEventDroppedHandler OnEventDropped;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BaseRuntime"/> class.
+        /// Initializes a new instance of the <see cref="MachineRuntime"/> class.
         /// </summary>
-        protected BaseRuntime(Configuration configuration)
+        protected MachineRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
             this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
@@ -272,13 +272,13 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal abstract void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options);
+        internal abstract void SendEvent(MachineId target, Event e, AsyncMachine sender, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        internal abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options);
+        internal abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender, SendOptions options);
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
@@ -293,50 +293,80 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
-        internal abstract void Monitor(Type type, BaseMachine sender, Event e);
+        internal abstract void Monitor(Type type, AsyncMachine sender, Event e);
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public abstract void Assert(bool predicate);
+        public virtual void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException("Detected an assertion failure.");
+            }
+        }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public abstract void Assert(bool predicate, string s, object arg0);
+        public virtual void Assert(bool predicate, string s, object arg0)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString()));
+            }
+        }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public abstract void Assert(bool predicate, string s, object arg0, object arg1);
+        public virtual void Assert(bool predicate, string s, object arg0, object arg1)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString()));
+            }
+        }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public abstract void Assert(bool predicate, string s, object arg0, object arg1, object arg2);
+        public virtual void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString(), arg2.ToString()));
+            }
+        }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
-        public abstract void Assert(bool predicate, string s, params object[] args);
+        public virtual void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, args));
+            }
+        }
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal abstract bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue);
+        internal abstract bool GetNondeterministicBooleanChoice(AsyncMachine machine, int maxValue);
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal abstract bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId);
+        internal abstract bool GetFairNondeterministicBooleanChoice(AsyncMachine machine, string uniqueId);
 
         /// <summary>
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal abstract int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue);
+        internal abstract int GetNondeterministicIntegerChoice(AsyncMachine machine, int maxValue);
 
         /// <summary>
         /// Notifies that a machine entered a state.
@@ -566,7 +596,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Sets the operation group id for the specified machine.
         /// </summary>
-        internal static void SetOperationGroupIdForMachine(Machine created, BaseMachine sender, Guid? operationGroupId)
+        internal static void SetOperationGroupIdForMachine(Machine created, AsyncMachine sender, Guid? operationGroupId)
         {
             if (operationGroupId.HasValue)
             {

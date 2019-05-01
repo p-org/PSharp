@@ -49,10 +49,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId1()
+        public async Task TestCreateWithId1()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -67,18 +66,15 @@ namespace Microsoft.PSharp.Core.Tests
                 r.Assert(!m1.Equals(m2));
                 r.CreateMachine(m2, typeof(M), new Conf(tcs));
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId2()
+        public async Task TestCreateWithId2()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -94,11 +90,9 @@ namespace Microsoft.PSharp.Core.Tests
                 r.CreateMachine(m1, typeof(M));
                 r.CreateMachine(m2, typeof(M), new Conf(tcs));
 
-                tcs.Task.Wait(5000);
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
 
         private class M2 : Machine
@@ -118,10 +112,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId4()
+        public async Task TestCreateWithId4()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -142,18 +135,15 @@ namespace Microsoft.PSharp.Core.Tests
                     tcs.SetResult(false);
                 }
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId5()
+        public async Task TestCreateWithId5()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -175,11 +165,9 @@ namespace Microsoft.PSharp.Core.Tests
                     tcs.SetResult(false);
                 }
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
             });
-
-            this.Run(config, test);
         }
 
         private class E2 : Event
@@ -209,15 +197,12 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact(Timeout=5000)]
         public void TestCreateWithId9()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Run(r =>
             {
                 var m1 = r.CreateMachineIdFromName(typeof(M4), "M4");
                 var m2 = r.CreateMachineIdFromName(typeof(M4), "M4");
                 Assert.True(m1.Equals(m2));
             });
-
-            this.Run(config, test);
         }
 
         private class M6 : Machine
@@ -236,10 +221,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId10()
+        public async Task TestCreateWithId10()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -252,11 +236,9 @@ namespace Microsoft.PSharp.Core.Tests
                 r.CreateMachine(typeof(M6));
                 r.CreateMachine(typeof(M6));
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.True(failed);
             });
-
-            this.Run(config, test);
         }
 
         private class M7 : Machine
@@ -276,10 +258,9 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCreateWithId11()
+        public async Task TestCreateWithId11()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var failed = false;
                 var tcs = new TaskCompletionSource<bool>();
@@ -291,11 +272,9 @@ namespace Microsoft.PSharp.Core.Tests
 
                 r.CreateMachine(typeof(M7), new Conf(tcs));
 
-                tcs.Task.Wait();
+                await WaitAsync(tcs.Task);
                 Assert.False(failed);
             });
-
-            this.Run(config, test);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="MachineId"/> class.
         /// </summary>
-        internal MachineId(Type type, string machineName, BaseRuntime runtime, bool useNameForHashing = false)
+        internal MachineId(Type type, string machineName, MachineRuntime runtime, bool useNameForHashing = false)
         {
             this.Runtime = runtime;
             this.Endpoint = string.Empty;
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Bind the machine id.
         /// </summary>
-        internal void Bind(BaseRuntime runtime)
+        internal void Bind(MachineRuntime runtime)
         {
             this.Runtime = runtime;
         }

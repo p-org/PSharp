@@ -29,13 +29,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            private void InitOnEntry()
+            private async Task InitOnEntry()
             {
-                Task task = Task.Run(() =>
+                await Task.Run(() =>
                 {
                     this.Send(this.Id, new E());
                 });
-                task.Wait();
             }
         }
 
@@ -47,13 +46,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            private void InitOnEntry()
+            private async Task InitOnEntry()
             {
-                Task task = Task.Run(() =>
+                await Task.Run(() =>
                 {
                     this.Random();
                 });
-                task.Wait();
             }
         }
 

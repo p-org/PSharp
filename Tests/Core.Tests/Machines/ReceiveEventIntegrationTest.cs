@@ -138,59 +138,55 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestReceiveEventOneMachine()
+        public async Task TestReceiveEventOneMachine()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M1), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout = 5000)]
-        public void TestReceiveEventWithPredicateOneMachine()
+        public async Task TestReceiveEventWithPredicateOneMachine()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M2), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout = 5000)]
-        public void TestReceiveEventMultipleTypesOneMachine()
+        public async Task TestReceiveEventMultipleTypesOneMachine()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M3), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
 
         [Fact(Timeout = 5000)]
-        public void TestReceiveEventTwoMachines()
+        public async Task TestReceiveEventTwoMachines()
         {
-            var configuration = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M4), new SetupEvent(tcs));
-                Assert.True(tcs.Task.Result);
-            });
 
-            this.Run(configuration, test);
+                var result = await GetResultAsync(tcs.Task);
+                Assert.True(result);
+            });
         }
     }
 }

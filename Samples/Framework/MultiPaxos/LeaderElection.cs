@@ -18,7 +18,6 @@ namespace MultiPaxos
             public int MyRank;
 
             public Config(List<MachineId> servers, MachineId parentServer, int myRank)
-                : base(-1, -1)
             {
                 this.Servers = servers;
                 this.ParentServer = parentServer;
@@ -32,7 +31,6 @@ namespace MultiPaxos
             public int Rank;
 
             public Ping(MachineId leaderElection, int rank)
-                : base(-1, -1)
             {
                 this.LeaderElection = leaderElection;
                 this.Rank = rank;
@@ -45,7 +43,6 @@ namespace MultiPaxos
             public int Rank;
 
             public NewLeader(MachineId leader, int rank)
-                : base(-1, -1)
             {
                 this.CurrentLeader = leader;
                 this.Rank = rank;

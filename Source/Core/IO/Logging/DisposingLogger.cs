@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.IO
         /// Called when a machine has been created.
         /// </summary>
         /// <param name="machineId">The id of the machine that has been created.</param>
-        /// <param name="creator">Id of the host machine, null otherwise.</param>
+        /// <param name="creator">Id of the creator machine, null otherwise.</param>
         public void OnCreateMachine(MachineId machineId, MachineId creator)
         {
         }

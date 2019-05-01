@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.Runtime
     /// <summary>
     /// Runtime for executing machines in production.
     /// </summary>
-    internal sealed class ProductionRuntime : BaseRuntime
+    internal sealed class ProductionRuntime : MachineRuntime
     {
         /// <summary>
         /// List of monitors in the program.
@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal override void SendEvent(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, SendOptions options)
         {
             if (target is null)
             {
@@ -281,7 +281,7 @@ namespace Microsoft.PSharp.Runtime
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
         /// </summary>
-        internal override async Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, BaseMachine sender, SendOptions options)
+        internal override async Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender, SendOptions options)
         {
             if (target is null)
             {
@@ -413,7 +413,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Invokes the specified <see cref="PSharp.Monitor"/> with the specified <see cref="Event"/>.
         /// </summary>
-        internal override void Monitor(Type type, BaseMachine sender, Event e)
+        internal override void Monitor(Type type, AsyncMachine sender, Event e)
         {
             // Check if monitors are enabled in production.
             if (!this.Configuration.EnableMonitorsInProduction)
@@ -445,65 +445,10 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        public override void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException("Detected an assertion failure.");
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        public override void Assert(bool predicate, string s, object arg0)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString()));
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        public override void Assert(bool predicate, string s, object arg0, object arg1)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString()));
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        public override void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, arg0.ToString(), arg1.ToString(), arg2.ToString()));
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it throws an <see cref="AssertionFailureException"/> exception.
-        /// </summary>
-        public override void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                throw new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, args));
-            }
-        }
-
-        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override bool GetNondeterministicBooleanChoice(BaseMachine machine, int maxValue)
+        internal override bool GetNondeterministicBooleanChoice(AsyncMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
@@ -522,7 +467,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override bool GetFairNondeterministicBooleanChoice(BaseMachine machine, string uniqueId)
+        internal override bool GetFairNondeterministicBooleanChoice(AsyncMachine machine, string uniqueId)
         {
             return this.GetNondeterministicBooleanChoice(machine, 2);
         }
@@ -531,7 +476,7 @@ namespace Microsoft.PSharp.Runtime
         /// Returns a nondeterministic integer choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
-        internal override int GetNondeterministicIntegerChoice(BaseMachine machine, int maxValue)
+        internal override int GetNondeterministicIntegerChoice(AsyncMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
             var result = random.Next(maxValue);

@@ -13,8 +13,9 @@ using Microsoft.PSharp.Runtime;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Interface of the machine runtime. It provides APIs for creating machines,
-    /// sending events, checking specifications, and other runtime utilities.
+    /// Interface of the P# runtime. It provides methods for creating and executing machines,
+    /// sending events, checking specifications, generating nondeterministic values that are
+    /// controlled during testing, as well as various other runtime utilities.
     /// </summary>
     public interface IMachineRuntime : IDisposable
     {
@@ -24,12 +25,12 @@ namespace Microsoft.PSharp
         ILogger Logger { get; }
 
         /// <summary>
-        /// Callback that is fired when the P# program throws an exception.
+        /// Callback that is fired when the runtime throws an exception.
         /// </summary>
         event OnFailureHandler OnFailure;
 
         /// <summary>
-        /// Callback that is fired when a P# event is dropped.
+        /// Callback that is fired when an event is dropped.
         /// </summary>
         event OnEventDroppedHandler OnEventDropped;
 
@@ -258,15 +259,40 @@ namespace Microsoft.PSharp
         int RandomInteger(int maxValue);
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">The predicate to check.</param>
         void Assert(bool predicate);
 
         /// <summary>
-        /// Checks if the assertion holds, and if not it throws an
-        /// <see cref="AssertionFailureException"/> exception.
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">The predicate to check.</param>
+        /// <param name="s">The message to print if the assertion fails.</param>
+        /// <param name="arg0">The first argument.</param>
+        void Assert(bool predicate, string s, object arg0);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">The predicate to check.</param>
+        /// <param name="s">The message to print if the assertion fails.</param>
+        /// <param name="arg0">The first argument.</param>
+        /// <param name="arg1">The second argument.</param>
+        void Assert(bool predicate, string s, object arg0, object arg1);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
+        /// </summary>
+        /// <param name="predicate">The predicate to check.</param>
+        /// <param name="s">The message to print if the assertion fails.</param>
+        /// <param name="arg0">The first argument.</param>
+        /// <param name="arg1">The second argument.</param>
+        /// <param name="arg2">The third argument.</param>
+        void Assert(bool predicate, string s, object arg0, object arg1, object arg2);
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         /// <param name="predicate">The predicate to check.</param>
         /// <param name="s">The message to print if the assertion fails.</param>

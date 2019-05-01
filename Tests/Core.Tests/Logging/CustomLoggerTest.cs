@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCustomLogger()
+        public async Task TestCustomLogger()
         {
             CustomLogger logger = new CustomLogger(true);
 
@@ -194,7 +194,8 @@ namespace Microsoft.PSharp.Core.Tests
 
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
-            tcs.Task.Wait();
+
+            await WaitAsync(tcs.Task);
 
             string expected = @"<CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' was created by the runtime.
 <StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enters state 'Init'.
@@ -221,7 +222,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestCustomLoggerNoVerbosity()
+        public async Task TestCustomLoggerNoVerbosity()
         {
             CustomLogger logger = new CustomLogger(false);
 
@@ -230,7 +231,8 @@ namespace Microsoft.PSharp.Core.Tests
 
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
-            tcs.Task.Wait();
+
+            await WaitAsync(tcs.Task);
 
             Assert.Equal(string.Empty, logger.ToString());
 
@@ -240,14 +242,11 @@ namespace Microsoft.PSharp.Core.Tests
         [Fact(Timeout=5000)]
         public void TestNullCustomLoggerFail()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Run(r =>
             {
                 InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => r.SetLogger(null));
                 Assert.Equal("Cannot install a null logger.", ex.Message);
             });
-
-            this.Run(config, test);
         }
     }
 }

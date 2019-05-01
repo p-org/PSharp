@@ -73,19 +73,18 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestAssertFailureNoEventHandler()
+        public async Task TestAssertFailureNoEventHandler()
         {
             var runtime = PSharpRuntime.Create();
             var tcs = new TaskCompletionSource<bool>();
             runtime.CreateMachine(typeof(M), new Configure(tcs));
-            tcs.Task.Wait();
+            await tcs.Task;
         }
 
         [Fact(Timeout=5000)]
-        public void TestAssertFailureEventHandler()
+        public async Task TestAssertFailureEventHandler()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcsFail = new TaskCompletionSource<bool>();
                 int count = 0;
@@ -101,22 +100,18 @@ namespace Microsoft.PSharp.Core.Tests
 
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
-                tcs.Task.Wait();
-                Task.Delay(10).Wait(); // give it some time
 
-                AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-                Assert.IsType<AssertionFailureException>(ex.InnerException);
+                await WaitAsync(tcs.Task);
+
+                AssertionFailureException ex = await Assert.ThrowsAsync<AssertionFailureException>(async () => await tcsFail.Task);
                 Assert.Equal(1, count);
             });
-
-            this.Run(config, test);
         }
 
         [Fact(Timeout=5000)]
-        public void TestUnhandledExceptionEventHandler()
+        public async Task TestUnhandledExceptionEventHandler()
         {
-            var config = GetConfiguration();
-            var test = new Action<IMachineRuntime>((r) =>
+            await this.RunAsync(async r =>
             {
                 var tcsFail = new TaskCompletionSource<bool>();
                 int count = 0;
@@ -130,23 +125,21 @@ namespace Microsoft.PSharp.Core.Tests
                         sawFilterException = true;
                         return;
                     }
+
                     count++;
                     tcsFail.SetException(exception);
                 };
 
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(N), new Configure(tcs));
-                tcs.Task.Wait();
-                Task.Delay(10).Wait(); // give it some time
 
-                AggregateException ex = Assert.Throws<AggregateException>(() => tcsFail.Task.Wait());
-                Assert.IsType<AssertionFailureException>(ex.InnerException);
-                Assert.IsType<InvalidOperationException>(ex.InnerException.InnerException);
+                await WaitAsync(tcs.Task);
+
+                AssertionFailureException ex = await Assert.ThrowsAsync<AssertionFailureException>(async () => await tcsFail.Task);
+                Assert.IsType<InvalidOperationException>(ex.InnerException);
                 Assert.Equal(1, count);
                 Assert.True(sawFilterException);
             });
-
-            this.Run(config, test);
         }
     }
 }

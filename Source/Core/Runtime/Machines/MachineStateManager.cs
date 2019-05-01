@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The runtime that executes the machine being managed.
         /// </summary>
-        private readonly BaseRuntime Runtime;
+        private readonly MachineRuntime Runtime;
 
         /// <summary>
         /// The machine being managed.
@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="MachineStateManager"/> class.
         /// </summary>
-        internal MachineStateManager(BaseRuntime runtime, Machine machine)
+        internal MachineStateManager(MachineRuntime runtime, Machine machine)
         {
             this.Runtime = runtime;
             this.Machine = machine;

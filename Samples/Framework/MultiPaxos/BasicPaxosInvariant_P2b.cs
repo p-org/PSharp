@@ -19,7 +19,6 @@ namespace MultiPaxos
             public int ProposeVal;
 
             public monitor_valueProposed(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int proposeVal)
-                : base(-1, -1)
             {
                 this.Node = id;
                 this.NextSlotForProposer = nextSlot;
@@ -36,7 +35,6 @@ namespace MultiPaxos
             public int ProposeVal;
 
             public monitor_valueChosen(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int proposeVal)
-                : base(-1, -1)
             {
                 this.Node = id;
                 this.NextSlotForProposer = nextSlot;

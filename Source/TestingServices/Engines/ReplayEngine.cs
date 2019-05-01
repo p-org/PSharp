@@ -161,8 +161,15 @@ namespace Microsoft.PSharp.TestingServices
                             Console.SetError(writer);
                         }
 
-                        // Runs the test inside the P# test-harness machine.
-                        runtime.RunTestHarness(this.TestMethod, this.TestAction);
+                        // Runs the test inside the test-harness machine.
+                        if (this.TestAction != null)
+                        {
+                            runtime.RunTestHarness(this.TestAction, this.TestName);
+                        }
+                        else
+                        {
+                            runtime.RunTestHarnessAsync(this.TestFunction, this.TestName);
+                        }
 
                         // Wait for the test to terminate.
                         runtime.Wait();
