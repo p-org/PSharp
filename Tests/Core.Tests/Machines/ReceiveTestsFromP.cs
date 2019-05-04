@@ -1,0 +1,573 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.PSharp.Core.Tests
+{
+    public class ReceiveTestsFromP : BaseTest
+    {
+        public ReceiveTestsFromP(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
+        internal class SetupEvent : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public SetupEvent(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        internal class SetupEventInt : Event
+        {
+            public TaskCompletionSource<int> Tcs;
+
+            public SetupEventInt(TaskCompletionSource<int> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        internal class SetupEventBool : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public SetupEventBool(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class E : Event
+        {
+        }
+
+        private class H : Event
+        {
+        }
+
+        private class G : Event
+        {
+            public int I;
+            public TaskCompletionSource<bool> Tcs;
+
+            public G(int i, TaskCompletionSource<bool> tcs)
+            {
+                this.I = i;
+                this.Tcs = tcs;
+            }
+        }
+
+        private class F : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public F(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class Config : Event
+        {
+            public MachineId Id;
+            public TaskCompletionSource<bool> Tcs;
+
+            public Config(MachineId id, TaskCompletionSource<bool> tcs)
+            {
+                this.Id = id;
+                this.Tcs = tcs;
+            }
+        }
+
+        private class Unit : Event
+        {
+        }
+
+        private class UnitTcsInt : Event
+        {
+            public TaskCompletionSource<int> Tcs;
+
+            public UnitTcsInt(TaskCompletionSource<int> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class UnitTcsBool : Event
+        {
+            public TaskCompletionSource<bool> Tcs;
+
+            public UnitTcsBool(TaskCompletionSource<bool> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class UnitInt : Event
+        {
+            public TaskCompletionSource<int> Tcs;
+
+            public UnitInt(TaskCompletionSource<int> tcs)
+            {
+                this.Tcs = tcs;
+            }
+        }
+
+        private class M1 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                var bid = this.CreateMachine(typeof(B1), new SetupEvent(tcs));
+                this.Send(bid, new F(tcs));
+            }
+        }
+
+        private class B1 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(UnitTcsBool), typeof(X))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryX))]
+            [OnEventGotoState(typeof(F), typeof(Y))]
+            private class X : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryY))]
+            private class Y : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new UnitTcsBool(tcs));
+            }
+
+            private async Task InitOnEntryX()
+            {
+                var tcs = (this.ReceivedEvent as UnitTcsBool).Tcs;
+                tcs.SetResult(true);
+                await this.Receive(typeof(E));
+            }
+
+            private void InitOnEntryY()
+            {
+                // Since Receive in state X is blocking, event F
+                // will never get dequeued, and InitOnEntryY handler is unreachable:
+                var tcs = (this.ReceivedEvent as F).Tcs;
+                tcs.SetResult(false);
+            }
+        }
+
+        private class M2 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                var bid = this.CreateMachine(typeof(B2), new SetupEvent(tcs));
+                this.Send(bid, new F(tcs));
+            }
+        }
+
+        private class B2 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventPushState(typeof(UnitTcsBool), typeof(X))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryX))]
+            [OnEventGotoState(typeof(F), typeof(Y))]
+            private class X : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryY))]
+            private class Y : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new UnitTcsBool(tcs));
+            }
+
+            private async Task InitOnEntryX()
+            {
+                var e = await this.Receive(typeof(F));
+                this.Pop();
+                (e as F).Tcs.SetResult(true);
+            }
+
+            private async Task InitOnEntryY()
+            {
+                // Since receive statement ignores the event handlers of the enclosing context,
+                // InitOnEntryY handler is unreachable:
+                var e = await this.Receive(typeof(F));
+                (e as F).Tcs.SetResult(false);
+            }
+        }
+
+        private class M3 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                var bid = this.CreateMachine(typeof(B3), new SetupEvent(tcs));
+                this.Send(bid, new F(tcs));
+            }
+        }
+
+        private class B3 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventPushState(typeof(UnitTcsBool), typeof(X))]
+            [OnEventGotoState(typeof(F), typeof(Error))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryX))]
+            [OnEventGotoState(typeof(F), typeof(Error))]
+            private class X : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryError))]
+            private class Error : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new UnitTcsBool(tcs));
+            }
+
+            private async Task InitOnEntryX()
+            {
+                var e = await this.Receive(typeof(F));
+                this.Pop();
+                (e as F).Tcs.SetResult(true);
+            }
+
+            private async Task InitOnEntryError()
+            {
+                // Since receive statement ignores the event handlers of the enclosing context,
+                // InitOnEntryError handler is unreachable:
+                var e = await this.Receive(typeof(F));
+                (e as F).Tcs.SetResult(false);
+            }
+        }
+
+        private class M4 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(T))]
+            [OnEventDoAction(typeof(UnitTcsInt), nameof(OnUnitAction))]
+            [OnExit(nameof(ExitInit))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryT))]
+            private class T : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEventBool).Tcs;
+                var bid = this.CreateMachine(typeof(B4), new Config(this.Id, tcs));
+                this.Raise(new UnitTcsBool(tcs));
+            }
+
+            private void InitOnEntryT()
+            {
+            }
+
+            private async Task ExitInit()
+            {
+                var e = await this.Receive(typeof(G));
+                var payload = (e as G).I;
+                (e as G).Tcs.SetResult(true);
+            }
+
+            private async Task OnUnitAction()
+            {
+                var e = await this.Receive(typeof(G));
+                var payload = (e as G).I;
+                // Since the exit action is executed later, the result being set to false here
+                // does not affect the test outcome:
+                (e as G).Tcs.SetResult(false);
+                this.Raise(new Unit());
+            }
+        }
+
+        private class B4 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                MachineId mid = (this.ReceivedEvent as Config).Id;
+                var tcs = (this.ReceivedEvent as Config).Tcs;
+                this.Send(mid, new G(1, tcs));
+                this.Send(mid, new G(2, tcs));
+            }
+        }
+
+        private class M5 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEventBool).Tcs;
+                var bid = this.CreateMachine(typeof(B5), new Config(this.Id, tcs));
+                this.Send(bid, new G(1, tcs));
+                this.Send(bid, new G(2, tcs));
+            }
+        }
+
+        private class B5 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnExit(nameof(ExitInit))]
+            [OnEventGotoState(typeof(Unit), typeof(T))]
+            [OnEventDoAction(typeof(UnitTcsBool), nameof(OnUnitAction))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(InitOnEntryT))]
+            private class T : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                MachineId mid = (this.ReceivedEvent as Config).Id;
+                var tcs = (this.ReceivedEvent as Config).Tcs;
+                this.Raise(new UnitTcsBool(tcs));
+            }
+
+            private async Task ExitInit()
+            {
+                var e = await this.Receive(typeof(G));
+                var payload = (e as G).I;
+                (e as G).Tcs.SetResult(true);
+            }
+
+            private void InitOnEntryT()
+            {
+            }
+
+            private async Task OnUnitAction()
+            {
+                var e = await this.Receive(typeof(G));
+                var payload = (e as G).I;
+                // Since the exit action is executed later, the result being set to false here
+                // does not affect the test outcome:
+                (e as G).Tcs.SetResult(false);
+                this.Raise(new Unit());
+            }
+        }
+
+        private class M6 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var bid = this.CreateMachine(typeof(B6));
+                // this.Send(bid, new G(0));
+                // this.Send(bid, new G(0));
+            }
+        }
+
+        private class B6 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnExit(nameof(DoReceive))]
+            [OnEventGotoState(typeof(Unit), typeof(T))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(DoReceive))]
+            private class T : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                // this.Raise(new Unit());
+            }
+
+            private async Task DoReceive()
+            {
+                await this.Receive(typeof(G));
+                this.Assert(false);
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive6\receive6.p
+        public void TestReceiveEventBlocking1()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            // TODO: timeout doesn't help in case of a deadlock: why?
+            // configuration.Timeout = 10;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M1), new SetupEvent(tcs));
+                // TODO: timeout never reached, even with 0 delay: why?
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive12\receive12.p
+        public void TestReceiveEventBlocking2()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M2), new SetupEvent(tcs));
+                // TODO: timeout never reached, even with 0 delay: why?
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive13\receive13.p
+        public void TestReceiveEventBlocking3()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M3), new SetupEvent(tcs));
+                // TODO: timeout never reached, even with 0 delay: why?
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive14\receiveInExit1.p
+        public void TestReceiveEventInExit1()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M4), new SetupEventBool(tcs));
+                // TODO: timeout never reached, even with 0 delay: why?
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive15\receiveInExit2.p
+        public void TestReceiveEventInExit2()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M5), new SetupEventBool(tcs));
+                // TODO: timeout never reached, even with 0 delay: why?
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive16\receiveInExit3.p
+        public void TestReceiveEventInExit3()
+        {
+            var test = new Action<IMachineRuntime>((r) =>
+            {
+                r.CreateMachine(typeof(M6));
+            });
+
+            var bugReport = "Detected an assertion failure.";
+            // this.AssertFailed(test, bugReport, true);
+        }
+    }
+}
