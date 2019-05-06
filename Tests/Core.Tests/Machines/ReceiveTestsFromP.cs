@@ -303,7 +303,7 @@ namespace Microsoft.PSharp.Core.Tests
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(T))]
-            [OnEventDoAction(typeof(UnitTcsInt), nameof(OnUnitAction))]
+            [OnEventDoAction(typeof(UnitTcsBool), nameof(OnUnitAction))]
             [OnExit(nameof(ExitInit))]
             private class Init : MachineState
             {
@@ -327,8 +327,11 @@ namespace Microsoft.PSharp.Core.Tests
 
             private async Task ExitInit()
             {
+                // This exit action is executed after the OnUnitAction action, upon
+                // transitioning from the state Init to the state T
                 var e = await this.Receive(typeof(G));
                 var payload = (e as G).I;
+                this.Assert(payload == 2);
                 (e as G).Tcs.SetResult(true);
             }
 
@@ -336,9 +339,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var e = await this.Receive(typeof(G));
                 var payload = (e as G).I;
-                // Since the exit action is executed later, the result being set to false here
-                // does not affect the test outcome:
-                (e as G).Tcs.SetResult(false);
+                this.Assert(payload == 1);
                 this.Raise(new Unit());
             }
         }
@@ -402,8 +403,11 @@ namespace Microsoft.PSharp.Core.Tests
 
             private async Task ExitInit()
             {
+                // This exit action is executed after the OnUnitAction action, upon
+                // transitioning from the state Init to the state T
                 var e = await this.Receive(typeof(G));
                 var payload = (e as G).I;
+                this.Assert(payload == 2);
                 (e as G).Tcs.SetResult(true);
             }
 
@@ -415,53 +419,8 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var e = await this.Receive(typeof(G));
                 var payload = (e as G).I;
-                // Since the exit action is executed later, the result being set to false here
-                // does not affect the test outcome:
-                (e as G).Tcs.SetResult(false);
+                this.Assert(payload == 1);
                 this.Raise(new Unit());
-            }
-        }
-
-        private class M6 : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            private class Init : MachineState
-            {
-            }
-
-            private void InitOnEntry()
-            {
-                var bid = this.CreateMachine(typeof(B6));
-                // this.Send(bid, new G(0));
-                // this.Send(bid, new G(0));
-            }
-        }
-
-        private class B6 : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            [OnExit(nameof(DoReceive))]
-            [OnEventGotoState(typeof(Unit), typeof(T))]
-            private class Init : MachineState
-            {
-            }
-
-            [OnEntry(nameof(DoReceive))]
-            private class T : MachineState
-            {
-            }
-
-            private void InitOnEntry()
-            {
-                // this.Raise(new Unit());
-            }
-
-            private async Task DoReceive()
-            {
-                await this.Receive(typeof(G));
-                this.Assert(false);
             }
         }
 
@@ -477,7 +436,6 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M1), new SetupEvent(tcs));
-                // TODO: timeout never reached, even with 0 delay: why?
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
@@ -495,7 +453,6 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M2), new SetupEvent(tcs));
-                // TODO: timeout never reached, even with 0 delay: why?
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
@@ -513,7 +470,6 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M3), new SetupEvent(tcs));
-                // TODO: timeout never reached, even with 0 delay: why?
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
                 Assert.True(tcs.Task.Result);
             });
@@ -531,7 +487,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M4), new SetupEventBool(tcs));
-                // TODO: timeout never reached, even with 0 delay: why?
+                // TODO: timeout reached when assert in a machine fails: why?
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
                 Assert.True(tcs.Task.Result);
             });
@@ -549,25 +505,11 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M5), new SetupEventBool(tcs));
-                // TODO: timeout never reached, even with 0 delay: why?
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
                 Assert.True(tcs.Task.Result);
             });
 
             this.Run(configuration, test);
-        }
-
-        [Fact(Timeout = 5000)]
-        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive16\receiveInExit3.p
-        public void TestReceiveEventInExit3()
-        {
-            var test = new Action<IMachineRuntime>((r) =>
-            {
-                r.CreateMachine(typeof(M6));
-            });
-
-            var bugReport = "Detected an assertion failure.";
-            // this.AssertFailed(test, bugReport, true);
         }
     }
 }
