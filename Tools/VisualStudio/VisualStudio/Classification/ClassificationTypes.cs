@@ -102,5 +102,9 @@ namespace Microsoft.PSharp.VisualStudio
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.WhiteSpace")]
         internal static ClassificationTypeDefinition PSharpWhiteSpaceDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.QuotedString")]
+        internal static ClassificationTypeDefinition PSharpQuotedStringDefinition = null;
     }
 }

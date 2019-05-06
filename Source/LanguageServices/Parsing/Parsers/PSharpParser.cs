@@ -52,6 +52,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
+                    case TokenType.QuotedString:
                     case TokenType.Comment:
                     case TokenType.NewLine:
                         this.TokenStream.Index++;

@@ -4,21 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
     /// <summary>
     /// The P# completion command handler.
     /// </summary>
@@ -41,14 +39,12 @@ namespace Microsoft.PSharp.VisualStudio
             this.TextView = textView;
             this.Provider = provider;
 
-            //add the command to the command chain
+            // Add the command to the command chain
             textViewAdapter.AddCommandFilter(this, out this.NextCommandHandler);
         }
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            return this.NextCommandHandler.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
-        }
+            => this.NextCommandHandler.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
@@ -57,46 +53,37 @@ namespace Microsoft.PSharp.VisualStudio
                 return this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
             }
 
-            // Make a copy of this so we can look at it after forwarding some commands.
-            uint commandID = nCmdID;
-            char typedChar = char.MinValue;
-
             // Make sure the input is a char before getting it.
-            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
-            {
-                typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
-            }
+            var typedChar = pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR
+                ? (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn)
+                : char.MinValue;
 
             // Check for a commit character.
-            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN
-                || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
-                || (char.IsWhiteSpace(typedChar) || char.IsPunctuation(typedChar)))
+            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
+                || char.IsWhiteSpace(typedChar) || char.IsPunctuation(typedChar))
             {
-                // Check for a a selection.
+                // Check for a selection.
                 if (this.Session != null && !this.Session.IsDismissed)
                 {
-                    // If the selection is fully selected, commit the current session.
+                    // If the selection is fully selected, commit the current session and don't add the character to the buffer.
                     if (this.Session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
                         this.Session.Commit();
-                        // Also, don't add the character to the buffer.
                         return VSConstants.S_OK;
                     }
-                    else
-                    {
-                        // If there is no selection, dismiss the session.
-                        this.Session.Dismiss();
-                    }
+
+                    // There is no selection so dismiss the session.
+                    this.Session.Dismiss();
                 }
             }
 
             // Pass along the command so the char is added to the buffer.
-            int retVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            int nextCommandRetVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
             bool handled = false;
 
             if (!typedChar.Equals(char.MinValue) && char.IsLetterOrDigit(typedChar))
             {
-                // If there is no active session, bring up completion.
+                // If there is no active session, bring up completion before filtering.
                 if (this.Session == null || this.Session.IsDismissed)
                 {
                     this.TriggerCompletion();
@@ -104,35 +91,21 @@ namespace Microsoft.PSharp.VisualStudio
                     {
                         return VSConstants.S_OK;
                     }
-
-                    this.Session.Filter();
                 }
-                // The completion session is already active, so just filter.
-                else
-                {
-                    this.Session.Filter();
-                }
-
+                this.Session.Filter();
                 handled = true;
             }
-            // Redo the filter if there is a deletion.
-            else if (commandID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE
-                || commandID == (uint)VSConstants.VSStd2KCmdID.DELETE)
+            else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE || nCmdID == (uint)VSConstants.VSStd2KCmdID.DELETE)
             {
+                // There is a deletion so redo the filter if we have an active session.
                 if (this.Session != null && !this.Session.IsDismissed)
                 {
                     this.Session.Filter();
                 }
-
                 handled = true;
             }
 
-            if (handled)
-            {
-                return VSConstants.S_OK;
-            }
-
-            return retVal;
+            return handled ? VSConstants.S_OK : nextCommandRetVal;
         }
 
         private bool TriggerCompletion()
@@ -163,4 +136,5 @@ namespace Microsoft.PSharp.VisualStudio
             this.Session = null;
         }
     }
+#endif
 }

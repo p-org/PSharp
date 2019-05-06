@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
     /// <summary>
     /// The P# completion handler provider.
     /// </summary>
@@ -36,12 +37,11 @@ namespace Microsoft.PSharp.VisualStudio
         public void VsTextViewCreated(IVsTextView textViewAdapter)
         {
             ITextView textView = AdapterService.GetWpfTextView(textViewAdapter);
-            if (textView == null)
-                return;
-
-            Func<CompletionCommandHandler> createCommandHandler = delegate () {
-                return new CompletionCommandHandler(textViewAdapter, textView, this); };
-            textView.Properties.GetOrCreateSingletonProperty(createCommandHandler);
+            if (textView != null)
+            {
+                textView.Properties.GetOrCreateSingletonProperty(() => new CompletionCommandHandler(textViewAdapter, textView, this));
+            }
         }
     }
+#endif
 }

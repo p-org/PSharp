@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IgnoredEvents = new HashSet<Token>();
             this.ResolvedEventIdentifierTokens = new Dictionary<Token, Tuple<List<Token>, int>>();
             this.RewrittenMethods = new HashSet<QualifiedMethod>();
-            this.isNameofSupported = this.Program.GetProject().CompilationContext.Configuration.IsRewriteCSharpVersion(6, 0);
+            this.isNameofSupported = this.Program.GetProject()?.CompilationContext?.Configuration?.IsRewriteCSharpVersion(6, 0) ?? true;    // Project is not set for LanguageServices
         }
 
         /// <summary>

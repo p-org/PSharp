@@ -19,16 +19,13 @@ namespace Microsoft.PSharp.VisualStudio
     /// </summary>
     internal sealed class PSharpTokenTagger : ITagger<PSharpTokenTag>
     {
-        ITextBuffer Buffer;
+        readonly ITextBuffer Buffer;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="buffer">ITextBuffer</param>
-        internal PSharpTokenTagger(ITextBuffer buffer)
-        {
-            this.Buffer = buffer;
-        }
+        internal PSharpTokenTagger(ITextBuffer buffer) => this.Buffer = buffer;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged
         {
@@ -43,10 +40,8 @@ namespace Microsoft.PSharp.VisualStudio
                 yield break;
             }
 
-            foreach (var span in spans)
+            foreach (var currSpan in spans)
             {
-                var snapshot = span.Snapshot;
-                var currSpan = span;
                 var containingLine = currSpan.Start.GetContainingLine();
 
                 var tokens = new PSharpLexer().Tokenize(containingLine.GetText());
@@ -56,6 +51,10 @@ namespace Microsoft.PSharp.VisualStudio
                 var currLoc = containingLine.Start.Position;
                 foreach (var token in tokens)
                 {
+                    if (currLoc >= containingLine.End)   // TODOspan: we need to *not* add the ending newline
+                    {
+                        break;
+                    }
                     var tokenSpan = new SnapshotSpan(currSpan.Snapshot, new Span(currLoc, token.Text.Length));
                     yield return new TagSpan<PSharpTokenTag>(tokenSpan, new PSharpTokenTag(token.Type));
                     currLoc += token.Text.Length;

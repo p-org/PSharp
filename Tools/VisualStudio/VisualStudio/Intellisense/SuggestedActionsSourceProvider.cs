@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: SuggestedActions are currently only for errors which requires NotYetImplemented ParsingException.FailingToken,
+          //       as well as requiring ProjectionTree so we don't try to apply P# operations in C# blocks.
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Name("P# suggested actions")]
     [ContentType("psharp")]
@@ -22,13 +24,7 @@ namespace Microsoft.PSharp.VisualStudio
         internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
-        {
-            if (textBuffer == null && textView == null)
-            {
-                return null;
-            }
-
-            return new SuggestedActionsSource(this, textView, textBuffer);
-        }
+            => textBuffer == null && textView == null ? null : new SuggestedActionsSource(this, textView, textBuffer);
     }
+#endif
 }

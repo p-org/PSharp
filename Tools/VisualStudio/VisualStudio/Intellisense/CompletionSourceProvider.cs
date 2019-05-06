@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
     /// <summary>
     /// The P# completion source provider.
     /// </summary>
@@ -24,8 +25,7 @@ namespace Microsoft.PSharp.VisualStudio
         internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
-        {
-            return new CompletionSource(this, textBuffer);
-        }
+            => new CompletionSource(this, textBuffer);
     }
+#endif
 }

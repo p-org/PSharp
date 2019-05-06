@@ -13,15 +13,12 @@ namespace Microsoft.PSharp.VisualStudio
     /// </summary>
     internal class PSharpTokenTag : ITag
     {
-        public TokenType Type { get; private set; }
+        public TokenType Type { get; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="type">TokenType</param>
-        public PSharpTokenTag(TokenType type)
-        {
-            this.Type = type;
-        }
+        public PSharpTokenTag(TokenType type) => this.Type = type;
     }
 }

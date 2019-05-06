@@ -668,6 +668,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// "extern" declaration token
         /// </summary>
-        ExternDecl
+        ExternDecl,
+
+        /// <summary>
+        /// Quoted string
+        /// </summary>
+        QuotedString
     }
 }
