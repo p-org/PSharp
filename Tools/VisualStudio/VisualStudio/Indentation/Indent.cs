@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
-using Microsoft.PSharp.LanguageServices.Parsing;
+using System.Linq;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -18,93 +18,53 @@ namespace Microsoft.PSharp.VisualStudio
     /// </summary>
     internal sealed class Indent : ISmartIndent
     {
-        private readonly ITextView TextView;
-        private bool IsDisposed;
+        private readonly ITextView textView;
+        private bool isDisposed;
+
+        private RegionParser RegionParser = new RegionParser(RegionParser.BoundaryChar.CurlyBrace);
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="textView">ITextView</param>
-        public Indent(ITextView textView)
-        {
-            this.TextView = textView;
-            this.IsDisposed = false;
-        }
+        public Indent(ITextView textView) => this.textView = textView;
 
-        public int? GetDesiredIndentation(ITextSnapshotLine line)
-        {
-            return this.GetLineIndentation(line);
-        }
+        public int? GetDesiredIndentation(ITextSnapshotLine line) => this.GetLineIndentation(line);
 
         internal int GetLineIndentation(ITextSnapshotLine line)
         {
-            var options = this.TextView.Options;
-            var tabSize = options.GetIndentSize();
+            var tabSize = this.textView.Options.GetIndentSize();
 
-            var indent = 0;
+            // Get the nearest non-blank preceding line, if any.
+            var currentLineText = line.GetText();
+            string precedingLineText = string.Empty;
+            while (line.LineNumber > 0 && string.IsNullOrWhiteSpace(precedingLineText))
+            {
+                line = line.Snapshot.GetLineFromLineNumber(line.LineNumber - 1);
+                precedingLineText = line.GetText();
+            }
             if (line.LineNumber == 0)
             {
-                return indent;
+                return 0;
             }
 
-            var currentLine = line;
+            // Get existing indent from the preceding line.
+            var indent = precedingLineText.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => (c == '\t') ? 4 : 1).Sum();
 
-            do
-            {
-                currentLine = line.Snapshot.GetLineFromLineNumber(currentLine.LineNumber - 1);
-            }
-            while (currentLine.LineNumber > 0 && currentLine.Length == 0);
-            if (line.LineNumber == 0)
-            {
-                return indent;
-            }
+            // Don't increase the indent for the openBracket of the preceding line if its closeBracket is the first non-blank character on the current line.
+            var fnbcIsCloseBrace = currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace;
 
-            var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
-
-            bool codeFound = false;
-            foreach (var token in tokens)
-            {
-                if (token.Type == TokenType.WhiteSpace && !codeFound)
-                {
-                    foreach (var c in token.Text)
-                    {
-                        if (c == '\t')
-                        {
-                            indent += tabSize;
-                        }
-                        else
-                        {
-                            indent++;
-                        }
-                    }
-                }
-                else if (token.Type == TokenType.LeftCurlyBracket ||
-                    token.Type == TokenType.MachineLeftCurlyBracket ||
-                    token.Type == TokenType.StateLeftCurlyBracket)
-                {
-                    indent += tabSize;
-                    break;
-                }
-                else if (!codeFound)
-                {
-                    codeFound = true;
-                }
-            }
-
-            if (indent < 0)
-            {
-                indent = 0;
-            }
-
-            return indent;
+            return !fnbcIsCloseBrace && this.RegionParser.GetBoundaryChar(precedingLineText) != RegionParser.BoundaryChar.None
+                ? indent + tabSize
+                : indent;
         }
 
         public void Dispose()
         {
-            if (!this.IsDisposed)
+            if (!this.isDisposed)
             {
                 GC.SuppressFinalize(this);
-                this.IsDisposed = true;
+                this.isDisposed = true;
             }
         }
     }

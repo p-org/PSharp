@@ -26,18 +26,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// The length of the stream.
         /// </summary>
-        public int Length
-        {
-            get => this.Tokens.Count;
-        }
+        public int Length => this.Tokens.Count;
 
         /// <summary>
         /// True if no tokens remaining in the stream.
         /// </summary>
-        public bool Done
-        {
-            get => this.Index == this.Length;
-        }
+        public bool Done => this.Index >= this.Length;  // Double-increment is possible in LanguageServices
 
         /// <summary>
         /// The program this token stream belongs to.
@@ -59,14 +53,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public Token Next()
         {
-            if (this.Index == this.Tokens.Count)
+            if (this.Done)
             {
                 return null;
             }
 
             var token = this.Tokens[this.Index];
             this.Index++;
-
             return token;
         }
 
@@ -74,41 +67,23 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Returns the next token in the stream without progressing to the next token,
         /// or null if the stream is empty.
         /// </summary>
-        public Token Peek()
-        {
-            if (this.Index == this.Tokens.Count)
-            {
-                return null;
-            }
-
-            return this.Tokens[this.Index];
-        }
+        public Token Peek() => this.Done ? null : this.Tokens[this.Index];
 
         /// <summary>
         /// Swaps the current token with the new token, or does nothing if the stream is empty.
         /// </summary>
         public void Swap(Token token)
         {
-            if (this.Index == this.Tokens.Count)
+            if (!this.Done)
             {
-                return;
+                this.Tokens[this.Index] = token;
             }
-
-            this.Tokens[this.Index] = token;
         }
 
         /// <summary>
         /// Returns the token in the given index of the stream, or null if the index is out of bounds.
         /// </summary>
-        public Token GetAt(int index)
-        {
-            if (index >= this.Tokens.Count || index < 0)
-            {
-                return null;
-            }
-
-            return this.Tokens[index];
-        }
+        public Token GetAt(int index) => (index >= this.Tokens.Count || index < 0) ? null : this.Tokens[index];
 
         /// <summary>
         /// Skips whitespace and comment tokens.
@@ -153,12 +128,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void Consume()
         {
-            if (this.Index == this.Tokens.Count)
+            if (!this.Done)
             {
-                return;
+                this.Tokens.RemoveAt(this.Index);
             }
-
-            this.Tokens.RemoveAt(this.Index);
         }
 
         /// <summary>
@@ -219,7 +192,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
 
             this.Consume();
-
             return true;
         }
     }

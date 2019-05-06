@@ -107,6 +107,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
+                    case TokenType.QuotedString:
                     case TokenType.Comment:
                     case TokenType.NewLine:
                         this.TokenStream.Index++;
@@ -221,6 +222,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
+                    case TokenType.QuotedString:
                     case TokenType.Comment:
                     case TokenType.NewLine:
                         this.TokenStream.Index++;
