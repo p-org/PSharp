@@ -136,8 +136,81 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Runs the P# testing engine.
         /// </summary>
-        /// <returns>ITestingEngine</returns>
-        public abstract ITestingEngine Run();
+        public ITestingEngine Run()
+        {
+            try
+            {
+                Task task = this.CreateTestingTask();
+
+                if (this.Configuration.AttachDebugger)
+                {
+                    System.Diagnostics.Debugger.Launch();
+                }
+
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    this.CreateRuntimeTracesDirectory();
+                }
+
+                if (this.Configuration.Timeout > 0)
+                {
+                    this.CancellationTokenSource.CancelAfter(
+                        this.Configuration.Timeout * 1000);
+                }
+
+                this.Profiler.StartMeasuringExecutionTime();
+
+                task.Start();
+                task.Wait(this.CancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                if (this.CancellationTokenSource.IsCancellationRequested)
+                {
+                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
+                }
+            }
+            catch (AggregateException aex)
+            {
+                aex.Handle((ex) =>
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                    return true;
+                });
+
+                if (aex.InnerException is FileNotFoundException)
+                {
+                    Error.ReportAndExit($"{aex.InnerException.Message}");
+                }
+
+                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
+                    "machine, possibly in a test method. Please use " +
+                    "/debug /v:2 to print more information.");
+            }
+            catch (Exception ex)
+            {
+                this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
+                this.TestReport.InternalErrors.Add(ex.ToString());
+            }
+            finally
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+
+                // if (!this.Configuration.KeepTemporaryFiles &&
+                //    this.Assembly != null)
+                // {
+                //    this.CleanTemporaryFiles();
+                // }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Creates a new testing task.
+        /// </summary>
+        protected abstract Task CreateTestingTask();
 
         /// <summary>
         /// Stops the P# testing engine.
@@ -150,20 +223,15 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the testing traces, if any.
         /// </summary>
-        /// <param name="directory">Directory name</param>
-        /// <param name="file">File name</param>
         public virtual void TryEmitTraces(string directory, string file)
         {
             // No-op, must be implemented in subclass.
         }
 
         /// <summary>
-        /// Registers a callback to invoke at the end
-        /// of each iteration. The callback takes as
-        /// a parameter an integer representing the
-        /// current iteration.
+        /// Registers a callback to invoke at the end of each iteration. The callback takes as
+        /// a parameter an integer representing the current iteration.
         /// </summary>
-        /// <param name="callback">Callback</param>
         public void RegisterPerIterationCallBack(Action<int> callback)
         {
             this.PerIterationCallbacks.Add(callback);
@@ -172,7 +240,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns a report with the testing results.
         /// </summary>
-        /// <returns>Report</returns>
         public abstract string Report();
 
         /// <summary>
@@ -364,71 +431,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Executes the specified testing task.
-        /// </summary>
-        protected void Execute(Task task)
-        {
-            if (this.Configuration.AttachDebugger)
-            {
-                System.Diagnostics.Debugger.Launch();
-            }
-
-            if (this.Configuration.EnableDataRaceDetection)
-            {
-                this.CreateRuntimeTracesDirectory();
-            }
-
-            if (this.Configuration.Timeout > 0)
-            {
-                this.CancellationTokenSource.CancelAfter(
-                    this.Configuration.Timeout * 1000);
-            }
-
-            this.Profiler.StartMeasuringExecutionTime();
-
-            try
-            {
-                task.Start();
-                task.Wait(this.CancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                if (this.CancellationTokenSource.IsCancellationRequested)
-                {
-                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
-                }
-            }
-            catch (AggregateException aex)
-            {
-                aex.Handle((ex) =>
-                {
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                    return true;
-                });
-
-                if (aex.InnerException is FileNotFoundException)
-                {
-                    Error.ReportAndExit($"{aex.InnerException.Message}");
-                }
-
-                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
-                    "machine, possibly in a test method. Please use " +
-                    "/debug /v:2 to print more information.");
-            }
-            finally
-            {
-                this.Profiler.StopMeasuringExecutionTime();
-
-                // if (!this.Configuration.KeepTemporaryFiles &&
-                //    this.Assembly != null)
-                // {
-                //    this.CleanTemporaryFiles();
-                // }
-            }
-        }
-
-        /// <summary>
         /// Finds the testing runtime factory method, if one is provided.
         /// </summary>
         private void FindRuntimeFactoryMethod()
@@ -594,10 +596,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Finds the test methods with the specified attribute in the given assembly.
         /// Returns an empty list if no such methods are found.
         /// </summary>
-        /// <param name="attribute">Type</param>
-        /// <param name="bindingFlags">BindingFlags</param>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>MethodInfos</returns>
         private List<MethodInfo> FindTestMethodsWithAttribute(Type attribute, BindingFlags bindingFlags, Assembly assembly)
         {
             List<MethodInfo> testMethods = null;
@@ -628,8 +626,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the schedule to replay.
         /// </summary>
-        /// <param name="isFair">Is strategy used during replay fair.</param>
-        /// <returns>Schedule</returns>
         private string[] GetScheduleForReplay(out bool isFair)
         {
             string[] scheduleDump;
@@ -676,7 +672,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns (and creates if it does not exist) the output directory.
         /// </summary>
-        /// <returns>Path</returns>
         protected string GetOutputDirectory()
         {
             string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
@@ -697,7 +692,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Returns the runtime traces directory.
         /// </summary>
-        /// <returns>Path</returns>
         protected string GetRuntimeTracesDirectory()
         {
             return this.GetOutputDirectory() + Path.DirectorySeparatorChar;
@@ -718,7 +712,6 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Installs the specified <see cref="IO.ILogger"/>.
         /// </summary>
-        /// <param name="logger">ILogger</param>
         public void SetLogger(IO.ILogger logger)
         {
             if (logger is null)

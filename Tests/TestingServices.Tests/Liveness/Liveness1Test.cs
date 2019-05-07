@@ -97,17 +97,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestLiveness1()
         {
-            var configuration = GetConfiguration();
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            configuration.MaxSchedulingSteps = 300;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: GetConfiguration().WithStrategy(SchedulingStrategy.DFS).WithMaxSteps(300));
         }
     }
 }

@@ -115,14 +115,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.EnableCycleDetection = true;
             configuration.SchedulingIterations = 100;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'WatchDog' detected infinite execution that violates a liveness property.",
+            replay: true);
         }
     }
 }

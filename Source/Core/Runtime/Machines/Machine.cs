@@ -112,11 +112,6 @@ namespace Microsoft.PSharp
         private bool OnExceptionRequestedGracefulHalt;
 
         /// <summary>
-        /// The logger installed to the P# runtime.
-        /// </summary>
-        protected ILogger Logger => this.Runtime.Logger;
-
-        /// <summary>
         /// Gets the <see cref="Type"/> of the current state.
         /// </summary>
         protected internal Type CurrentState
@@ -856,14 +851,12 @@ namespace Microsoft.PSharp
                 if (innerException is ExecutionCanceledException)
                 {
                     this.IsHalted = true;
-                    Debug.WriteLine("<Exception> ExecutionCanceledException was " +
-                        $"thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from Machine '{this.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     this.IsHalted = true;
-                    Debug.WriteLine("<Exception> TaskSchedulerException was " +
-                        $"thrown from Machine '{this.Id}'.");
+                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from Machine '{this.Id}'.");
                 }
                 else if (this.OnExceptionRequestedGracefulHalt)
                 {
@@ -1539,7 +1532,7 @@ namespace Microsoft.PSharp
         {
             if (ex is ExecutionCanceledException)
             {
-                // internal exception, used by PsharpTester
+                // Internal exception, used during testing.
                 return false;
             }
 

@@ -100,15 +100,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            string bugReport = "Monitor 'WatchDog' detected liveness bug in hot state " +
-                "'CannotGetUserInput' at the end of program execution.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'WatchDog' detected liveness bug in hot state " +
+                "'CannotGetUserInput' at the end of program execution.",
+            replay: true);
         }
     }
 }

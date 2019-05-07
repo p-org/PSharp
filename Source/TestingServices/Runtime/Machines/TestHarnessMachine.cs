@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// The test name.
         /// </summary>
-        private readonly string TestName;
+        internal readonly string TestName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
@@ -59,50 +59,28 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Runs the test harness.
-        /// </summary>
-        internal void Run()
-        {
-            this.Runtime.Log($"<TestHarnessLog> Running {this.TestName}.");
-
-            try
-            {
-                this.TestAction(this.Id.Runtime);
-            }
-            catch (TargetInvocationException ex)
-            {
-                throw ex.InnerException;
-            }
-        }
-
-        /// <summary>
         /// Runs the test harness asynchronously.
         /// </summary>
         internal Task RunAsync()
         {
-            this.Runtime.Log($"<TestHarnessLog> Running {this.TestName}.");
+            this.Logger.WriteLine($"<TestHarnessLog> Running {this.TestName}.");
 
             try
             {
-                return this.TestFunction(this.Id.Runtime);
+                if (this.TestAction != null)
+                {
+                    this.TestAction(this.Id.Runtime);
+                    return Task.CompletedTask;
+                }
+                else
+                {
+                    return this.TestFunction(this.Id.Runtime);
+                }
             }
             catch (TargetInvocationException ex)
             {
                 throw ex.InnerException;
             }
-        }
-
-        /// <summary>
-        /// Wraps the unhandled exception inside an <see cref="AssertionFailureException"/>
-        /// exception, and throws it to the user.
-        /// </summary>
-        internal void ReportUnhandledException(Exception ex)
-        {
-            this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                $"in {this.TestName}, " +
-                $"'{ex.Source}':\n" +
-                $"   {ex.Message}\n" +
-                $"The stack trace is:\n{ex.StackTrace}");
         }
     }
 }

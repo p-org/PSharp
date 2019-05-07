@@ -46,15 +46,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestBasicTimerOperation()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.CreateMachine(typeof(T1));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200));
         }
 
         private class T2 : Machine
@@ -92,13 +88,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestBasicPeriodicTimerOperation()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.CreateMachine(typeof(T2));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000));
         }
 
         private class T3 : Machine
@@ -150,15 +144,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestDropTimeoutsAfterTimerDisposal()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(100);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.CreateMachine(typeof(T3));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200));
         }
 
         private class T4 : Machine
@@ -178,15 +168,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestIllegalDueTimeSpecification()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.CreateMachine(typeof(T4));
-            });
-
-            this.AssertFailed(configuration, test, 1, true);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200),
+            expectedError: "Machine 'T4()' registered a timer with a negative due time.",
+            replay: true);
         }
 
         private class T5 : Machine
@@ -206,15 +194,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestIllegalPeriodSpecification()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.CreateMachine(typeof(T5));
-            });
-
-            this.AssertFailed(configuration, test, 1, true);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200),
+            expectedError: "Machine 'T5()' registered a periodic timer with a negative period.",
+            replay: true);
         }
 
         private class TransferTimerEvent : Event
@@ -261,16 +247,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestTimerDisposedByNonOwner()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.CreateMachine(typeof(T6));
-            });
-
-            string bugReport = "Machine 'T7()' is not allowed to dispose timer '', which is owned by machine 'T6()'.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200),
+            expectedError: "Machine 'T7()' is not allowed to dispose timer '', which is owned by machine 'T6()'.",
+            replay: true);
         }
 
         private class T8 : Machine
@@ -304,15 +287,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestExplicitHaltWithTimer()
         {
-            var configuration = Configuration.Create().WithNumberOfIterations(1000);
-            configuration.MaxSchedulingSteps = 200;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.CreateMachine(typeof(T8));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithNumberOfIterations(1000).WithMaxSteps(200));
         }
     }
 }

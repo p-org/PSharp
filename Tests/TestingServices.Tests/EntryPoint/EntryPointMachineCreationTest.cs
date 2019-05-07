@@ -35,14 +35,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestEntryPointMachineCreation()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 MachineId m = r.CreateMachine(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
                 r.Assert(m != null && m != null, "Machine ids are null.");
             });
-
-            this.AssertSucceeded(test);
         }
     }
 }

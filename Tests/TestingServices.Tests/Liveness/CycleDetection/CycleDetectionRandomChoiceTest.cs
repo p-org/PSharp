@@ -95,41 +95,44 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact(Timeout=5000)]
-        public void TestCycleDetectionRandomChoiceNoBug()
+        [Theory(Timeout = 5000)]
+        // [ClassData(typeof(SeedGenerator))]
+        [InlineData(906)]
+        public void TestCycleDetectionRandomChoiceNoBug(int seed)
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.RandomSchedulingSeed = 906;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 7;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(true));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: configuration);
         }
 
-        [Fact(Timeout=5000)]
-        public void TestCycleDetectionRandomChoiceBug()
+        [Theory(Timeout = 5000)]
+        // [ClassData(typeof(SeedGenerator))]
+        [InlineData(906)]
+        public void TestCycleDetectionRandomChoiceBug(int seed)
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.RandomSchedulingSeed = 906;
+            configuration.RandomSchedulingSeed = seed;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler), new Configure(false));
-            });
-
-            string bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
-            this.AssertFailed(configuration, test, bugReport, true);
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'WatchDog' detected infinite execution that violates a liveness property.",
+            replay: true);
         }
     }
 }

@@ -41,14 +41,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestEntryPointMachineExecution()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 MachineId m = r.CreateMachine(typeof(M));
                 MachineId n = r.CreateMachine(typeof(N));
-            });
-
-            var bugReport = "Reached test assertion.";
-            this.AssertFailed(test, bugReport, true);
+            },
+            expectedError: "Reached test assertion.",
+            replay: true);
         }
     }
 }

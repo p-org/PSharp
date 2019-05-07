@@ -6,6 +6,8 @@
 using System;
 using System.ComponentModel;
 
+using Microsoft.PSharp.IO;
+
 namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
@@ -30,6 +32,11 @@ namespace Microsoft.PSharp.Runtime
         /// associated with the next operation.
         /// </summary>
         protected internal Guid OperationGroupId { get; set; }
+
+        /// <summary>
+        /// The logger installed to the P# runtime.
+        /// </summary>
+        protected ILogger Logger => this.Runtime.Logger;
 
         /// <summary>
         /// Initializes this machine.

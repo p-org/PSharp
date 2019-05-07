@@ -68,16 +68,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxSchedulingSteps = 300;
             configuration.SchedulingIterations = 1000;
 
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(LivenessMonitor));
                 r.CreateMachine(typeof(Client));
-            });
-
-            this.AssertFailed(configuration, test,
-                "Monitor 'LivenessMonitor' detected liveness bug in hot state " +
+            },
+            configuration: configuration,
+            expectedError: "Monitor 'LivenessMonitor' detected liveness bug in hot state " +
                 "'NoTimeoutReceived' at the end of program execution.",
-                true);
+            replay: true);
         }
     }
 }

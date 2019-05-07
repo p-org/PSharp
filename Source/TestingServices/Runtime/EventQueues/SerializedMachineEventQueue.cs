@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 var eventCount = this.Queue.Count(val => val.e.GetType().Equals(e.GetType()));
                 this.MachineStateManager.Assert(eventCount <= info.Assert,
                     "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
-                    info.Assert, info.EventName, this);
+                    info.Assert, info.EventName, this.Machine.Id);
             }
 
             if (info.Assume >= 0)
@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 var eventCount = this.Queue.Count(val => val.e.GetType().Equals(e.GetType()));
                 this.MachineStateManager.Assert(eventCount <= info.Assume,
                     "There are more than {0} instances of '{1}' in the input queue of machine '{2}'.",
-                    info.Assume, info.EventName, this);
+                    info.Assume, info.EventName, this.Machine.Id);
             }
 
             if (!this.MachineStateManager.IsEventHandlerRunning)

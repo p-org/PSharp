@@ -93,16 +93,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestWarmState()
         {
-            var configuration = GetConfiguration();
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(WatchDog));
                 r.CreateMachine(typeof(EventHandler));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DFS));
         }
     }
 }

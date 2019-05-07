@@ -53,6 +53,14 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Creates a new P# bug-finding engine.
         /// </summary>
+        public static BugFindingEngine Create(Configuration configuration, Func<IMachineRuntime, Task> function)
+        {
+            return new BugFindingEngine(configuration, function);
+        }
+
+        /// <summary>
+        /// Creates a new P# bug-finding engine.
+        /// </summary>
         internal static BugFindingEngine Create(Configuration configuration)
         {
             return new BugFindingEngine(configuration);
@@ -64,25 +72,6 @@ namespace Microsoft.PSharp.TestingServices
         internal static BugFindingEngine Create(Configuration configuration, Assembly assembly)
         {
             return new BugFindingEngine(configuration, assembly);
-        }
-
-        /// <summary>
-        /// Runs the P# testing engine.
-        /// </summary>
-        public override ITestingEngine Run()
-        {
-            try
-            {
-                Task task = this.CreateBugFindingTask();
-                this.Execute(task);
-            }
-            catch (Exception ex)
-            {
-                this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
-                this.TestReport.InternalErrors.Add(ex.ToString());
-            }
-
-            return this;
         }
 
         /// <summary>
@@ -180,6 +169,20 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
+        /// </summary>
+        private BugFindingEngine(Configuration configuration, Func<IMachineRuntime, Task> function)
+            : base(configuration, function)
+        {
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.Reporter = new RaceDetectionEngine(configuration, this.Logger, this.TestReport);
+            }
+
+            this.Initialize();
+        }
+
+        /// <summary>
         /// Initializes the bug-finding engine.
         /// </summary>
         private void Initialize()
@@ -194,9 +197,9 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Creates a new bug-finding task.
+        /// Creates a new testing task.
         /// </summary>
-        private Task CreateBugFindingTask()
+        protected override Task CreateTestingTask()
         {
             string options = string.Empty;
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
@@ -211,70 +214,78 @@ namespace Microsoft.PSharp.TestingServices
             this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
                 $"using '{this.Configuration.SchedulingStrategy}' strategy{options}.");
 
-            Task task = new Task(
-                () =>
+            return new Task(() =>
+            {
+                try
                 {
-                    try
+                    if (this.TestInitMethod != null)
                     {
-                        if (this.TestInitMethod != null)
+                        // Initializes the test state.
+                        this.TestInitMethod.Invoke(null, Array.Empty<object>());
+                    }
+
+                    int maxIterations = this.Configuration.SchedulingIterations;
+                    for (int i = 0; i < maxIterations; i++)
+                    {
+                        if (this.CancellationTokenSource.IsCancellationRequested)
                         {
-                            // Initializes the test state.
-                            this.TestInitMethod.Invoke(null, Array.Empty<object>());
+                            break;
                         }
 
-                        int maxIterations = this.Configuration.SchedulingIterations;
-                        for (int i = 0; i < maxIterations; i++)
+                        // Runs a new testing iteration.
+                        this.RunNextIteration(i);
+
+                        if (!this.Configuration.PerformFullExploration && this.TestReport.NumOfFoundBugs > 0)
                         {
-                            if (this.CancellationTokenSource.IsCancellationRequested)
-                            {
-                                break;
-                            }
-
-                            // Runs a new testing iteration.
-                            this.RunNextIteration(i);
-
-                            if (!this.Configuration.PerformFullExploration && this.TestReport.NumOfFoundBugs > 0)
-                            {
-                                break;
-                            }
-
-                            if (!this.Strategy.PrepareForNextIteration())
-                            {
-                                break;
-                            }
-
-                            if (this.RandomNumberGenerator != null && this.Configuration.IncrementalSchedulingSeed)
-                            {
-                                // Increments the seed in the random number generator (if one is used), to
-                                // capture the seed used by the scheduling strategy in the next iteration.
-                                this.RandomNumberGenerator.Seed += 1;
-                            }
-
-                            // Increases iterations if there is a specified timeout
-                            // and the default iteration given.
-                            if (this.Configuration.SchedulingIterations == 1 &&
-                                this.Configuration.Timeout > 0)
-                            {
-                                maxIterations++;
-                            }
+                            break;
                         }
 
-                        if (this.TestDisposeMethod != null)
+                        if (!this.Strategy.PrepareForNextIteration())
                         {
-                            // Disposes the test state.
-                            this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
+                            break;
+                        }
+
+                        if (this.RandomNumberGenerator != null && this.Configuration.IncrementalSchedulingSeed)
+                        {
+                            // Increments the seed in the random number generator (if one is used), to
+                            // capture the seed used by the scheduling strategy in the next iteration.
+                            this.RandomNumberGenerator.Seed += 1;
+                        }
+
+                        // Increases iterations if there is a specified timeout
+                        // and the default iteration given.
+                        if (this.Configuration.SchedulingIterations == 1 &&
+                            this.Configuration.Timeout > 0)
+                        {
+                            maxIterations++;
                         }
                     }
-                    catch (TargetInvocationException ex)
-                    {
-                        if (!(ex.InnerException is TaskCanceledException))
-                        {
-                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                        }
-                    }
-                }, this.CancellationTokenSource.Token);
 
-            return task;
+                    if (this.TestDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Exception innerException = ex;
+                    while (innerException is TargetInvocationException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is AggregateException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (!(innerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(innerException).Throw();
+                    }
+                }
+            }, this.CancellationTokenSource.Token);
         }
 
         /// <summary>
@@ -342,11 +353,11 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 else
                 {
-                    runtime.RunTestHarnessAsync(this.TestFunction, this.TestName);
+                    runtime.RunTestHarness(this.TestFunction, this.TestName);
                 }
 
                 // Wait for the test to terminate.
-                runtime.Wait();
+                runtime.WaitAsync().Wait();
 
                 // Invokes user-provided cleanup for this iteration.
                 if (this.TestIterationDisposeMethod != null)
@@ -363,7 +374,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (this.Configuration.RaceFound)
                 {
-                    runtime.Scheduler.NotifyAssertionFailure("Found a race", false);
+                    runtime.Scheduler.NotifyAssertionFailure("Found a race", killTasks: false, cancelExecution: false);
                     foreach (var report in this.TestReport.BugReports)
                     {
                         runtime.Logger.WriteLine(report);

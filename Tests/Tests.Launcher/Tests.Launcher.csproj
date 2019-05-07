@@ -3,7 +3,7 @@
   <Import Project="..\..\Common\key.props" />
   <PropertyGroup>
     <Description>The P# test launcher.</Description>
-    <AssemblyName>Microsoft.PSharp.Tests.Launcher</AssemblyName>
+    <AssemblyName>PSharpTestLauncher</AssemblyName>
     <RootNamespace>Microsoft.PSharp.Tests.Launcher</RootNamespace>
     <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputType>Exe</OutputType>

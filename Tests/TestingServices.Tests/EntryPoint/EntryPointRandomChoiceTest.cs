@@ -27,15 +27,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestEntryPointRandomChoice()
         {
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 if (r.Random())
                 {
                     r.CreateMachine(typeof(M));
                 }
             });
-
-            this.AssertSucceeded(test);
         }
     }
 }

@@ -105,46 +105,36 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration1()
         {
-            var configuration = GetConfiguration();
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.TestWithError(r =>
             {
                 r.RegisterMonitor(typeof(Spec1));
                 r.CreateMachine(typeof(M1<Spec1>));
-            });
-
-            this.AssertFailed(configuration, test, 1, true);
+            },
+            configuration: GetConfiguration().WithStrategy(SchedulingStrategy.DFS),
+            expectedError: "Detected an assertion failure.",
+            replay: true);
         }
 
         [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration2()
         {
-            var configuration = GetConfiguration();
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(Spec2));
                 r.CreateMachine(typeof(M2));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: GetConfiguration().WithStrategy(SchedulingStrategy.DFS));
         }
 
         [Fact(Timeout=5000)]
         public void TestMachineMonitorIntegration3()
         {
-            var configuration = GetConfiguration();
-            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-
-            var test = new Action<IMachineRuntime>((r) =>
+            this.Test(r =>
             {
                 r.RegisterMonitor(typeof(Spec3));
                 r.CreateMachine(typeof(M1<Spec3>));
-            });
-
-            this.AssertSucceeded(configuration, test);
+            },
+            configuration: GetConfiguration().WithStrategy(SchedulingStrategy.DFS));
         }
     }
 }

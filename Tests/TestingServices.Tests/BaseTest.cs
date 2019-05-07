@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,20 +22,26 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        protected void AssertSucceeded(Action<IMachineRuntime> test)
+        protected ITestingEngine Test(Action<IMachineRuntime> test, Configuration configuration = null)
         {
-            var configuration = GetConfiguration();
-            this.AssertSucceeded(configuration, test);
+            configuration = configuration ?? GetConfiguration();
+            BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
+            return this.Test(engine);
         }
 
-        protected ITestingEngine AssertSucceeded(Configuration configuration, Action<IMachineRuntime> test)
+        protected ITestingEngine Test(Func<IMachineRuntime, Task> test, Configuration configuration = null)
         {
-            BugFindingEngine engine = null;
+            configuration = configuration ?? GetConfiguration();
+            BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
+            return this.Test(engine);
+        }
+
+        private ITestingEngine Test(BugFindingEngine engine)
+        {
             var logger = new Common.TestOutputLogger(this.TestOutput);
 
             try
             {
-                engine = BugFindingEngine.Create(configuration, test);
                 engine.SetLogger(logger);
                 engine.Run();
 
@@ -54,53 +60,25 @@ namespace Microsoft.PSharp.TestingServices.Tests
             return engine;
         }
 
-        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors, bool replay)
+        protected void TestWithError(Action<IMachineRuntime> test, Configuration configuration = null,
+            string expectedError = null, bool replay = false)
         {
-            var configuration = GetConfiguration();
-            this.AssertFailed(configuration, test, numExpectedErrors, replay);
+            configuration = configuration ?? GetConfiguration();
+            this.TestWithError(test, configuration, new string[] { expectedError }, replay);
         }
 
-        protected void AssertFailed(Action<IMachineRuntime> test, string expectedOutput, bool replay)
+        protected void TestWithError(Func<IMachineRuntime, Task> test, Configuration configuration = null,
+            string expectedError = null, bool replay = false)
         {
-            var configuration = GetConfiguration();
-            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
+            configuration = configuration ?? GetConfiguration();
+            this.TestWithError(test, configuration, new string[] { expectedError }, replay);
         }
 
-        protected void AssertFailed(Action<IMachineRuntime> test, int numExpectedErrors, ISet<string> expectedOutputs, bool replay)
+        protected void TestWithError(Action<IMachineRuntime> test, Configuration configuration = null,
+            string[] expectedErrors = null, bool replay = false)
         {
-            var configuration = GetConfiguration();
-            this.AssertFailed(configuration, test, numExpectedErrors, expectedOutputs, replay);
-        }
+            configuration = configuration ?? GetConfiguration();
 
-        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors, bool replay)
-        {
-            this.AssertFailed(configuration, test, numExpectedErrors, new HashSet<string>(), replay);
-        }
-
-        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, string expectedOutput, bool replay)
-        {
-            this.AssertFailed(configuration, test, 1, new HashSet<string> { expectedOutput }, replay);
-        }
-
-        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors,
-            ISet<string> expectedOutputs, bool replay)
-        {
-            this.AssertFailed(configuration, test, numExpectedErrors, bugReports =>
-            {
-                foreach (var expected in expectedOutputs)
-                {
-                    if (!bugReports.Contains(expected))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }, replay);
-        }
-
-        protected void AssertFailed(Configuration configuration, Action<IMachineRuntime> test, int numExpectedErrors,
-            Func<HashSet<string>, bool> expectedOutputFunc, bool replay)
-        {
             var logger = new Common.TestOutputLogger(this.TestOutput);
 
             try
@@ -109,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 bfEngine.SetLogger(logger);
                 bfEngine.Run();
 
-                CheckErrors(bfEngine, numExpectedErrors, expectedOutputFunc);
+                CheckErrors(bfEngine, expectedErrors);
 
                 if (replay && !configuration.EnableCycleDetection)
                 {
@@ -118,7 +96,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     rEngine.Run();
 
                     Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
-                    CheckErrors(rEngine, numExpectedErrors, expectedOutputFunc);
+                    CheckErrors(rEngine, expectedErrors);
                 }
             }
             catch (Exception ex)
@@ -131,14 +109,48 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        protected void AssertFailedWithException(Action<IMachineRuntime> test, Type exceptionType, bool replay)
+        protected void TestWithError(Func<IMachineRuntime, Task> test, Configuration configuration = null,
+            IEnumerable<string> expectedErrors = null, bool replay = false)
         {
-            var configuration = GetConfiguration();
-            this.AssertFailedWithException(configuration, test, exceptionType, replay);
+            configuration = configuration ?? GetConfiguration();
+
+            var logger = new Common.TestOutputLogger(this.TestOutput);
+
+            try
+            {
+                var bfEngine = BugFindingEngine.Create(configuration, test);
+                bfEngine.SetLogger(logger);
+                bfEngine.Run();
+
+                CheckErrors(bfEngine, expectedErrors);
+
+                if (replay && !configuration.EnableCycleDetection)
+                {
+                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
+                    rEngine.SetLogger(logger);
+                    rEngine.Run();
+
+                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
+                    CheckErrors(rEngine, expectedErrors);
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
+            }
+            finally
+            {
+                logger.Dispose();
+            }
         }
 
-        protected void AssertFailedWithException(Configuration configuration, Action<IMachineRuntime> test, Type exceptionType, bool replay)
+        protected void TestWithException<TException>(Action<IMachineRuntime> test, Configuration configuration = null,
+            bool replay = false)
+            where TException : Exception
         {
+            configuration = configuration ?? GetConfiguration();
+
+            Type exceptionType = typeof(TException);
             Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
                 $"Type '{exceptionType}' is not an exception type.");
 
@@ -172,29 +184,61 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        private static void CheckErrors(ITestingEngine engine, int numExpectedErrors, Func<HashSet<string>, bool> expectedOutputFunc)
+        protected void TestWithException<TException>(Func<IMachineRuntime, Task> test, Configuration configuration = null,
+            bool replay = false)
+            where TException : Exception
         {
-            var numErrors = engine.TestReport.NumOfFoundBugs;
-            Assert.Equal(numExpectedErrors, numErrors);
+            configuration = configuration ?? GetConfiguration();
 
-            var bugReports = new HashSet<string>();
+            Type exceptionType = typeof(TException);
+            Assert.True(exceptionType.IsSubclassOf(typeof(Exception)), "Please configure the test correctly. " +
+                $"Type '{exceptionType}' is not an exception type.");
+
+            var logger = new Common.TestOutputLogger(this.TestOutput);
+
+            try
+            {
+                var bfEngine = BugFindingEngine.Create(configuration, test);
+                bfEngine.SetLogger(logger);
+                bfEngine.Run();
+
+                CheckErrors(bfEngine, exceptionType);
+
+                if (replay && !configuration.EnableCycleDetection)
+                {
+                    var rEngine = ReplayEngine.Create(configuration, test, bfEngine.ReproducableTrace);
+                    rEngine.SetLogger(logger);
+                    rEngine.Run();
+
+                    Assert.True(rEngine.InternalError.Length == 0, rEngine.InternalError);
+                    CheckErrors(rEngine, exceptionType);
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
+            }
+            finally
+            {
+                logger.Dispose();
+            }
+        }
+
+        private static void CheckErrors(ITestingEngine engine, IEnumerable<string> expectedErrors)
+        {
+            Assert.Equal(1, engine.TestReport.NumOfFoundBugs);
             foreach (var bugReport in engine.TestReport.BugReports)
             {
                 var actual = RemoveNonDeterministicValuesFromReport(bugReport);
-                bugReports.Add(actual);
+                Assert.Contains(actual, expectedErrors);
             }
-
-            Assert.True(expectedOutputFunc(bugReports));
         }
 
         private static void CheckErrors(ITestingEngine engine, Type exceptionType)
         {
-            var numErrors = engine.TestReport.NumOfFoundBugs;
-            Assert.Equal(1, numErrors);
-
-            var exception = RemoveNonDeterministicValuesFromReport(engine.TestReport.BugReports.First()).
-                Split(new[] { '\r', '\n' }).FirstOrDefault();
-            Assert.Contains("'" + exceptionType.ToString() + "'", exception);
+            Assert.Equal(1, engine.TestReport.NumOfFoundBugs);
+            Assert.Contains("'" + exceptionType.FullName + "'",
+                engine.TestReport.BugReports.First().Split(new[] { '\r', '\n' }).FirstOrDefault());
         }
 
         protected static Configuration GetConfiguration()

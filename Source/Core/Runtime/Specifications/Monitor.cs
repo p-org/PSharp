@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -195,7 +194,7 @@ namespace Microsoft.PSharp
         {
             // If the state is not a state of the monitor, then report an error and exit.
             this.Assert(StateTypeMap[this.GetType()].Any(val => val.DeclaringType.Equals(s.DeclaringType) && val.Name.Equals(s.Name)),
-                "Monitor '{0}' is trying to transition to non-existing state '{1}'.", this.Id, s.Name);
+                "Monitor '{0}' is trying to transition to non-existing state '{1}'.", this.GetType().Name, s.Name);
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -297,7 +296,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Invokes an action.
         /// </summary>
-        [DebuggerStepThrough]
+        [System.Diagnostics.DebuggerStepThrough]
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
@@ -308,7 +307,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
-        [DebuggerStepThrough]
+        [System.Diagnostics.DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
             this.Runtime.NotifyEnteredState(this);
@@ -330,7 +329,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        [DebuggerStepThrough]
+        [System.Diagnostics.DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             this.Runtime.NotifyExitedState(this);
@@ -360,7 +359,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the specified action.
         /// </summary>
-        [DebuggerStepThrough]
+        [System.Diagnostics.DebuggerStepThrough]
         private void ExecuteAction(MethodInfo action)
         {
             try
@@ -598,7 +597,7 @@ namespace Microsoft.PSharp
                         (state.IsCold && !state.IsHot) ||
                         (!state.IsCold && state.IsHot) ||
                         (!state.IsCold && !state.IsHot),
-                        "State '{0}' of monitor '{1}' cannot be both cold and hot.", type.FullName, this.Id);
+                        "State '{0}' of monitor '{1}' cannot be both cold and hot.", type.FullName, this.GetType().Name);
 
                     StateMap[monitorType].Add(state);
                 }
@@ -655,8 +654,8 @@ namespace Microsoft.PSharp
             }
 
             var initialStates = StateMap[monitorType].Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, "Monitor '{0}' must declare a start state.", this.Id);
-            this.Assert(initialStates.Count == 1, "Monitor '{0}' can not declare more than one start states.", this.Id);
+            this.Assert(initialStates.Count != 0, "Monitor '{0}' must declare a start state.", this.GetType().Name);
+            this.Assert(initialStates.Count == 1, "Monitor '{0}' can not declare more than one start states.", this.GetType().Name);
 
             this.ConfigureStateTransitions(initialStates.Single());
             this.State = initialStates.Single();
@@ -750,7 +749,7 @@ namespace Microsoft.PSharp
         {
             var state = this.CurrentState is null ? "<unknown>" : this.CurrentStateName;
             this.Runtime.WrapAndThrowException(ex, $"Exception '{ex.GetType()}' was thrown " +
-                $"in monitor '{this.Id}', state '{state}', action '{actionName}', " +
+                $"in monitor '{this.GetType().Name}', state '{state}', action '{actionName}', " +
                 $"'{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
@@ -761,7 +760,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal HashSet<string> GetAllStates()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.Id);
+            this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.GetType().Name);
 
             var allStates = new HashSet<string>();
             foreach (var state in StateMap[this.GetType()])
@@ -777,7 +776,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal HashSet<Tuple<string, string>> GetAllStateEventPairs()
         {
-            this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.Id);
+            this.Assert(StateMap.ContainsKey(this.GetType()), "Monitor '{0}' hasn't populated its states yet.", this.GetType().Name);
 
             var pairs = new HashSet<Tuple<string, string>>();
             foreach (var state in StateMap[this.GetType()])
