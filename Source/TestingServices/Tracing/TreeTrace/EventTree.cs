@@ -15,7 +15,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
         internal int criticalTransitionStep;
         internal int bugTriggeringStep;
-
+        private Type bugManifestingMachineType;
         public static char[] fieldSeparator = new char[] { ':' };
         public static char[] valueSeparator = new char[] { ',' };
 
@@ -71,6 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             if (node != activeNode ) {
                 throw new ArgumentException("Argument node does not match active node");
             }
+
             node.setChildren(nextNode, createdNode);
             activeNode = null;
         }
@@ -188,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             return reproducedBug;
         }
-
+        
         private static void ConsistencyAssert(bool conditionResult, string message)
         {
             if (!conditionResult)
@@ -197,11 +198,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             }
         }
 
-        internal void setResult(bool bugFound, ScheduleTrace scheduleTrace, int bugTriggerStep)
+        internal void setResult(bool bugFound, ScheduleTrace scheduleTrace, int bugTriggerStep, Type bugManifestingMachineType)
         {
             this.reproducedBug = bugFound;
             this.actualTrace = scheduleTrace;
             this.bugTriggeringStep = bugTriggerStep;
+            this.bugManifestingMachineType = bugManifestingMachineType;
         }
 
         internal void setCriticalTransitionStep(int ctStep)

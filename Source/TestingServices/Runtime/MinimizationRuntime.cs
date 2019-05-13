@@ -62,6 +62,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             return eventInfo;
         }
 
+        internal override void Monitor(Type type, BaseMachine sender, Event e)
+        {
+            base.Monitor(type, sender, e);
+            HAX_strategy.recordMonitorEvent(type, sender, e);
+        }
+
 
         /// <summary>
         /// Notifies that a monitor entered a state.
@@ -84,6 +90,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             base.NotifyExitedState(monitor);
             HAX_strategy.recordExitHotState(monitor);
+        }
+
+
+        internal override MachineId CreateMachine(MachineId mid, Type type, string friendlyName, Event e, Machine creator, Guid? operationGroupId)
+        {
+            MachineId returnedMid = base.CreateMachine(mid, type, friendlyName, e, creator, operationGroupId);
+            this.NotifyMachineCreated(returnedMid, type, creator);
+            return returnedMid;
+        }
+
+        private void NotifyMachineCreated(MachineId mid, Type type, Machine creator)
+        {
+            HAX_strategy.recordMachineCreated(mid, type, creator);
         }
     }
 }

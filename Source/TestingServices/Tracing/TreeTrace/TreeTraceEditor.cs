@@ -33,6 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             //MinimizedTraceReplay,
             PrefixReplay,
             TraceEdit,
+            PruneInternal,
         }
 
 
@@ -41,6 +42,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         //internal bool ranOutOfEvents;
         //int eventSeenThisTime;
         #endregion
+
+        // TODO: Should this stay outside TraceIteration? 
+        public Dictionary<Type, HashSet<Type>> machinesWhichAccessMonitors;
+        private Type executingMachineType; // TODO: can we do this with type?
 
         // Deletion Tracking
         internal class TraceIteration {
@@ -65,6 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             public Dictionary<Monitor, Tuple<int,int>> HotMonitors { get; internal set; } // Maps some monitor identifier to the totalOrderingIndex
 
+
             public TraceIteration(EventTree GuideTree, TraceEditorMode currentMode)
             {
                 guideTree = GuideTree;
@@ -75,6 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 //deletedLoopReceiveIndices = new HashSet<int>();
                 //delayedLoopEvents = new Dictionary<string, int>();
                 HotMonitors = new Dictionary<Monitor, Tuple<int, int>>();
+
                 setActiveNode(null);
                 HAX_deletedCount = 0;
 
@@ -189,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 this.strictBugEquivalenceChecking = strictBugEquivalenceChecking;
             }
 
-            internal bool checkLivenessViolation(out int bugIndexOfGuideTree, out int BugIndexOfCurrentTree)
+            internal bool checkLivenessViolation(out int bugIndexOfGuideTree, out int BugIndexOfCurrentTree, out Type hotMonitorType)
             {
                 bool result = false;
                 bugIndexOfGuideTree = 0;
@@ -208,15 +215,21 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                         break;
                     }
                 }
-
+                hotMonitorType = hotMonitor.GetType();
                 return result;    
             }
         }
 
+        internal void recordMachineCreated(MachineId mid, Type type, Machine creator)
+        {
+            activeProgramModel.recordMachineCreated(mid.Value, type);
+        }
 
         public TreeTraceEditor()
         {
             bugIsRecorded = false;
+
+            machinesWhichAccessMonitors = new Dictionary<Type, HashSet<Type>>();
         }
 
 
@@ -292,14 +305,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     return prepareForPrefixReplay(controlUnit.BestTree, controlUnit.ReplayLength, controlUnit.strictBugEquivalenceChecking);
                 case TraceEditorMode.TraceEdit:
                     return prepareForTraceEditIteration(controlUnit.BestTree, controlUnit.Left, controlUnit.Right);
+                case TraceEditorMode.PruneInternal:
+                    return prepareForPruneInternalIteration(controlUnit.BestTree);
                 default:
                     throw new ArgumentException("TraceEditor cannot do nextIteration in mode " + controlUnit.RequiredTraceEditorMode);
             }
         }
 
-        private void copyMetaBetweenTrees(EventTree from, EventTree to)
+        private bool prepareForPruneInternalIteration(EventTree bestTree)
         {
-            to.criticalTransitionStep = from.criticalTransitionStep; // TODO:: Is this even right? It could change because of the edits.
+            throw new NotImplementedException();
         }
 
         public bool prepareForScheduleTraceReplay(bool strictBugEquivalenceChecking)
@@ -317,8 +332,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             reset();
             currentRun.setReplayLength(replayLength, strictBugEquivalenceChecking);
 
-            copyMetaBetweenTrees(guideTree, activeProgramModel.constructTree);
-
             return true;
         }
 
@@ -327,7 +340,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
             currentRun = new TraceIteration(guideTree, TraceEditorMode.TraceEdit);
             reset();
 
-            copyMetaBetweenTrees(guideTree, activeProgramModel.constructTree);
             currentWithHoldRangeStart = left;
             currentWithHoldRangeEnd = right;
             
@@ -517,6 +529,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     }
 
                     next = candidate;
+                    // Redo this with machineId's. Also do machineId remapping.
+                    executingMachineType = activeProgramModel.machineTypeMap[next.Id]; // TODO: Assign the type.
+
                     matched = true;
 
                 }
@@ -526,6 +541,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                 }
 
             }
+
 
             return matched;
 
@@ -572,6 +588,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal void recordSchedulingChoiceStart(ISchedulable next, ulong scheduledSteps)
         {
             activeProgramModel.recordSchedulingChoiceStart(next, scheduledSteps);
+
+
+            if (currentRun.activeNode !=null && currentRun.guideTree!=null && activeProgramModel.constructTree != null &&
+                currentRun.guideTree.criticalTransitionStep == currentRun.activeNode.totalOrderingIndex)
+            {
+                // Copies over the critical transition step
+                activeProgramModel.constructTree.criticalTransitionStep = currentRun.guideTree.criticalTransitionStep;
+            }
         }
 
         internal void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> enabledChoices, ulong scheduledSteps)
@@ -593,13 +617,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         {
             int guideTreeIndex = -1, activeProgramModelIndex = -1;
             bool bugActuallyFound = false;
+            Type bugManifestingMachineType = null;
             if (bugFound)
             {
                 // TODO: Verify bug equivalence
-                if( !currentRun.checkLivenessViolation(out guideTreeIndex, out activeProgramModelIndex))
+                if ( !currentRun.checkLivenessViolation(out guideTreeIndex, out activeProgramModelIndex, out bugManifestingMachineType))
                 {
                     guideTreeIndex = currentRun.totalOrderingIndex;
                     activeProgramModelIndex = activeProgramModel.constructTree.totalOrdering.Count - 1;
+                    bugManifestingMachineType = executingMachineType;
                 }
                 if (bugIsRecorded) {
                     bugActuallyFound = verifyBugEquivalence(guideTreeIndex);
@@ -610,8 +636,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
                     bugIsRecorded = true;
                 }
             }
-
-            activeProgramModel.getTree().setResult(bugActuallyFound, scheduleTrace, activeProgramModelIndex);
+            
+            activeProgramModel.getTree().setResult(bugActuallyFound, scheduleTrace, activeProgramModelIndex, bugManifestingMachineType);
             
         }
 
@@ -654,6 +680,15 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal void recordExitHotState(Monitor monitor)
         {
             currentRun.HotMonitors.Remove(monitor);
+        }
+        
+        internal void recordMonitorEvent(Type type, BaseMachine sender, Event e)
+        {
+            if (!machinesWhichAccessMonitors.ContainsKey(type)) {
+                machinesWhichAccessMonitors.Add(type, new HashSet<Type>());
+            }
+            machinesWhichAccessMonitors[type].Add(sender.GetType());
+            activeProgramModel.recordMonitorAccess(type, (ulong)activeProgramModel.constructTree.totalOrdering.Count - 1);
         }
 
 

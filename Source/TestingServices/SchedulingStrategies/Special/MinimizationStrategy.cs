@@ -116,6 +116,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             traceEditor.prepareForNextIteration(controlStack.Peek());
         }
 
+        internal void recordMonitorEvent(Type type, BaseMachine sender, Event e)
+        {
+            traceEditor.recordMonitorEvent(type, sender, e);
+        }
+
+        internal void recordMachineCreated(MachineId mid, Type type, Machine creator)
+        {
+            traceEditor.recordMachineCreated(mid, type, creator);
+        }
+
         internal void recordExitHotState(Monitor monitor)
         {
             traceEditor.recordExitHotState(monitor);

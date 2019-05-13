@@ -21,12 +21,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         private Dictionary<ulong, EventTreeNode> machineIdToRunningEvent;
 
         private HashSet<EventTreeNode> deletedNodes;
+        internal Dictionary<ulong, Type> machineTypeMap;
+        private Dictionary<Type,List<ulong>> monitorAccessSteps;
 
         public ProgramModel()
         {
             sendIndexToReceiveEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToStartEvent = new Dictionary<ulong, EventTreeNode>();
             machineIdToRunningEvent = new Dictionary<ulong, EventTreeNode>();
+
+            machineTypeMap = new Dictionary<ulong, Type>();
+            monitorAccessSteps = new Dictionary<Type, List<ulong>>();
+
             deletedNodes = new HashSet<EventTreeNode>();
             constructTree = new EventTree();
             
@@ -72,6 +78,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             constructTree.startScheduleChoice(currentHandler);
 
+        }
+
+        public void recordMachineCreated(ulong mid, Type type)
+        {
+            // TODO: This seems a more reliable way of estimating machineId
+            machineTypeMap.Add(mid, type);
         }
 
         public void recordSchedulingChoiceResult(ISchedulable current, Dictionary<ulong, ISchedulable> machineToChoices, ulong endStepIndex)
@@ -211,6 +223,14 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
         internal EventTree getTree()
         {
             return constructTree;
+        }
+
+        internal void recordMonitorAccess(Type type, ulong stepIndex)
+        {
+            if (!monitorAccessSteps.ContainsKey(type)) {
+                monitorAccessSteps.Add(type, new List<ulong>());
+            }
+            monitorAccessSteps[type].Add(stepIndex);
         }
 
 

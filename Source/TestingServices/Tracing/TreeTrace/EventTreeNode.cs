@@ -247,7 +247,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.TreeTrace
 
             return sb.ToString();
         }
-        
+
     }
 
 }
