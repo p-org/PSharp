@@ -395,6 +395,59 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class M6 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupTcsEvent).Tcs;
+                var numMessages = (this.ReceivedEvent as SetupTcsEvent).NumMessages;
+                var bid = this.CreateMachine(typeof(B6), new Config(this.Id, numMessages));
+                var counter = 0;
+                while (counter < numMessages)
+                {
+                    counter++;
+                    this.Send(bid, new Message(counter));
+                    this.Send(bid, new MessagePrime(counter));
+
+                    await Task.WhenAny(this.Receive(typeof(Message), typeof(MessagePrime)),
+                               Task.Delay(5000));
+                }
+
+                tcs.SetResult(true);
+            }
+        }
+
+        private class B6 : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task InitOnEntry()
+            {
+                var mid = (this.ReceivedEvent as Config).Id;
+                var numMessages = (this.ReceivedEvent as Config).NumMessages;
+
+                var counter = 0;
+                while (counter < numMessages)
+                {
+                    counter++;
+                    await Task.WhenAny(this.Receive(typeof(Message), typeof(MessagePrime)),
+                               Task.Delay(5000));
+                    this.Send(mid, new Message(counter));
+                    this.Send(mid, new MessagePrime(counter));
+                }
+            }
+        }
+
         [Fact(Timeout = 15000)]
         public void TestMultipleReceivesWithPreds()
         {
@@ -406,7 +459,7 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 100000));
+                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 10000));
                     Assert.True(tcs.Task.Result);
                 });
 
@@ -425,7 +478,7 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M2), new SetupTcsEvent(tcs, 100000));
+                    r.CreateMachine(typeof(M2), new SetupTcsEvent(tcs, 10000));
                     Assert.True(tcs.Task.Result);
                 });
 
@@ -475,7 +528,7 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestReceiveMultipleEventExchangeEnclosedReceives()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
+            // configuration.IsVerbose = true;
             for (int i = 0; i < 100; i++)
             {
                 var test = new Action<IMachineRuntime>((r) =>
@@ -483,7 +536,26 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M5), new SetupTcsEvent(tcs, 1000));
+                    r.CreateMachine(typeof(M5), new SetupTcsEvent(tcs, 10000));
+                    Assert.True(tcs.Task.Result);
+                });
+
+                this.Run(configuration, test);
+            }
+        }
+
+        [Fact(Timeout = 15000)]
+        public void TestReceiveMultipleEventExchangeNoPreds()
+        {
+            var configuration = GetConfiguration();
+            for (int i = 0; i < 100; i++)
+            {
+                var test = new Action<IMachineRuntime>((r) =>
+                {
+                    r.Logger.WriteLine($"Iteration #{i}");
+
+                    var tcs = new TaskCompletionSource<bool>();
+                    r.CreateMachine(typeof(M6), new SetupTcsEvent(tcs, 10000));
                     Assert.True(tcs.Task.Result);
                 });
 
