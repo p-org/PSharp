@@ -135,6 +135,50 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class AcqReq : Event
+        {
+            public MachineId Machine;
+
+            public AcqReq(MachineId machine)
+            {
+                this.Machine = machine;
+            }
+        }
+
+        private class AcqResponse : Event
+        {
+            public int Data;
+
+            public AcqResponse(int data)
+            {
+                this.Data = data;
+            }
+        }
+
+        private class Release : Event
+        {
+            public int Token;
+
+            public Release(int token)
+            {
+                this.Token = token;
+            }
+        }
+
+        private class ClientConfig : Event
+        {
+            public MachineId Lock;
+            public int Iter;
+            public TaskCompletionSource<bool> Tcs;
+
+            public ClientConfig(MachineId lck, int iter, TaskCompletionSource<bool> tcs)
+            {
+                this.Lock = lck;
+                this.Iter = iter;
+                this.Tcs = tcs;
+            }
+        }
+
         private class M1 : Machine
         {
             [Start]
@@ -485,12 +529,139 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class MainMach : Machine
+        {
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                // this.Logger.WriteLine("MainMach: InitOnEntry start");
+                var tcs = (this.ReceivedEvent as SetupEventBool).Tcs;
+                var data = 0;
+                var lockMach = this.CreateMachine(typeof(Lock), new J(data, tcs));
+                var client1 = this.CreateMachine(typeof(ClientMach), new ClientConfig(lockMach, 2, tcs));
+                var client2 = this.CreateMachine(typeof(ClientMach), new ClientConfig(lockMach, 3, tcs));
+                // this.Logger.WriteLine("MainMach: InitOnEntry finish");
+            }
+        }
+
+        private class ClientMach : Machine
+        {
+            private MachineId Lock;
+            private int Iter;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            private async Task InitOnEntry()
+            {
+                // this.Logger.WriteLine("ClientMach with id: {0}: InitOnEntry start", this.Id);
+                var tcs = (this.ReceivedEvent as ClientConfig).Tcs;
+                this.Lock = (this.ReceivedEvent as ClientConfig).Lock;
+                this.Iter = (this.ReceivedEvent as ClientConfig).Iter;
+
+                int i = 0;
+                while (i < this.Iter)
+                {
+                    // this.Logger.WriteLine("ClientMach with id: {0}: iteration {1}, total iterations {2}",
+                        // this.Id, i, this.Iter);
+                    this.Send(this.Lock, new AcqReq(this.Id));
+                    Event e = await this.Receive(typeof(AcqResponse));
+                    if (e is AcqResponse AcqResp)
+                    {
+                        // this.Logger.WriteLine("ClientMach with id: {0} after Receive: iteration {1}, total iterations {2}",
+                        // this.Id, i, this.Iter, AcqResp.Data);
+                        var v = AcqResp.Data;
+                        this.Send(this.Lock, new Release(v));
+                    }
+
+                    i++;
+                }
+
+                // this.Logger.WriteLine("ClientMach with id: {0}: after while loop");
+            }
+        }
+
+        private class Lock : Machine
+        {
+            private int Data;
+            private TaskCompletionSource<bool> Tcs;
+            private int NumReleases;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            private class Init : MachineState
+            {
+            }
+
+            [OnEntry(nameof(UnheldEntry))]
+            [OnEventGotoState(typeof(AcqReq), typeof(Held))]
+            [DeferEvents(typeof(Release))]
+            private class Unheld : MachineState
+            {
+            }
+
+            [OnEntry(nameof(HeldEntry))]
+            [OnEventGotoState(typeof(Release), typeof(RelState))]
+            [DeferEvents(typeof(AcqReq))]
+            private class Held : MachineState
+            {
+            }
+
+            [OnEntry(nameof(RelStateEntry))]
+            [DeferEvents(typeof(AcqReq), typeof(Release))]
+            private class RelState : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                // this.Logger.WriteLine("Lock: InitOnEntry start");
+                this.Tcs = (this.ReceivedEvent as J).Tcs;
+                this.Data = (this.ReceivedEvent as J).I;
+                this.Goto<Unheld>();
+            }
+
+            private void UnheldEntry()
+            {
+            }
+
+            private void HeldEntry()
+            {
+                // this.Logger.WriteLine("Lock: HeldEntry start");
+                var client = (this.ReceivedEvent as AcqReq).Machine;
+                this.Send(client, new AcqResponse(this.Data));
+            }
+
+            private void RelStateEntry()
+            {
+                this.NumReleases++;
+                var client = (this.ReceivedEvent as Release).Token;
+                // this.Logger.WriteLine("Lock: RelStateEntry start, token is {0}, numReleases is {1}",
+                    // client, this.NumReleases);
+                if (this.NumReleases == 5)
+                {
+                    this.Tcs.SetResult(true);
+                }
+                else
+                {
+                    this.Goto<Unheld>();
+                }
+            }
+        }
+
         [Fact(Timeout = 5000)]
         // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\receive6\receive6.p
         public void TestReceiveEventBlocking1()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             // TODO: timeout doesn't help in case of a deadlock: why?
             // configuration.Timeout = 10;
             var test = new Action<IMachineRuntime>(async (r) =>
@@ -509,7 +680,6 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestReceiveEventBlocking2()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -526,12 +696,11 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestReceiveEventBlocking3()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M3), new SetupEvent(tcs));
-                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
 
@@ -543,13 +712,12 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestReceiveEventInExit1()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M4), new SetupEventBool(tcs));
                 // TODO: timeout reached when assert in a machine fails: why?
-                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
 
@@ -561,12 +729,11 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestReceiveEventInExit2()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M5), new SetupEventBool(tcs));
-                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
 
@@ -577,12 +744,27 @@ namespace Microsoft.PSharp.Core.Tests
         public void TestMultipleReceiveEventsPreds()
         {
             var configuration = GetConfiguration();
-            configuration.IsVerbose = true;
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M6), new SetupEventBool(tcs));
-                var result = await Task.WhenAny(tcs.Task, Task.Delay(5000));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature2Stmts\Correct\lock\lock.p
+        public void LockFromP()
+        {
+            var configuration = GetConfiguration();
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(MainMach), new SetupEventBool(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
 
