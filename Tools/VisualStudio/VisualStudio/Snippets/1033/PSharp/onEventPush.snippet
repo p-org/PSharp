@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>on event push</Title>
+            <Shortcut>onevpu</Shortcut>
+            <Description>Code snippet for an "on event push" definition</Description>
+            <Author>Microsoft Corporation</Author>
+            <SnippetTypes>
+                <SnippetType>Expansion</SnippetType>
+            </SnippetTypes>
+        </Header>
+        <Snippet>
+            <Code Language="PSharp"><![CDATA[on $EventName$ push $StateName$;]]>
+            </Code>
+            <Declarations>
+                <Literal>
+                    <ID>EventName</ID>
+                    <ToolTip>Replace with the name of the event</ToolTip>
+                    <Default>EventName</Default>
+                </Literal>
+                <Literal>
+                    <ID>StateName</ID>
+                    <ToolTip>Replace with the name of the state</ToolTip>
+                    <Default>StateName</Default>
+                </Literal>
+            </Declarations>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>

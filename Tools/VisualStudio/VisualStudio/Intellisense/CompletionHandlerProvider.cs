@@ -10,12 +10,12 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
     /// <summary>
     /// The P# completion handler provider.
     /// </summary>
@@ -32,7 +32,10 @@ namespace Microsoft.PSharp.VisualStudio
         internal ICompletionBroker CompletionBroker { get; set; }
 
         [Import]
-        internal SVsServiceProvider ServiceProvider { get; set; }
+        internal Microsoft.VisualStudio.Shell.SVsServiceProvider ServiceProvider { get; set; }
+
+        [Import]
+        internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
         public void VsTextViewCreated(IVsTextView textViewAdapter)
         {
@@ -43,5 +46,4 @@ namespace Microsoft.PSharp.VisualStudio
             }
         }
     }
-#endif
 }
