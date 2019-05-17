@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>machine</Title>
+            <Shortcut>machine</Shortcut>
+            <Description>Code snippet for a machine definition</Description>
+            <Author>Microsoft Corporation</Author>
+            <SnippetTypes>
+                <SnippetType>Expansion</SnippetType>
+            </SnippetTypes>
+        </Header>
+        <Snippet>
+            <Code Language="PSharp"><![CDATA[machine $MachineName$
+{
+    // fields
+    // states
+    start state $StateName$
+    {
+        entry
+        {
+            $end$
+        }
+    }
+}]]>
+            </Code>
+            <Declarations>
+                <Literal>
+                    <ID>MachineName</ID>
+                    <ToolTip>Replace with the name of the machine</ToolTip>
+                    <Default>MachineName</Default>
+                </Literal>
+                <Literal>
+                    <ID>StateName</ID>
+                    <ToolTip>Replace with the name of the machine's start state</ToolTip>
+                    <Default>StateName</Default>
+                </Literal>
+            </Declarations>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>
