@@ -529,6 +529,37 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class M7 : Machine
+        {
+            // private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventDoAction(typeof(UnitTcsBool), nameof(OnUnitAction))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                var tcs = (this.ReceivedEvent as SetupEventBool).Tcs;
+                this.Raise(new UnitTcsBool(tcs));
+                // this.Raise(new UnitTcsBool(tcs));
+                // this.Send(this.Id, new E());
+            }
+
+            private async Task OnUnitAction()
+            {
+                Event receivedEvent = await this.Receive(typeof(UnitTcsBool));
+                if (receivedEvent is UnitTcsBool unitEvent)
+                {
+                    unitEvent.Tcs.SetResult(true);
+                }
+
+                // (receivedEvent as UnitTcsBool).Tcs.SetResult(false);
+            }
+        }
+
         private class MainMach : Machine
         {
             [Start]
@@ -764,6 +795,24 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(MainMach), new SetupEventBool(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        // TODO: this test dosn't work: why?
+        // [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Feature1SMLevelDecls\Correct\bug1\bug1.p
+        public void Bug1FromP()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M7), new SetupEventBool(tcs));
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
