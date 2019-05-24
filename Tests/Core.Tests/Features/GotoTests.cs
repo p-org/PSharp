@@ -212,8 +212,8 @@ namespace Microsoft.PSharp.Core.Tests
 
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventGotoState(typeof(E4), typeof(S2))] // exit actions are performed before transition to S2
-            [OnEventDoAction(typeof(E2), nameof(Action1))] // E4, E3 have no effect on reachability of assert(false)
+            [OnEventGotoState(typeof(E4), typeof(S2))]
+            [OnEventDoAction(typeof(E2), nameof(Action1))]
             private class Init : MachineState
             {
             }
@@ -223,6 +223,12 @@ namespace Microsoft.PSharp.Core.Tests
                 this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 this.GhostMachine = this.CreateMachine(typeof(Ghost2), new Config(this.Id));
                 this.Send(this.GhostMachine, new E1(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(EntryS1))]
+            // [OnEventGotoState(typeof(Unit), typeof(S2))]
+            private class S1 : MachineState
+            {
             }
 
             private void EntryS1()
@@ -285,8 +291,149 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class M2 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(E1), typeof(Init))]
+            [OnEventDoAction(typeof(E2), nameof(Action2))]
+            [OnExit(nameof(OnExit))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            private void OnExit()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            private void Action2()
+            {
+                this.Tcs.SetResult(true);
+            }
+        }
+
+        private class M3 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private int Count = 0;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(E1), typeof(State))]
+            [OnEventPushState(typeof(E2), typeof(State))]
+            [OnExit(nameof(OnExitInit))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            private void OnExitInit()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventGotoState(typeof(E1), typeof(State))]
+            [OnEventPushState(typeof(E2), typeof(State))]
+            [OnExit(nameof(OnExitState))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.Count++;
+                    if (this.Count <= 2)
+                    {
+                        this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                    }
+                    else
+                    {
+                        this.Tcs.SetResult(true);
+                    }
+            }
+
+            private void OnExitState()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+        }
+
+        private class M4 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(E1), typeof(State))]
+            [OnEventPushState(typeof(E2), typeof(S1))]
+            [OnExit(nameof(OnExitInit))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            private void OnExitInit()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventGotoState(typeof(E1), typeof(State))]
+            [OnEventPushState(typeof(E2), typeof(S1))]
+            [OnExit(nameof(OnExitState))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+               // this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            private void OnExitState()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(S1Entry))]
+            [OnEventDoAction(typeof(E2), nameof(ActionUnrechable))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void S1Entry()
+            {
+                this.Tcs.SetResult(true);
+            }
+
+            private void ActionUnrechable()
+            {
+                this.Tcs.SetResult(false);
+            }
+        }
+
         [Fact(Timeout = 5000)]
-        // \P\Tst\RegressionTests\Feature1SMLevelDecls\DynamicError\AlonBug_fails
+        // Similar to: \P\Tst\RegressionTests\Feature1SMLevelDecls\DynamicError\AlonBug_fails
         // Compare this test with Core.Tests.PushTest.PushTest1
         public void GotoTest1()
         {
@@ -320,8 +467,9 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        [Fact(Timeout = 5000)]
-        // \P\Tst\RegressionTests\Integration\DynamicError\Actions_3\Actions_3.p
+        // [Fact(Timeout = 5000)]
+        // TODO: Debug this test
+        // Similar to:\P\Tst\RegressionTests\Integration\DynamicError\Actions_3\Actions_3.p
         public void GotoTest3()
         {
             var configuration = GetConfiguration();
@@ -330,6 +478,60 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(Real2), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        // [Fact(Timeout = 5000)]
+        // TODO: Debug this test
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_8\GotoToItself.p
+        public void GotoTest4()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M2), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_9\PushItself.p
+        // TODO: look at the trace for this test (possible bug in P#?):
+        // E1 is enqueued more than 1 - assert violation NOT reported
+        public void GotoTest5()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M3), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_10\Push.p
+        public void GotoTest6()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M4), new SetupEvent(tcs));
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
