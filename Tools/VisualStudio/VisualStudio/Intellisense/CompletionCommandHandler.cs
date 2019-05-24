@@ -4,20 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Runtime.InteropServices;
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 // For Snippet expansion
 using Microsoft.VisualStudio.Text.Operations;
 using MSXML;
-using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -78,7 +77,7 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 if (pguidCmdGroup == VSConstants.VSStd2K && cCmds > 0)
                 {
-                    // make the Insert Snippet command appear on the context menu 
+                    // make the Insert Snippet command appear on the context menu
                     if ((uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET)
                     {
                         prgCmds[0].cmdf = (int)Constants.MSOCMDF_ENABLED | (int)Constants.MSOCMDF_SUPPORTED;
@@ -180,12 +179,12 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKTAB)
                 {
-                    this.ExpansionSession.GoToPreviousExpansionField();
+                    var hr = this.ExpansionSession.GoToPreviousExpansionField();
                     return VSConstants.S_OK;
                 }
                 else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
                 {
-                    this.ExpansionSession.GoToNextExpansionField(0); //false to support cycling through all the fields
+                    var hr = this.ExpansionSession.GoToNextExpansionField(0); //false to support cycling through all the fields
                     return VSConstants.S_OK;
                 }
                 else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
@@ -222,7 +221,23 @@ namespace Microsoft.PSharp.VisualStudio
             return VSConstants.S_OK;
         }
 
-        public int FormatSpan(IVsTextLines pBuffer, TextSpan[] ts) => VSConstants.S_OK;
+        public int FormatSpan(IVsTextLines textLines, TextSpan[] ts)
+        {
+            // This is for snippets so take only the first span, and replace only the indent so the field markers are preserved.
+            var span = ts[0];
+            var indentReplacements = new Indent(this.TextView).GetSpanIndents(span, this.TextView.Options.GetIndentSize()).ToArray();
+
+            var bufferEdit = this.TextView.TextBuffer.CreateEdit();
+            for (var lineNum = span.iStartLine; lineNum <= span.iEndLine; ++lineNum)
+            {
+                var line = this.TextView.TextSnapshot.GetLineFromLineNumber(lineNum);
+                var indentReplacement = indentReplacements[lineNum - span.iStartLine];
+                bufferEdit.Replace(line.Start.Position, indentReplacement.ExistingIndentLength, indentReplacement.NewIndent);
+            }
+
+            bufferEdit.Apply();
+            return VSConstants.S_OK;
+        }
 
         public int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
         {
@@ -285,8 +300,8 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 if (this.VsTextView.GetBuffer(out IVsTextLines textLines) == VSConstants.S_OK && textLines is IVsExpansion bufferExpansion)
                 {
-                    int hr = bufferExpansion.InsertNamedExpansion(title, path, addSpan, this,
-                        new Guid(SnippetUtilities.LanguageGuidStr), 0, out this.ExpansionSession);
+                    int hr = bufferExpansion.InsertNamedExpansion(title, path, addSpan, this, new Guid(SnippetUtilities.LanguageGuidStr),
+                                                                  1 /* showDisambiguationUI = false */, out this.ExpansionSession);
                     if (hr == VSConstants.S_OK)
                     {
                         return true;

@@ -5,7 +5,6 @@
 
 using Microsoft.VisualStudio.Text;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -96,9 +95,9 @@ namespace Microsoft.PSharp.VisualStudio
         {
             for (var ii = 0; ii < text.Length; /* incremented in loop */)
             {
-                if (MatchToEnd(text, ref ii, consumeClose))
+                if (MatchToEnd(text, ref ii, this.consumeClose))
                 {
-                    consumeClose = null;
+                    this.consumeClose = null;
                     continue;
                 }
                 if (MatchAt(text, ref ii, lineComment))
@@ -107,12 +106,12 @@ namespace Microsoft.PSharp.VisualStudio
                 }
                 if (MatchAt(text, ref ii, openComment))
                 {
-                    consumeClose = closeComment;
+                    this.consumeClose = closeComment;
                     continue;
                 }
                 if (MatchAt(text, ref ii, openQuote))
                 {
-                    consumeClose = closeQuote;
+                    this.consumeClose = closeQuote;
                     continue;
                 }
 

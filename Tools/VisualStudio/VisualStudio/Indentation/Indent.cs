@@ -8,8 +8,10 @@ using System;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -59,6 +61,33 @@ namespace Microsoft.PSharp.VisualStudio
                 : indent;
         }
 
+        internal IEnumerable<IndentReplacement> GetSpanIndents(TextSpan span, int tabSize)
+        {
+            IndentReplacement indentLine(string lineString, int desiredIndentSize, out bool hasTrailingBrace)
+            {
+                var existingIndentSize = lineString.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => 1).Sum();
+                var desiredIndent = string.Empty.PadLeft(desiredIndentSize);
+
+                // Due to potentially mixing tabs and spaces, just replace the existing indent.
+                hasTrailingBrace = this.RegionParser.GetBoundaryChar(lineString) != RegionParser.BoundaryChar.None;
+                return new IndentReplacement(existingIndentSize, desiredIndent);
+            }
+
+            // The first line becomes the preceding line after we get its indent
+            var precedingLine = this.textView.TextSnapshot.GetLineFromLineNumber(span.iStartLine);
+            var indent = this.GetLineIndentation(precedingLine);
+            yield return indentLine(precedingLine.GetText(), indent, out bool prevHasTrailingBrace);
+
+            for (var lineNum = span.iStartLine + 1; lineNum <= span.iEndLine; ++lineNum)
+            {
+                var currentLineText = this.textView.TextSnapshot.GetLineFromLineNumber(lineNum).GetText();
+                var fnbcIsCloseBrace = currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace;
+                indent = fnbcIsCloseBrace ? indent - tabSize
+                        : prevHasTrailingBrace ? indent + tabSize : indent;
+                yield return indentLine(currentLineText, indent, out prevHasTrailingBrace);
+            }
+        }
+
         public void Dispose()
         {
             if (!this.isDisposed)
@@ -66,6 +95,18 @@ namespace Microsoft.PSharp.VisualStudio
                 GC.SuppressFinalize(this);
                 this.isDisposed = true;
             }
+        }
+    }
+
+    internal class IndentReplacement
+    {
+        internal int ExistingIndentLength { get; }
+        internal string NewIndent { get; }
+
+        internal IndentReplacement(int existingLen, string newIndent)
+        {
+            this.ExistingIndentLength = existingLen;
+            this.NewIndent = newIndent;
         }
     }
 }
