@@ -432,6 +432,73 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class M5 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private bool XYZ;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(State))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventGotoState(typeof(E1), typeof(S1))]
+            [OnEventGotoState(typeof(E3), typeof(S2))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(S1Entry))]
+            [OnEventGotoState(typeof(E3), typeof(State))]
+            [OnExit(nameof(OnExitS1))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void S1Entry()
+            {
+                this.XYZ = true;
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+            }
+
+            private void OnExitS1()
+            {
+                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(S2Entry))]
+            private class S2 : MachineState
+            {
+            }
+
+            private void S2Entry()
+            {
+                this.Logger.WriteLine("In S2Entry: XYZ = {0}", this.XYZ);
+                if (this.XYZ == false)
+                {
+                    this.Tcs.SetResult(false);
+                }
+                else
+                {
+                    this.Tcs.SetResult(true);
+                }
+            }
+        }
+
         [Fact(Timeout = 5000)]
         // Similar to: \P\Tst\RegressionTests\Feature1SMLevelDecls\DynamicError\AlonBug_fails
         // Compare this test with Core.Tests.PushTest.PushTest1
@@ -532,6 +599,23 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M4), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_14\GotoTransInheritance.p
+        public void GotoTest7()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M5), new SetupEvent(tcs));
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
