@@ -135,6 +135,15 @@
     <Compile Include="Tagging\PSharpTokenTagProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Snippets\1033\PSharp\declareEvent.snippet" />
+    <None Include="Snippets\1033\PSharp\if.snippet" />
+    <None Include="Snippets\1033\PSharp\ifElse.snippet" />
+    <None Include="Snippets\1033\PSharp\machine.snippet" />
+    <None Include="Snippets\1033\PSharp\onEventDo.snippet" />
+    <None Include="Snippets\1033\PSharp\onEventGoto.snippet" />
+    <None Include="Snippets\1033\PSharp\onEventGotoWith.snippet" />
+    <None Include="Snippets\1033\PSharp\onEventPush.snippet" />
+    <None Include="Snippets\1033\PSharp\state.snippet" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -205,8 +214,9 @@
       <Version>2.3.2</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Snippets\" />
+    <Content Include="Snippets\readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
