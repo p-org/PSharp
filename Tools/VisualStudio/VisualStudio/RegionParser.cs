@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.VisualStudio
             }
             this.CurlyBraceRegions = this.regions.Where(region => region.BoundaryChar == BoundaryChar.CurlyBrace).ToArray();
             this.SquareBraceRegions = this.regions.Where(region => region.BoundaryChar == BoundaryChar.SquareBrace).ToArray();
-            this.SquareBraceRegions = this.regions.Where(region => region.BoundaryChar == BoundaryChar.Parenthesis).ToArray();
+            this.ParenthesisRegions = this.regions.Where(region => region.BoundaryChar == BoundaryChar.Parenthesis).ToArray();
         }
 
         internal BoundaryChar GetBoundaryChar(string lineText)
@@ -142,7 +142,9 @@ namespace Microsoft.PSharp.VisualStudio
                 {
                     if (partialRegions.Count > 0)
                     {
-                        this.regions.Add(new Region(partialRegions.Pop(), lineNumber, ii + 1));
+                        PartialRegion partialRegion = partialRegions.Pop();
+                        // Uncomment if investigating a bug:  Debug.Assert(partialRegion.BoundaryChar == boundaryChar);
+                        this.regions.Add(new Region(partialRegion, lineNumber, ii + 1));
                     }
                     return true;
                 }
@@ -156,10 +158,10 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 for (var ii = idx; ii < str.Length; ++ii)
                 {
-                    var jj = ii;
-                    if (MatchAt(str, ref jj, find))
+                    var incrementedIdx = ii;
+                    if (MatchAt(str, ref incrementedIdx, find))
                     {
-                        idx = ii;
+                        idx = incrementedIdx;
                         return true;
                     }
                 }
