@@ -541,6 +541,189 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class M6 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private bool XYZ;
+
+        [Start]
+        [OnEntry(nameof(InitOnEntry))]
+        [OnEventGotoState(typeof(Unit), typeof(State))]
+        private class Init : MachineState
+        {
+        }
+
+        private void InitOnEntry()
+        {
+            this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+            this.Raise(new Unit());
+        }
+
+        [OnEntry(nameof(StateEntry))]
+        [OnEventPushState(typeof(E2), typeof(S1))]
+        [OnEventGotoState(typeof(E1), typeof(State))]
+        [OnEventDoAction(typeof(E3), nameof(Action1))]
+        [OnExit(nameof(OnExitState))]
+        private class State : MachineState
+        {
+        }
+
+        private void StateEntry()
+        {
+            this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+        }
+
+        private void OnExitState()
+        {
+            this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+        }
+
+        [OnEntry(nameof(S1Entry))]
+        [OnExit(nameof(S1Exit))]
+        private class S1 : MachineState
+        {
+        }
+
+        private void S1Entry()
+        {
+            this.XYZ = true;
+            this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+        }
+
+        private void S1Exit()
+        {
+                // Reachable:
+                this.Tcs.SetResult(true);
+        }
+
+        private void Action1()
+        {
+        }
+    }
+
+        private class M7 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private bool XYZ;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(State))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventPushState(typeof(E1), typeof(S1))]
+            [OnEventDoAction(typeof(E3), nameof(Action1))]
+            [OnExit(nameof(OnExitState))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+            }
+
+            private void OnExitState()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(S1Entry))]
+            [OnExit(nameof(S1Exit))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void S1Entry()
+            {
+                this.XYZ = true;
+                // this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Pop();
+            }
+
+            private void S1Exit()
+            {
+                // Reachable:
+                this.Tcs.SetResult(true);
+            }
+
+            private void Action1()
+            {
+            }
+        }
+
+        private class M8 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private int Count;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(State))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventPushState(typeof(E2), typeof(S1))]
+            [OnEventGotoState(typeof(E1), typeof(State))]
+            [OnEventDoAction(typeof(E3), nameof(Action1))]
+            [OnExit(nameof(OnExitState))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.Count++;
+                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                if (this.Count == 3)
+                {
+                    // By this time, there are two E1 events in the queue -
+                    // hence, there should be an error reported:
+                    // "Attempting to enqueue event ____E1 more than max instance of 1"
+                    // This does not happen.
+                    this.Tcs.SetResult(true);
+                }
+            }
+
+            private void OnExitState()
+            {
+                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+            }
+
+            [OnEntry(nameof(S1Entry))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void S1Entry()
+            {
+                this.Raise(new E1());
+            }
+
+            private void Action1()
+            {
+                // Unreachable:
+                this.Tcs.SetResult(false);
+            }
+        }
+
         [Fact(Timeout=5000)]
         // Similar to \P\Tst\RegressionTests\Feature1SMLevelDecls\Correct\AlonBug\AlonBug.p
         public void PushTest1()
@@ -654,6 +837,59 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M5), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_15\ImplicitPopExit.p
+        public void PushTest8()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M6), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_16\ExplicitPopExit.p
+        public void PushTest9()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M7), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        // [Fact(Timeout = 5000)]
+        // Similar to: \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_17\PushImplicitPopWithRaise.p
+        // TODO: this test does not work as it does in P.
+        // Possible issue: incorrect handling of the max instances of an event in a queue
+        public void PushTest10()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(M8), new SetupEvent(tcs));
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
