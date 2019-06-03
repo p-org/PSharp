@@ -246,9 +246,7 @@ namespace Microsoft.PSharp.Runtime
         public abstract Guid GetCurrentOperationGroupId(MachineId currentMachine);
 
         /// <summary>
-        /// Notifies each active machine to halt execution to allow the runtime
-        /// to reach quiescence. This is an experimental feature, which should
-        /// be used only for testing purposes.
+        /// Terminates the runtime and notifies each active machine to halt execution.
         /// </summary>
         public void Stop()
         {

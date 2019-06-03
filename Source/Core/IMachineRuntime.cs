@@ -313,5 +313,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="logger">The logger to install.</param>
         void SetLogger(ILogger logger);
+
+        /// <summary>
+        /// Terminates the runtime and notifies each active machine to halt execution.
+        /// </summary>
+        void Stop();
     }
 }
