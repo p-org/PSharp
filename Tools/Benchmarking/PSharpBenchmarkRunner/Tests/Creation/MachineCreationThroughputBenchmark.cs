@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.Benchmarking.Creation
 
             for (int idx = 0; idx < this.NumMachines; idx++)
             {
-                runtime.CreateMachine(typeof(M), null, e, null);
+                runtime.CreateMachine(typeof(M), null, e);
             }
 
             tcs.Task.Wait();

@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
                 this.Raise(new E1());
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             private void HandleE2()
@@ -93,12 +93,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             private class Active : MachineState
@@ -120,12 +120,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -158,12 +158,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             private void HandleE2()
@@ -185,12 +185,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
         }
 
@@ -207,12 +207,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -242,12 +242,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -258,7 +258,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -282,12 +282,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -298,7 +298,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
                 this.Pop();
             }
 
@@ -323,12 +323,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -339,7 +339,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -375,12 +375,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             private void ActiveOnExit()
             {
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(CheckingOnEntry))]
@@ -410,12 +410,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -428,7 +428,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void ActiveOnEntry()
             {
                 this.Test = true;
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             private void ActiveOnExit()
@@ -456,12 +456,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -478,7 +478,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnExit()
             {
-                this.Send(this.Id, new E3(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E3(), options: new SendOptions(assert: 1));
             }
 
             private void HandleE3()
@@ -501,12 +501,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             private void InitOnExit()
             {
-                this.Send(this.Id, new E2(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E2(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -575,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
                 this.Raise(new Halt());
             }
 
@@ -629,7 +629,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void HandleE2()
             {
-                this.Send(this.Id, new E1(), new SendOptions(assert: 1));
+                this.Send(this.Id, new E1(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]

@@ -135,8 +135,7 @@ namespace Microsoft.PSharp.Benchmarking.Messaging
             this.ExperimentAwaiter = new TaskCompletionSource<bool>();
 
             var consumer = this.Runtime.CreateMachine(typeof(Consumer), null,
-                new SetupConsumerEvent(this.ExperimentAwaiter, NumMessages),
-                null);
+                new SetupConsumerEvent(this.ExperimentAwaiter, NumMessages));
 
             var tasks = new Task[this.NumProducers];
             this.ProducerMachines = new MachineId[this.NumProducers];
@@ -144,8 +143,7 @@ namespace Microsoft.PSharp.Benchmarking.Messaging
             {
                 var tcs = new TaskCompletionSource<bool>();
                 this.ProducerMachines[i] = this.Runtime.CreateMachine(typeof(Producer), null,
-                    new SetupProducerEvent(tcs, consumer, NumMessages / this.NumProducers),
-                    null);
+                    new SetupProducerEvent(tcs, consumer, NumMessages / this.NumProducers));
                 tasks[i] = tcs.Task;
             }
 

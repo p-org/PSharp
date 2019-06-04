@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Runtime.Assert(this.IsRunning,
                 string.Format("Machine '{0}' is not running.", this.Machine.Id));
-            return this.Runtime.SendEventAndExecuteAsync(this.Runtime.Machine.Id, e, null, null);
+            return this.Runtime.SendEventAndExecuteAsync(this.Runtime.Machine.Id, e, null, Guid.Empty, null);
         }
 
         /// <summary>

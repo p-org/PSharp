@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Runtime
         /// Unique id of the group of operations that is
         /// associated with the next operation.
         /// </summary>
-        protected internal Guid OperationGroupId { get; set; }
+        protected internal Guid OperationGroupId { get; private protected set; }
 
         /// <summary>
         /// The logger installed to the P# runtime.
@@ -41,11 +41,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(MachineRuntime runtime, MachineId mid)
+        internal void Initialize(MachineRuntime runtime, MachineId mid, Guid operationGroupId)
         {
             this.Runtime = runtime;
             this.Id = mid;
-            this.OperationGroupId = Guid.Empty;
+            this.OperationGroupId = operationGroupId;
         }
 
         /// <summary>

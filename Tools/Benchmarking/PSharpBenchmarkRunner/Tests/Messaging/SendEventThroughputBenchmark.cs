@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.PSharp.Runtime;
@@ -173,8 +174,7 @@ namespace Microsoft.PSharp.Benchmarking.Messaging
 
             var tcs = new TaskCompletionSource<bool>();
             this.ProducerMachine = this.Runtime.CreateMachine(typeof(Producer), null,
-                new SetupProducerEvent(tcs, this.ExperimentAwaiter, this.NumConsumers, NumMessages),
-                null);
+                new SetupProducerEvent(tcs, this.ExperimentAwaiter, this.NumConsumers, NumMessages));
 
             tcs.Task.Wait();
         }

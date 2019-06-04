@@ -80,8 +80,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.N, new E1(), new SendOptions(assert: 1));
-                this.Send(this.N, new E1(), new SendOptions(assert: 1)); // Error.
+                this.Send(this.N, new E1(), options: new SendOptions(assert: 1));
+                this.Send(this.N, new E1(), options: new SendOptions(assert: 1)); // Error.
             }
 
             [OnEntry(nameof(EntryS2))]
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void EntryS1()
             {
-                this.Send(this.M, new E2(100), new SendOptions(assert: 1));
+                this.Send(this.M, new E2(100), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(EntryS2))]

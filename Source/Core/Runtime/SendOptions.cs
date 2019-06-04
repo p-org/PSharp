@@ -6,10 +6,15 @@
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Optional parameters for an event send operation that are used during testing.
+    /// Represents a send event configuration that is used during testing.
     /// </summary>
     public class SendOptions
     {
+        /// <summary>
+        /// The default send options.
+        /// </summary>
+        public static SendOptions Default { get; } = new SendOptions();
+
         /// <summary>
         /// True if this event must always be handled, else false.
         /// </summary>

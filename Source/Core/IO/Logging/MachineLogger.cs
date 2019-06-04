@@ -379,10 +379,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
-        /// <param name="operationGroupId">The operation group id, if any.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
-        public virtual void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName,
-            string eventName, Guid? operationGroupId, bool isTargetHalted)
+        public virtual void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
+            Guid operationGroupId, bool isTargetHalted)
         {
             if (this.IsVerbose)
             {
@@ -397,20 +397,15 @@ namespace Microsoft.PSharp.IO
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
-        /// <param name="operationGroupId">The operation group id, if any.</param>
+        /// <param name="operationGroupId">The operation group id.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
         public virtual string FormatOnSendString(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
-            Guid? operationGroupId, bool isTargetHalted)
+            Guid operationGroupId, bool isTargetHalted)
         {
-            var guid = (operationGroupId.HasValue && operationGroupId.Value != Guid.Empty) ?
-                operationGroupId.Value.ToString() : "<none>";
-            var target = isTargetHalted
-                        ? $"a halted machine '{targetMachineId}'"
-                        : $"machine '{targetMachineId}'";
-            var sender = senderId != null
-                ? $"Machine '{senderId}' in state '{senderStateName}'"
-                : $"The runtime";
-            return $"<SendLog> Operation Group {guid}: {sender} sent event '{eventName}' to {target}.";
+            var operationGroupIdMsg = operationGroupId != Guid.Empty ? $" (operation group '{operationGroupId}')" : string.Empty;
+            var target = isTargetHalted ? $"halted machine '{targetMachineId}'" : $"machine '{targetMachineId}'";
+            var sender = senderId != null ? $"Machine '{senderId}' in state '{senderStateName}'" : $"The runtime";
+            return $"<SendLog> {sender} sent event '{eventName}' to {target}{operationGroupIdMsg}.";
         }
 
         /// <summary>

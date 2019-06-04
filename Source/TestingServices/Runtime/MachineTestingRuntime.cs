@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             IMachineStateManager stateManager = new MachineStateManager(this, this.Machine);
             this.MachineInbox = new EventQueue(stateManager);
 
-            this.Machine.Initialize(this, mid, stateManager, this.MachineInbox);
+            this.Machine.Initialize(this, mid, stateManager, this.MachineInbox, Guid.Empty);
             this.Machine.InitializeStateInformation();
 
             this.Logger.OnCreateMachine(this.Machine.Id, null);
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override MachineId CreateMachine(Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
+        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -163,27 +163,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid? operationGroupId = null) =>
+        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid operationGroupId = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        public override void SendEvent(MachineId target, Event e, SendOptions options = null) =>
+        public override void SendEvent(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.SendEvent' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, SendOptions options = null) =>
+        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
-        /// running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public override Task<bool> SendEventAndExecute(MachineId target, Event e, SendOptions options = null) =>
+        public override Task<bool> SendEventAndExecute(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.SendEventAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -196,7 +196,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e, Machine creator, Guid? operationGroupId)
+        internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
+            Machine creator, Guid operationGroupId)
         {
             mid = mid ?? new MachineId(type, null, this);
             this.Logger.OnCreateMachine(mid, creator?.Id);
@@ -208,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// method returns only when the created machine reaches quiescence.
         /// </summary>
         internal override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid? operationGroupId)
+            Machine creator, Guid operationGroupId)
         {
             mid = mid ?? new MachineId(type, null, this);
             this.Logger.OnCreateMachine(mid, creator?.Id);
@@ -218,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, SendOptions options)
+        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, Guid operationGroupId, SendOptions options)
         {
             this.Assert(sender is null || this.Machine.Id.Equals(sender.Id),
                 string.Format("Only machine '{0}' can send an event during this test.", this.Machine.Id.ToString()));
@@ -250,11 +251,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
-        /// already running. Otherwise blocks until the machine handles the event and reaches quiescense again.
+        /// already running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        internal override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender, SendOptions options)
+        internal override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender,
+            Guid operationGroupId, SendOptions options)
         {
-            this.SendEvent(target, e, sender, options);
+            this.SendEvent(target, e, sender, operationGroupId, options);
             return this.QuiescenceCompletionSource.Task;
         }
 
