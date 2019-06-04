@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.TestWithError(r =>
             {
                 var m = r.CreateMachine(typeof(M1));
-                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
+                r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
             },
             expectedErrors: new string[]
                 {
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 var m = r.CreateMachine(typeof(M2));
                 r.SendEvent(m, new E());
-                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
+                r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
             },
             configuration: Configuration.Create().WithNumberOfIterations(100),
             expectedErrors: new string[]
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 var m = r.CreateMachine(typeof(M5));
                 r.SendEvent(m, new Halt());
-                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
+                r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
                 r.SendEvent(m, new E1());
             },
             configuration: Configuration.Create().WithNumberOfIterations(1),
@@ -168,7 +168,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.Test(r =>
             {
                 var m = r.CreateMachine(typeof(M3));
-                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
+                r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
                 r.SendEvent(m, new Halt());
             },
             configuration: Configuration.Create().WithNumberOfIterations(100));
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             this.TestWithError(r =>
             {
                 var m = r.CreateMachine(typeof(M4));
-                r.SendEvent(m, new E(), new SendOptions(mustHandle: true));
+                r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
                 r.SendEvent(m, new Halt());
             },
             configuration: Configuration.Create().WithNumberOfIterations(1),

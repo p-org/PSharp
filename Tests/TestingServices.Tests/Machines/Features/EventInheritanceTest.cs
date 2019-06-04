@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var tcs = new TaskCompletionSource<bool>();
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
-            var a = runtime.CreateMachine(typeof(A), null, new A.Configure(tcs), null);
+            var a = runtime.CreateMachine(typeof(A), null, new A.Configure(tcs));
             runtime.SendEvent(a, new A.E3());
             runtime.SendEvent(a, new E1());
             runtime.SendEvent(a, new E2());

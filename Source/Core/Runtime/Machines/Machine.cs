@@ -177,9 +177,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(MachineRuntime runtime, MachineId mid, IMachineStateManager stateManager, IEventQueue inbox)
+        internal void Initialize(MachineRuntime runtime, MachineId mid, IMachineStateManager stateManager,
+            IEventQueue inbox, Guid operationGroupId)
         {
-            this.Initialize(runtime, mid);
+            this.Initialize(runtime, mid, operationGroupId);
             this.StateManager = stateManager;
             this.Inbox = inbox;
         }
@@ -191,10 +192,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional initialization event.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, Event e = null)
+        protected MachineId CreateMachine(Type type, Event e = null, Guid operationGroupId = default)
         {
-            return this.Runtime.CreateMachine(null, type, null, e, this, null);
+            return this.Runtime.CreateMachine(null, type, null, e, this, operationGroupId);
         }
 
         /// <summary>
@@ -205,10 +207,11 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
+        /// <param name="operationGroupId">Optional operation group id.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid operationGroupId = default)
         {
-            return this.Runtime.CreateMachine(null, type, friendlyName, e, this, null);
+            return this.Runtime.CreateMachine(null, type, friendlyName, e, this, operationGroupId);
         }
 
         /// <summary>
@@ -220,9 +223,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
-        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null)
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid operationGroupId = default)
         {
-            this.Runtime.CreateMachine(mid, type, friendlyName, e, this, null);
+            this.Runtime.CreateMachine(mid, type, friendlyName, e, this, operationGroupId);
         }
 
         /// <summary>
@@ -230,35 +234,30 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">The id of the target machine.</param>
         /// <param name="e">The event to send.</param>
-        /// <param name="options">Optional send parameters.</param>
-        protected void Send(MachineId mid, Event e, SendOptions options = null)
+        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="options">Optional configuration of a send operation.</param>
+        protected void Send(MachineId mid, Event e, Guid operationGroupId = default, SendOptions options = null)
         {
-            if (e.OperationGroupId == Guid.Empty)
-            {
-                // The event inherits the current machine operation group id,
-                // because the user did not specify a value.
-                e.OperationGroupId = this.OperationGroupId;
-            }
-
-            this.Runtime.SendEvent(mid, e, this, options);
+            this.Runtime.SendEvent(mid, e, this, operationGroupId, options);
         }
 
         /// <summary>
         /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
         /// <param name="e">The event to raise.</param>
-        protected void Raise(Event e)
+        /// <param name="operationGroupId">The operation group id.</param>
+        protected void Raise(Event e, Guid operationGroupId = default)
         {
             this.Assert(!this.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
 
-            if (e.OperationGroupId == Guid.Empty)
-            {
-                // The event inherits the current machine operation group id,
-                // because the user did not specify a value.
-                e.OperationGroupId = this.OperationGroupId;
-            }
-
+            // The operation group id of the event is set using the following precedence:
+            // (1) To the specified raise operation group id, if it is non-empty.
+            // (2) To the operation group id specified on the event constructor, if it is non-empty.
+            // (3) To the operation group id of this machine.
+            // (4) To the empty operation group id.
+            e.OperationGroupId = operationGroupId != Guid.Empty ? operationGroupId :
+                e.OperationGroupId != Guid.Empty ? e.OperationGroupId : this.OperationGroupId;
             this.Inbox.Raise(e);
         }
 
@@ -1393,7 +1392,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private MethodInfo GetActionWithName(string actionName)
         {
-            MethodInfo method = null;
+            MethodInfo method;
             Type machineType = this.GetType();
 
             do

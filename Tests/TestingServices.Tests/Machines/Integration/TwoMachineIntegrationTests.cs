@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnExit()
             {
-                this.Send(this.TargetId, new E3(this.Test), new SendOptions(assert: 1));
+                this.Send(this.TargetId, new E3(this.Test), options: new SendOptions(assert: 1));
             }
 
             private class S1 : MachineState
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Count += 1;
                 if (this.Count == 1)
                 {
-                    this.Send(this.TargetId, new E4(this.Id), new SendOptions(assert: 1));
+                    this.Send(this.TargetId, new E4(this.Id), options: new SendOptions(assert: 1));
                 }
 
                 if (this.Count == 2)
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnEntry()
             {
-                this.Send((this.ReceivedEvent as E4).Id, new E1(), new SendOptions(assert: 1));
+                this.Send((this.ReceivedEvent as E4).Id, new E1(), options: new SendOptions(assert: 1));
                 this.Raise(new SuccessE());
             }
         }
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Count += 1;
                 if (this.Count == 1)
                 {
-                    this.Send(this.TargetId, new E4(this.Id), new SendOptions(assert: 1));
+                    this.Send(this.TargetId, new E4(this.Id), options: new SendOptions(assert: 1));
                 }
 
                 if (this.Count == 2)
@@ -260,7 +260,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnEntry()
             {
-                this.Send((this.ReceivedEvent as E4).Id, new E1(), new SendOptions(assert: 1));
+                this.Send((this.ReceivedEvent as E4).Id, new E1(), options: new SendOptions(assert: 1));
                 this.Raise(new SuccessE());
             }
 
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnEntry()
             {
-                this.Send(this.TargetId, new E4(this.Id), new SendOptions(assert: 1));
+                this.Send(this.TargetId, new E4(this.Id), options: new SendOptions(assert: 1));
                 this.Raise(new SuccessE());
             }
 
@@ -343,12 +343,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                 if (this.Count2 == 1)
                 {
-                    this.Send((this.ReceivedEvent as E4).Id, new E1(), new SendOptions(assert: 1));
+                    this.Send((this.ReceivedEvent as E4).Id, new E1(), options: new SendOptions(assert: 1));
                 }
 
                 if (this.Count2 == 2)
                 {
-                    this.Send((this.ReceivedEvent as E4).Id, new E1(), new SendOptions(assert: 1));
+                    this.Send((this.ReceivedEvent as E4).Id, new E1(), options: new SendOptions(assert: 1));
                     this.Raise(new Halt());
                     return;
                 }
@@ -382,7 +382,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnExit()
             {
                 this.TargetId = this.CreateMachine(typeof(M10));
-                this.Send(this.TargetId, new E1(), new SendOptions(assert: 1));
+                this.Send(this.TargetId, new E1(), options: new SendOptions(assert: 1));
             }
 
             [OnEntry(nameof(ActiveOnEntry))]
@@ -392,7 +392,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void ActiveOnEntry()
             {
-                this.Send(this.TargetId, new E2(), new SendOptions(assert: 1));
+                this.Send(this.TargetId, new E2(), options: new SendOptions(assert: 1));
             }
         }
 

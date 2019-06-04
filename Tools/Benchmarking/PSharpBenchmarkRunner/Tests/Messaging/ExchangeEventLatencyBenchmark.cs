@@ -161,8 +161,7 @@ namespace Microsoft.PSharp.Benchmarking.Messaging
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
             runtime.CreateMachine(typeof(M1), null,
-                new SetupTcsEvent(tcs, this.NumMessages),
-                null);
+                new SetupTcsEvent(tcs, this.NumMessages));
 
             tcs.Task.Wait();
         }
@@ -175,8 +174,7 @@ namespace Microsoft.PSharp.Benchmarking.Messaging
             var configuration = Configuration.Create();
             var runtime = new ProductionRuntime(configuration);
             runtime.CreateMachine(typeof(M3), null,
-                new SetupTcsEvent(tcs, this.NumMessages),
-                null);
+                new SetupTcsEvent(tcs, this.NumMessages));
 
             tcs.Task.Wait();
         }
