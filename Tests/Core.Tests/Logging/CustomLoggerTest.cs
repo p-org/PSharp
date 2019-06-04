@@ -202,11 +202,11 @@ namespace Microsoft.PSharp.Core.Tests
 <ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' invoked action 'InitOnEntry'.
 <CreateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' was created by machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
 <StateLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' enters state 'Init'.
-<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()'.
+<SendLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()'.
 <EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' enqueued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
 <DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
 <ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' invoked action 'Act'.
-<SendLog> Operation Group <none>: Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
+<SendLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+N()' in state 'Init' sent event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E' to machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()'.
 <EnqueueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' enqueued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
 <DequeueLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' dequeued event 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+E'.
 <ActionLog> Machine 'Microsoft.PSharp.Core.Tests.CustomLoggerTest+M()' in state 'Init' invoked action 'Act'.

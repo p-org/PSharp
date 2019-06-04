@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestGotoStateTopLevelActionFail3()
         {
-            var expectedError = "Machine 'M()' cannot call 'Send' after calling raise, goto, push or pop in the same action.";
+            var expectedError = "Machine 'M()' cannot send an event after calling raise, goto, push or pop in the same action.";
             this.TestWithError(r =>
             {
                 r.CreateMachine(typeof(M), new Configure(ErrorType.CallSend));
