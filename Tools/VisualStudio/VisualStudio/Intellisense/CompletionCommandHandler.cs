@@ -17,6 +17,9 @@ using Microsoft.VisualStudio.Text.Operations;
 using MSXML;
 using System.Linq;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
+using System.Collections;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -77,8 +80,12 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 if (pguidCmdGroup == VSConstants.VSStd2K && cCmds > 0)
                 {
-                    // make the Insert Snippet command appear on the context menu
-                    if ((uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET)
+                    // make the Insert Snippet, CommentBlock, and UncommentBlock command appear on the context menu
+                    if ((uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.COMMENTBLOCK
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.COMMENT_BLOCK
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENTBLOCK
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK)
                     {
                         prgCmds[0].cmdf = (int)Constants.MSOCMDF_ENABLED | (int)Constants.MSOCMDF_SUPPORTED;
                         return VSConstants.S_OK;
@@ -151,61 +158,76 @@ namespace Microsoft.PSharp.VisualStudio
             return handled ? VSConstants.S_OK : nextCommandRetVal;
 #endif
 
-            // Snippet picker code starts here
-            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET)
+            if (pguidCmdGroup == VSConstants.VSStd2K)
             {
-                var textManager = (IVsTextManager2)this.Provider.ServiceProvider.GetService(typeof(SVsTextManager));
-
-                textManager.GetExpansionManager(out this.ExpansionManager);
-
-                int hr = this.ExpansionManager.InvokeInsertionUI(
-                    this.VsTextView,
-                    this,      //the expansion client
-                    new Guid(SnippetUtilities.LanguageGuidStr),
-                    null,       //use all snippet types
-                    0,          //number of types (0 for all)
-                    0,          //ignored if iCountTypes == 0
-                    null,       //use all snippet kinds
-                    0,          //use all snippet kinds
-                    0,          //ignored if iCountTypes == 0
-                    "PSharp",   //the text to show in the prompt
-                    string.Empty);  //only the ENTER key causes insert 
-
-                return VSConstants.S_OK;
-            }
-
-            // The expansion insertion is handled in OnItemChosen; handle navigation if the expansion session is still active
-            if (this.ExpansionSession != null)
-            {
-                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKTAB)
+                // Snippet picker code starts here
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET)
                 {
-                    var hr = this.ExpansionSession.GoToPreviousExpansionField();
+                    var textManager = (IVsTextManager2)this.Provider.ServiceProvider.GetService(typeof(SVsTextManager));
+
+                    textManager.GetExpansionManager(out this.ExpansionManager);
+
+                    int hr = this.ExpansionManager.InvokeInsertionUI(
+                        this.VsTextView,
+                        this,      //the expansion client
+                        new Guid(SnippetUtilities.LanguageGuidStr),
+                        null,       //use all snippet types
+                        0,          //number of types (0 for all)
+                        0,          //ignored if iCountTypes == 0
+                        null,       //use all snippet kinds
+                        0,          //use all snippet kinds
+                        0,          //ignored if iCountTypes == 0
+                        "PSharp",   //the text to show in the prompt
+                        string.Empty);  //only the ENTER key causes insert 
+
                     return VSConstants.S_OK;
                 }
-                else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
+
+                // The expansion insertion is handled in OnItemChosen; handle navigation if the expansion session is still active
+                if (this.ExpansionSession != null)
                 {
-                    var hr = this.ExpansionSession.GoToNextExpansionField(0); //false to support cycling through all the fields
-                    return VSConstants.S_OK;
-                }
-                else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
-                {
-                    if (this.ExpansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
+                    if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKTAB)
                     {
-                        return this.EndExpansion();
+                        var hr = this.ExpansionSession.GoToPreviousExpansionField();
+                        return VSConstants.S_OK;
+                    }
+                    else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
+                    {
+                        var hr = this.ExpansionSession.GoToNextExpansionField(0); //false to support cycling through all the fields
+                        return VSConstants.S_OK;
+                    }
+                    else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
+                    {
+                        if (this.ExpansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
+                        {
+                            return this.EndExpansion();
+                        }
                     }
                 }
-            }
 
-            // Neither an expansion session nor a completion session is open, but we got a tab, so check whether the last word typed is a snippet shortcut 
-            if (this.Session == null && this.ExpansionSession == null && nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
-            {
-                //get the word that was just added 
-                CaretPosition pos = this.TextView.Caret.Position;
-                TextExtent word = this.Provider.NavigatorService.GetTextStructureNavigator(this.TextView.TextBuffer).GetExtentOfWord(pos.BufferPosition - 1); //use the position 1 space back
-                string textString = word.Span.GetText(); // The word that was just added; if it is a code snippet, insert it, otherwise carry on
-                if (this.InsertAnyExpansion(textString, null, null))
+                // Neither an expansion session nor a completion session is open, but we got a tab, so check whether the last word typed is a snippet shortcut 
+                if (this.Session == null && this.ExpansionSession == null && nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
                 {
-                    return VSConstants.S_OK;
+                    //get the word that was just added 
+                    CaretPosition pos = this.TextView.Caret.Position;
+                    TextExtent word = this.Provider.NavigatorService.GetTextStructureNavigator(this.TextView.TextBuffer).GetExtentOfWord(pos.BufferPosition - 1); //use the position 1 space back
+                    string textString = word.Span.GetText(); // The word that was just added; if it is a code snippet, insert it, otherwise carry on
+                    if (this.InsertAnyExpansion(textString, null, null))
+                    {
+                        return VSConstants.S_OK;
+                    }
+                }
+
+                // See if we are commenting or uncommenting a selection.
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.COMMENTBLOCK
+                    || nCmdID == (uint)VSConstants.VSStd2KCmdID.COMMENT_BLOCK)
+                {
+                    return ToggleSelectionComments(true);
+                }
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENTBLOCK
+                    || nCmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK)
+                {
+                    return ToggleSelectionComments(false);
                 }
             }
 
@@ -227,15 +249,16 @@ namespace Microsoft.PSharp.VisualStudio
             var span = ts[0];
             var indentReplacements = new Indent(this.TextView).GetSpanIndents(span, this.TextView.Options.GetIndentSize()).ToArray();
 
-            var bufferEdit = this.TextView.TextBuffer.CreateEdit();
-            for (var lineNum = span.iStartLine; lineNum <= span.iEndLine; ++lineNum)
+            using (var bufferEdit = this.TextView.TextBuffer.CreateEdit())
             {
-                var line = this.TextView.TextSnapshot.GetLineFromLineNumber(lineNum);
-                var indentReplacement = indentReplacements[lineNum - span.iStartLine];
-                bufferEdit.Replace(line.Start.Position, indentReplacement.ExistingIndentLength, indentReplacement.NewIndent);
+                for (var lineNum = span.iStartLine; lineNum <= span.iEndLine; ++lineNum)
+                {
+                    var line = this.TextView.TextSnapshot.GetLineFromLineNumber(lineNum);
+                    var indentReplacement = indentReplacements[lineNum - span.iStartLine];
+                    bufferEdit.Replace(line.Start.Position, indentReplacement.ExistingIndentLength, indentReplacement.NewIndent);
+                }
+                bufferEdit.Apply();
             }
-
-            bufferEdit.Apply();
             return VSConstants.S_OK;
         }
 
@@ -311,6 +334,102 @@ namespace Microsoft.PSharp.VisualStudio
             return false;
         }
         // ... end for snippets only
+
+        public int ToggleSelectionComments(bool addComments)
+        {
+            var startLine = this.TextView.Selection.Start.Position.GetContainingLine();
+            var endLine = this.TextView.Selection.End.Position.GetContainingLine();
+            var endLineNumber = endLine.LineNumber;
+            var hasSelection = this.TextView.Selection.End.Position.Position > this.TextView.Selection.Start.Position.Position;
+
+            // If selection ends at the start of the next line, we'll mistakenly include that line as well.
+            if (hasSelection && endLineNumber > startLine.LineNumber && this.TextView.Selection.End.Position.Position == endLine.Start.Position)
+            {
+                endLine = startLine.Snapshot.GetLineFromLineNumber(--endLineNumber);
+            }
+
+        	var hr = addComments ? this.CommentSelection(startLine, endLine) : this.UncommentSelection(startLine, endLine);
+            if (hr != VSConstants.S_OK)
+            {
+                return hr;
+            }
+
+            if (hasSelection)
+            {
+                // There was selection before so restore it. Re-get start and end lines as their snapshot has changed.
+                startLine = this.TextView.Selection.Start.Position.GetContainingLine();
+                endLine = startLine.Snapshot.GetLineFromLineNumber(endLineNumber);
+                this.TextView.Selection.Select(new SnapshotSpan(startLine.Start, endLine.End), false);
+            }
+            return VSConstants.S_OK;
+        }
+
+        private int CommentSelection(ITextSnapshotLine startLine, ITextSnapshotLine endLine)
+        {
+            // Two passes; one to get the lowest first non-blank character index on any line,
+            // and then one to insert RegionParser.LineComment at that position.
+            int lowestFirstNonBlankChar = int.MaxValue;
+    
+            IEnumerable<ITextSnapshotLine> getLines()
+            {
+                for (int ii = startLine.LineNumber; ii <= endLine.LineNumber; ii++)
+                {
+                    var line = startLine.Snapshot.GetLineFromLineNumber(ii);
+                    string text = line.GetText();
+                    for (var jj = 0; jj < text.Length; ++jj)
+                    {
+                        if (!char.IsWhiteSpace(text[jj]))
+                        {
+                            // Do not check to see if there is already a comment there; C# doesn't.
+                            if (jj < lowestFirstNonBlankChar)
+                            {
+                                lowestFirstNonBlankChar = jj; 
+                            }
+                            yield return line;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var lines = getLines().ToArray();   // ToArray() forces iteration and thus execution
+            if (lowestFirstNonBlankChar == int.MaxValue)
+            {
+                return VSConstants.S_FALSE;
+            }
+
+            using (var textEdit = startLine.Snapshot.TextBuffer.CreateEdit())
+            {
+                Array.ForEach(lines, line => textEdit.Insert(line.Start.Position + lowestFirstNonBlankChar, RegionParser.LineComment));
+                textEdit.Apply();
+            }
+            return VSConstants.S_OK;
+        }
+
+        private int UncommentSelection(ITextSnapshotLine startLine, ITextSnapshotLine endLine)
+        {
+            int hr = VSConstants.S_FALSE;
+            using (var textEdit = startLine.Snapshot.TextBuffer.CreateEdit())
+            {
+                for (var ii = startLine.LineNumber; ii <= endLine.LineNumber; ++ii)
+                {
+                    var line = startLine.Snapshot.GetLineFromLineNumber(ii);
+                    var text = line.GetTextIncludingLineBreak();
+                    var commentIndex = text.IndexOf(RegionParser.LineComment);
+                    if (commentIndex >= 0)
+                    {
+                        textEdit.Delete(line.Start.Position + commentIndex, RegionParser.LineComment.Length);
+                        hr = VSConstants.S_OK;
+                    }
+                }
+
+                if (hr == VSConstants.S_OK)
+                {
+                    textEdit.Apply(); 
+                }
+            }
+            return hr;
+        }
 
 #if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
 

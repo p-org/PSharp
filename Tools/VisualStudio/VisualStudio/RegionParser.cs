@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.VisualStudio
         internal const char OpenParenthesis = '(';
         internal const char CloseParenthesis = ')';
 
-        private const string lineComment = "//";    // These are the "consume until close" characters
+        internal const string LineComment = "//";    // These are the "consume until close" characters
         private const string openComment = "/*";
         private const string closeComment = "*/";
         private const string openQuote = "\"";
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.VisualStudio
                     this.consumeClose = null;
                     continue;
                 }
-                if (MatchAt(text, ref ii, lineComment))
+                if (MatchAt(text, ref ii, LineComment))
                 {
                     break;
                 }
