@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.VisualStudio
                 {
                     isMultiLineCommentEnabled = false;
                 }
-                else if (isLineCommentEnabled /*|| isMultiLineCommentEnabled*/)
+                else if (isLineCommentEnabled /*|| isMultiLineCommentEnabled*/) // this does not work here because it does not have full multiline context
                 {
                     tokens[idx] = new Token(tokens[idx].TextUnit, TokenType.Comment);
                 }
