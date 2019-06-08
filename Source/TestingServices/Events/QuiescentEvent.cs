@@ -23,9 +23,7 @@ namespace Microsoft.PSharp
         /// Initializes a new instance of the <see cref="QuiescentEvent"/> class.
         /// </summary>
         /// <param name="mid">The id of the machine that has reached quiescence.</param>
-        /// <param name="operationGroupId">The operation group id associated with this event.</param>
-        public QuiescentEvent(MachineId mid, Guid operationGroupId)
-            : base(operationGroupId)
+        public QuiescentEvent(MachineId mid)
         {
             this.MachineId = mid;
         }

@@ -172,26 +172,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachine(null, type, null, e, operationGroupId);
+        public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachine(null, type, null, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachine(null, type, machineName, e, operationGroupId);
+        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachine(null, type, machineName, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid operationGroupId = default)
+        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachine(mid, type, null, e, operationGroupId);
+            return this.CreateMachine(mid, type, null, e, opGroupId);
         }
 
         /// <summary>
@@ -200,8 +200,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, operationGroupId);
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -209,8 +209,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, operationGroupId);
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -219,10 +219,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid operationGroupId = default)
+        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecuteAsync(mid, type, null, e, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId);
         }
 
         /// <summary>
@@ -231,8 +231,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, operationGroupId);
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -240,8 +240,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid operationGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, operationGroupId);
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -250,33 +250,33 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid operationGroupId = default)
+        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecuteAsync(mid, type, null, e, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId);
         }
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        public override void SendEvent(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null)
+        public override void SendEvent(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null)
         {
-            this.SendEvent(target, e, this.GetExecutingMachine<Machine>(), operationGroupId, options);
+            this.SendEvent(target, e, this.GetExecutingMachine<Machine>(), opGroupId, options);
         }
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null) =>
-            this.SendEventAndExecuteAsync(target, e, this.GetExecutingMachine<Machine>(), operationGroupId, options);
+        public override Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null) =>
+            this.SendEventAndExecuteAsync(target, e, this.GetExecutingMachine<Machine>(), opGroupId, options);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public override Task<bool> SendEventAndExecute(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null) =>
-            this.SendEventAndExecuteAsync(target, e, operationGroupId, options);
+        public override Task<bool> SendEventAndExecute(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null) =>
+            this.SendEventAndExecuteAsync(target, e, opGroupId, options);
 
         /// <summary>
         /// Returns the operation group id of the specified machine. Returns <see cref="Guid.Empty"/>
@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             MachineId mid = new MachineId(typeof(TestHarnessMachine), null, this);
             AsyncOperation op = this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
-            harness.Initialize(this, mid, Guid.Empty);
+            harness.Initialize(this, mid);
 
             bool result = this.MachineMap.TryAdd(mid, harness);
             this.Assert(result, "Machine id '{0}' is used by an existing machine.", mid.Value);
@@ -399,17 +399,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
         /// can only be used to access its payload, and cannot be handled.
         /// </summary>
-        internal MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid operationGroupId = default)
+        internal MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid opGroupId = default)
         {
             Machine creator = this.GetExecutingMachine<Machine>();
-            return this.CreateMachine(mid, type, machineName, e, creator, operationGroupId);
+            return this.CreateMachine(mid, type, machineName, e, creator, opGroupId);
         }
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid operationGroupId)
+            Machine creator, Guid opGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachine");
             if (creator != null)
@@ -417,7 +417,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.AssertNoPendingTransitionStatement(creator, "create a machine");
             }
 
-            Machine machine = this.CreateMachine(mid, type, machineName, creator, operationGroupId);
+            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, null, null);
@@ -432,10 +432,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         internal Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e = null,
-            Guid operationGroupId = default)
+            Guid opGroupId = default)
         {
             Machine creator = this.GetExecutingMachine<Machine>();
-            return this.CreateMachineAndExecuteAsync(mid, type, machineName, e, creator, operationGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, machineName, e, creator, opGroupId);
         }
 
         /// <summary>
@@ -444,14 +444,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// (if any) is handled.
         /// </summary>
         internal override async Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid operationGroupId)
+            Machine creator, Guid opGroupId)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
             this.Assert(creator != null,
                 "Only a machine can call 'CreateMachineAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
             this.AssertNoPendingTransitionStatement(creator, "create a machine");
 
-            Machine machine = this.CreateMachine(mid, type, machineName, creator, operationGroupId);
+            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, creator, null);
@@ -465,7 +465,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        private Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid operationGroupId)
+        private Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.FullName);
 
@@ -486,19 +486,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 mid.Bind(this);
             }
 
+            // The operation group id of the machine is set using the following precedence:
+            // (1) To the specified machine creation operation group id, if it is non-empty.
+            // (2) To the operation group id of the creator machine, if it exists and is non-empty.
+            // (3) To the empty operation group id.
+            if (opGroupId == Guid.Empty && creator != null)
+            {
+                opGroupId = creator.OperationGroupId;
+            }
+
             var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
             this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
-            IMachineStateManager stateManager = new SerializedMachineStateManager(this, machine);
+            IMachineStateManager stateManager = new SerializedMachineStateManager(this, machine, opGroupId);
             IEventQueue eventQueue = new SerializedMachineEventQueue(stateManager, machine);
 
-            // The operation group id of the machine is set using the following precedence:
-            // (1) To the specified machine creation operation group id, if it is non-empty.
-            // (2) To the operation group id of the creator machine, if it exists.
-            // (3) To the empty operation group id.
-            operationGroupId = operationGroupId != Guid.Empty ? operationGroupId :
-                creator != null ? creator.OperationGroupId : Guid.Empty;
-            machine.Initialize(this, mid, stateManager, eventQueue, operationGroupId);
+            machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
             if (this.Configuration.ReportActivityCoverage && !isMachineTypeCached)
@@ -527,7 +530,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, Guid operationGroupId, SendOptions options)
+        internal override void SendEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId, SendOptions options)
         {
             if (sender != null)
             {
@@ -542,7 +545,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             this.AssertCorrectCallerMachine(sender as Machine, "SendEvent");
 
-            EnqueueStatus enqueueStatus = this.EnqueueEvent(target, e, sender, operationGroupId, options,
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(target, e, sender, opGroupId, options,
                 out Machine targetMachine, out EventInfo eventInfo);
             if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
             {
@@ -555,7 +558,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
         internal override async Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender,
-            Guid operationGroupId, SendOptions options)
+            Guid opGroupId, SendOptions options)
         {
             this.Assert(sender is Machine,
                 "Only a machine can call 'SendEventAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
@@ -563,7 +566,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(e != null, "Machine '{0}' is sending a null event.", sender.Id);
             this.AssertCorrectCallerMachine(sender as Machine, "SendEventAndExecute");
 
-            EnqueueStatus enqueueStatus = this.EnqueueEvent(target, e, sender, operationGroupId, options,
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(target, e, sender, opGroupId, options,
                 out Machine targetMachine, out EventInfo eventInfo);
             if (enqueueStatus is EnqueueStatus.EventHandlerNotRunning)
             {
@@ -583,30 +586,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Enqueues an event to the machine with the specified id.
         /// </summary>
-        private EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid operationGroupId,
+        private EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
         {
             this.Assert(this.CreatedMachineIds.Contains(target),
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
                 e.GetType().FullName, target.Value, target.Type);
 
-            // The operation group id of the event is set using the following precedence:
-            // (1) To the specified send operation group id, if it is non-empty.
-            // (2) To the operation group id specified on the event constructor, if it is non-empty.
-            // (3) To the operation group id of the sender machine, if it exists.
-            // (4) To the empty operation group id.
-            e.OperationGroupId = operationGroupId != Guid.Empty ? operationGroupId :
-                e.OperationGroupId != Guid.Empty ? e.OperationGroupId :
-                sender != null ? sender.OperationGroupId : Guid.Empty;
-
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
             ResetProgramCounter(sender as Machine);
+
+            // The operation group id of this operation is set using the following precedence:
+            // (1) To the specified send operation group id, if it is non-empty.
+            // (2) To the operation group id of the sender machine, if it exists and is non-empty.
+            // (3) To the empty operation group id.
+            if (opGroupId == Guid.Empty && sender != null)
+            {
+                opGroupId = sender.OperationGroupId;
+            }
 
             targetMachine = this.GetMachineFromId<Machine>(target);
             if (targetMachine is null)
             {
                 this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
-                    e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
+                    e.GetType().FullName, opGroupId, isTargetHalted: true);
                 this.Assert(options is null || !options.MustHandle,
                     "A must-handle event '{0}' was sent to the halted machine '{1}'.", e.GetType().FullName, target);
                 this.TryHandleDroppedEvent(e, target);
@@ -619,7 +622,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.AssertNoPendingTransitionStatement(sender as Machine, "send an event");
             }
 
-            EnqueueStatus enqueueStatus = this.EnqueueEvent(targetMachine, e, sender, options, out eventInfo);
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo);
             if (enqueueStatus == EnqueueStatus.Dropped)
             {
                 this.TryHandleDroppedEvent(e, target);
@@ -631,7 +634,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Enqueues an event to the machine with the specified id.
         /// </summary>
-        private EnqueueStatus EnqueueEvent(Machine machine, Event e, AsyncMachine sender, SendOptions options, out EventInfo eventInfo)
+        private EnqueueStatus EnqueueEvent(Machine machine, Event e, AsyncMachine sender, Guid opGroupId,
+            SendOptions options, out EventInfo eventInfo)
         {
             EventOriginInfo originInfo;
             if (sender is Machine)
@@ -654,7 +658,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             };
 
             this.Logger.OnSend(machine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
-                e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
+                e.GetType().FullName, opGroupId, isTargetHalted: false);
 
             if (sender != null)
             {
@@ -666,7 +670,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
             }
 
-            return machine.Enqueue(e, eventInfo);
+            return machine.Enqueue(e, opGroupId, eventInfo);
         }
 
         /// <summary>
@@ -701,7 +705,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (syncCaller != null)
                     {
-                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id, machine.OperationGroupId), machine, null, out EventInfo _);
+                        this.EnqueueEvent(syncCaller, new QuiescentEvent(machine.Id), machine, machine.OperationGroupId, null, out EventInfo _);
                     }
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed event handler of '{machine.Id}' with task id '{op.Task.Id}'.");

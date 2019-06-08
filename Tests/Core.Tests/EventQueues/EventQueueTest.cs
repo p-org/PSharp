@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.Tests.Common;
@@ -50,15 +51,15 @@ namespace Microsoft.PSharp.Core.Tests
             var queue = new EventQueue(machineStateManager);
             Assert.Equal(0, queue.Size);
 
-            var enqueueStatus = queue.Enqueue(new E1(), null);
+            var enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(1, queue.Size);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
 
-            enqueueStatus = queue.Enqueue(new E2(), null);
+            enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(2, queue.Size);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
 
-            enqueueStatus = queue.Enqueue(new E3(), null);
+            enqueueStatus = queue.Enqueue(new E3(), Guid.Empty, null);
             Assert.Equal(3, queue.Size);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
         }
@@ -71,36 +72,36 @@ namespace Microsoft.PSharp.Core.Tests
                 (notification, evt, _) => { });
 
             var queue = new EventQueue(machineStateManager);
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            queue.Enqueue(new E1(), null);
-            (deqeueStatus, e, info) = queue.Dequeue();
+            queue.Enqueue(new E1(), Guid.Empty, null);
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E1>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            queue.Enqueue(new E3(), null);
-            queue.Enqueue(new E2(), null);
-            queue.Enqueue(new E1(), null);
+            queue.Enqueue(new E3(), Guid.Empty, null);
+            queue.Enqueue(new E2(), Guid.Empty, null);
+            queue.Enqueue(new E1(), Guid.Empty, null);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E3>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(2, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E2>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(1, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E1>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
         }
@@ -113,11 +114,11 @@ namespace Microsoft.PSharp.Core.Tests
                 (notification, evt, _) => { });
 
             var queue = new EventQueue(machineStateManager);
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            var enqueueStatus = queue.Enqueue(new E1(), null);
+            var enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerNotRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
         }
@@ -130,11 +131,11 @@ namespace Microsoft.PSharp.Core.Tests
                 (notification, evt, _) => { });
 
             var queue = new EventQueue(machineStateManager);
-            queue.Raise(new E1());
+            queue.Raise(new E1(), Guid.Empty);
             Assert.True(queue.IsEventRaised);
             Assert.Equal(0, queue.Size);
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E1>(e);
             Assert.Equal(DequeueStatus.Raised, deqeueStatus);
             Assert.False(queue.IsEventRaised);
@@ -170,13 +171,13 @@ namespace Microsoft.PSharp.Core.Tests
             // Small delay to force ordering.
             await Task.Delay(100);
 
-            var enqueueStatus = queue.Enqueue(new E1(), null);
+            var enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
             Assert.Equal(0, queue.Size);
 
             await task;
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
@@ -214,23 +215,23 @@ namespace Microsoft.PSharp.Core.Tests
             // Small delay to force ordering.
             await Task.Delay(100);
 
-            var enqueueStatus = queue.Enqueue(new E4(false), null);
+            var enqueueStatus = queue.Enqueue(new E4(false), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E4(true), null);
+            enqueueStatus = queue.Enqueue(new E4(true), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
             await task;
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E4>(e);
             Assert.False((e as E4).Value);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
@@ -256,11 +257,11 @@ namespace Microsoft.PSharp.Core.Tests
                 });
 
             var queue = new EventQueue(machineStateManager);
-            var enqueueStatus = queue.Enqueue(new E4(false), null);
+            var enqueueStatus = queue.Enqueue(new E4(false), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E4(true), null);
+            enqueueStatus = queue.Enqueue(new E4(true), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(2, queue.Size);
 
@@ -269,13 +270,13 @@ namespace Microsoft.PSharp.Core.Tests
             Assert.True((receivedEvent as E4).Value);
             Assert.Equal(1, queue.Size);
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E4>(e);
             Assert.False((e as E4).Value);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
@@ -301,7 +302,7 @@ namespace Microsoft.PSharp.Core.Tests
                 });
 
             var queue = new EventQueue(machineStateManager);
-            var enqueueStatus = queue.Enqueue(new E1(), null);
+            var enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
@@ -309,7 +310,7 @@ namespace Microsoft.PSharp.Core.Tests
             Assert.IsType<E1>(receivedEvent);
             Assert.Equal(0, queue.Size);
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
@@ -346,13 +347,13 @@ namespace Microsoft.PSharp.Core.Tests
             // Small delay to force ordering.
             await Task.Delay(100);
 
-            var enqueueStatus = queue.Enqueue(new E2(), null);
+            var enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
             Assert.Equal(0, queue.Size);
 
             await task;
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
@@ -389,26 +390,26 @@ namespace Microsoft.PSharp.Core.Tests
             // Small delay to force ordering.
             await Task.Delay(100);
 
-            var enqueueStatus = queue.Enqueue(new E2(), null);
+            var enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E3(), null);
+            enqueueStatus = queue.Enqueue(new E3(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(2, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E1(), null);
+            enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
             Assert.Equal(2, queue.Size);
 
             await task;
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E2>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(1, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E3>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
@@ -435,15 +436,15 @@ namespace Microsoft.PSharp.Core.Tests
                 });
 
             var queue = new EventQueue(machineStateManager);
-            var enqueueStatus = queue.Enqueue(new E2(), null);
+            var enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(1, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E1(), null);
+            enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(2, queue.Size);
 
-            enqueueStatus = queue.Enqueue(new E3(), null);
+            enqueueStatus = queue.Enqueue(new E3(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
             Assert.Equal(3, queue.Size);
 
@@ -451,17 +452,17 @@ namespace Microsoft.PSharp.Core.Tests
             Assert.IsType<E1>(receivedEvent);
             Assert.Equal(2, queue.Size);
 
-            var (deqeueStatus, e, info) = queue.Dequeue();
+            var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E2>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(1, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.IsType<E3>(e);
             Assert.Equal(DequeueStatus.Success, deqeueStatus);
             Assert.Equal(0, queue.Size);
 
-            (deqeueStatus, e, info) = queue.Dequeue();
+            (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
             Assert.Equal(DequeueStatus.NotAvailable, deqeueStatus);
             Assert.Equal(0, queue.Size);
 

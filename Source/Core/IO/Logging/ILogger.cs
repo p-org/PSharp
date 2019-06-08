@@ -163,10 +163,10 @@ namespace Microsoft.PSharp.IO
         /// <param name="senderId">The id of the machine that sent the event, if any.</param>
         /// <param name="senderStateName">The name of the current state of the sender machine, if any.</param>
         /// <param name="eventName">The event being sent.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
+        /// <param name="opGroupId">Id used to identify the send operation.</param>
         /// <param name="isTargetHalted">Is the target machine halted.</param>
         void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
-            Guid operationGroupId, bool isTargetHalted);
+            Guid opGroupId, bool isTargetHalted);
 
         /// <summary>
         /// Called when a machine has been created.

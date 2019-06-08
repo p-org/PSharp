@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Core.Tests
         internal class E : Event
         {
             public MachineId Id;
-            private readonly int[] LargeArray;
+            public readonly int[] LargeArray;
 
             public E(MachineId id)
                 : base()
@@ -65,7 +65,8 @@ namespace Microsoft.PSharp.Core.Tests
                     while (counter < 1000)
                     {
                         this.Send(n, new E(this.Id));
-                        await this.Receive(typeof(E));
+                        E e = (E)await this.Receive(typeof(E));
+                        e.LargeArray[10] = 7;
                         counter++;
                     }
                 }
@@ -93,7 +94,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout=18000)]
+        [Fact(Timeout=22000)]
         public async Task TestNoMemoryLeakInEventSending()
         {
             await this.RunAsync(async r =>
@@ -101,7 +102,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcs = new TaskCompletionSource<bool>();
                 r.CreateMachine(typeof(M), new Configure(tcs));
 
-                await WaitAsync(tcs.Task, 15000);
+                await WaitAsync(tcs.Task, 20000);
 
                 (r as ProductionRuntime).Stop();
             });

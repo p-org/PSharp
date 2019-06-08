@@ -33,6 +33,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal readonly string TestName;
 
         /// <summary>
+        /// Id used to identify subsequent operations performed by this machine.
+        /// </summary>
+        protected internal override Guid OperationGroupId { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TestHarnessMachine"/> class.
         /// </summary>
         internal TestHarnessMachine(Action<IMachineRuntime> testAction, string testName)

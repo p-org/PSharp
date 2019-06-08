@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private async Task InitOnEntry()
             {
                 this.Send(this.Id, new E());
-                await Task.Delay(2);
+                await Task.Delay(10);
                 this.Send(this.Id, new E());
             }
         }
