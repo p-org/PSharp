@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M));
             },
-            expectedError: "Detected task with id '' that is not controlled by the P# runtime.",
+            expectedError: "Task with id '' that is not controlled by the P# runtime invoked a runtime method.",
             replay: true);
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(N));
             },
-            expectedError: "Detected task with id '' that is not controlled by the P# runtime.",
+            expectedError: "Task with id '' that is not controlled by the P# runtime invoked a runtime method.",
             replay: true);
         }
     }

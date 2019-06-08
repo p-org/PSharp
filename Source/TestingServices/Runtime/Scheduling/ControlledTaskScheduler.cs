@@ -15,9 +15,9 @@ using Microsoft.PSharp.TestingServices.Runtime;
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// The P# asynchronous task scheduler.
+    /// A task scheduler that can be controlled during testing.
     /// </summary>
-    internal sealed class AsynchronousTaskScheduler : TaskScheduler
+    internal sealed class ControlledTaskScheduler : TaskScheduler
     {
         /// <summary>
         /// The P# testing runtime.
@@ -25,17 +25,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private readonly SystematicTestingRuntime Runtime;
 
         /// <summary>
-        /// Map from task ids to machines.
+        /// Map from task that are controlled by the runtime to machines.
         /// </summary>
-        private readonly ConcurrentDictionary<int, AsyncMachine> TaskMap;
+        private readonly ConcurrentDictionary<int, AsyncMachine> ControlledTaskMap;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AsynchronousTaskScheduler"/> class.
+        /// Initializes a new instance of the <see cref="ControlledTaskScheduler"/> class.
         /// </summary>
-        internal AsynchronousTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, AsyncMachine> taskMap)
+        internal ControlledTaskScheduler(SystematicTestingRuntime runtime, ConcurrentDictionary<int, AsyncMachine> controlledTaskMap)
         {
             this.Runtime = runtime;
-            this.TaskMap = taskMap;
+            this.ControlledTaskMap = controlledTaskMap;
         }
 
         /// <summary>
@@ -44,30 +44,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         protected override void QueueTask(Task task)
         {
-            if (this.TaskMap.ContainsKey(task.Id))
+            if (Task.CurrentId.HasValue &&
+                this.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out AsyncMachine machine))
             {
-                // If the task was already registered with the P# runtime, then
-                // execute it on the thread pool.
-                this.Execute(task);
+                // The task was spawned by user-code (e.g. due to async/await).
+                this.ControlledTaskMap.TryAdd(task.Id, machine);
+                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{Task.CurrentId.Value}' to '{task.Id}'.");
             }
-            else
-            {
-                // Else, the task was spawned by user-code (e.g. due to async/await). In
-                // this case, get the currently scheduled machine (this was the machine
-                // that spawned this task).
-                int prevTaskId = this.Runtime.Scheduler.ScheduledOperation.Task.Id;
-                this.TaskMap.TryRemove(prevTaskId, out AsyncMachine machine);
-                this.TaskMap.TryAdd(task.Id, machine);
 
-                // Change the task previously associated with the currently executing operation to the new task.
-                AsyncOperation op = this.Runtime.GetAsynchronousOperation(machine.Id.Value);
-                op.Task = task;
-
-                IO.Debug.WriteLine($"<ScheduleDebug> '{machine.Id}' changed task '{prevTaskId}' to '{task.Id}'.");
-
-                // Execute the new task.
-                this.Execute(task);
-            }
+            this.Execute(task);
         }
 
         /// <summary>

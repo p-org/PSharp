@@ -49,6 +49,11 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        internal virtual int GetCachedState() => 0;
+
+        /// <summary>
         /// Determines whether the specified object is equal to the current object.
         /// </summary>
         public override bool Equals(object obj)

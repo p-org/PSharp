@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected readonly ConcurrentDictionary<MachineId, Machine> MachineMap;
+        protected readonly ConcurrentDictionary<MachineId, AsyncMachine> MachineMap;
 
         /// <summary>
         /// The installed logger.
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Runtime
         protected MachineRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, AsyncMachine>();
             this.MachineIdCounter = 0;
             this.Logger = configuration.IsVerbose ?
                 (ILogger)new ConsoleLogger(true) : new DisposingLogger();
@@ -367,6 +367,17 @@ namespace Microsoft.PSharp.Runtime
         /// controlled during analysis or testing.
         /// </summary>
         internal abstract int GetNondeterministicIntegerChoice(AsyncMachine machine, int maxValue);
+
+        /// <summary>
+        /// Gets the machine of type <typeparamref name="TMachine"/> with the specified id,
+        /// or null if no such machine exists.
+        /// </summary>
+        internal TMachine GetMachineFromId<TMachine>(MachineId id)
+            where TMachine : AsyncMachine
+        {
+            return id != null && this.MachineMap.TryGetValue(id, out AsyncMachine value) &&
+                value is TMachine machine ? machine : null;
+        }
 
         /// <summary>
         /// Notifies that a machine entered a state.

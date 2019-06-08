@@ -31,14 +31,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal sealed class SystematicTestingRuntime : MachineRuntime
     {
         /// <summary>
+        /// Stores the machine id of each machine executing in a given asynchronous context.
+        /// </summary>
+        private static readonly AsyncLocal<MachineId> AsyncLocalMachineId = new AsyncLocal<MachineId>();
+
+        /// <summary>
         /// The bug-finding scheduler.
         /// </summary>
         internal BugFindingScheduler Scheduler;
 
         /// <summary>
-        /// The asynchronous task scheduler.
+        /// The controlled task scheduler.
         /// </summary>
-        internal AsynchronousTaskScheduler TaskScheduler;
+        internal ControlledTaskScheduler TaskScheduler;
 
         /// <summary>
         /// The P# program schedule trace.
@@ -77,9 +82,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly ConcurrentDictionary<ulong, AsyncOperation> MachineOperations;
 
         /// <summary>
-        /// Map from task ids to machines.
+        /// Map from task that are controlled by the runtime to machines.
         /// </summary>
-        private readonly ConcurrentDictionary<int, AsyncMachine> TaskMap;
+        private readonly ConcurrentDictionary<int, AsyncMachine> ControlledTaskMap;
 
         /// <summary>
         /// Map that stores all unique names and their corresponding machine ids.
@@ -104,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Monitors = new List<Monitor>();
             this.MachineOperations = new ConcurrentDictionary<ulong, AsyncOperation>();
-            this.TaskMap = new ConcurrentDictionary<int, AsyncMachine>();
+            this.ControlledTaskMap = new ConcurrentDictionary<int, AsyncMachine>();
             this.RootTaskId = Task.CurrentId;
             this.CreatedMachineIds = new HashSet<MachineId>();
             this.NameValueToMachineId = new ConcurrentDictionary<string, MachineId>();
@@ -113,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.BugTrace = new BugTrace();
             this.StateCache = new StateCache(this);
 
-            this.TaskScheduler = new AsynchronousTaskScheduler(this, this.TaskMap);
+            this.TaskScheduler = new ControlledTaskScheduler(this, this.ControlledTaskMap);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
 
@@ -284,12 +289,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 "Trying to access the operation group id of '{0}', which is not the currently executing machine.",
                 currentMachine);
 
-            if (!this.MachineMap.TryGetValue(currentMachine, out Machine machine))
-            {
-                return Guid.Empty;
-            }
-
-            return machine.OperationGroupId;
+            Machine machine = this.GetMachineFromId<Machine>(currentMachine);
+            return machine is null ? Guid.Empty : machine.OperationGroupId;
         }
 
         /// <summary>
@@ -325,8 +326,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             AsyncOperation op = this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
             harness.Initialize(this, mid, Guid.Empty);
 
+            bool result = this.MachineMap.TryAdd(mid, harness);
+            this.Assert(result, "Machine id '{0}' is used by an existing machine.", mid.Value);
+
             Task task = new Task(async () =>
             {
+                // Set the id of the executing machine in the local asynchronous context,
+                // allowing future retrieval in the same asynchronous call stack.
+                AsyncLocalMachineId.Value = mid;
+
                 try
                 {
                     BugFindingScheduler.NotifyOperationStarted(op);
@@ -372,11 +380,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out _);
+                    this.MachineMap.TryRemove(mid, out AsyncMachine _);
                 }
             });
 
-            this.TaskMap.TryAdd(task.Id, harness);
+            this.ControlledTaskMap.TryAdd(task.Id, harness);
 
             op.NotifyCreated(task, 0);
             this.Scheduler.NotifyOperationCreated(op);
@@ -594,7 +602,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
             ResetProgramCounter(sender as Machine);
 
-            if (!this.MachineMap.TryGetValue(target, out targetMachine))
+            targetMachine = this.GetMachineFromId<Machine>(target);
+            if (targetMachine is null)
             {
                 this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                     e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
@@ -610,7 +619,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.AssertNoPendingTransitionStatement(sender as Machine, "send an event");
             }
 
-            return this.EnqueueEvent(targetMachine, e, sender, options, out eventInfo);
+            EnqueueStatus enqueueStatus = this.EnqueueEvent(targetMachine, e, sender, options, out eventInfo);
+            if (enqueueStatus == EnqueueStatus.Dropped)
+            {
+                this.TryHandleDroppedEvent(e, target);
+            }
+
+            return enqueueStatus;
         }
 
         /// <summary>
@@ -669,6 +684,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             Task task = new Task(async () =>
             {
+                // Set the id of the executing machine in the local asynchronous context,
+                // allowing future retrieval in the same asynchronous call stack.
+                AsyncLocalMachineId.Value = machine.Id;
+
                 try
                 {
                     BugFindingScheduler.NotifyOperationStarted(op);
@@ -710,11 +729,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out _);
+                    if (machine.IsHalted)
+                    {
+                        this.MachineMap.TryRemove(machine.Id, out AsyncMachine _);
+                    }
                 }
             });
 
-            this.TaskMap.TryAdd(task.Id, machine);
+            this.ControlledTaskMap.TryAdd(task.Id, machine);
 
             op.NotifyCreated(task, enablingEvent?.SendStep ?? 0);
             this.Scheduler.NotifyOperationCreated(op);
@@ -740,8 +762,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             var mid = this.CreateMachineId(typeof(MockMachineTimer));
             this.CreateMachine(mid, typeof(MockMachineTimer), new TimerSetupEvent(info, owner, this.Configuration.TimeoutDelay));
-            this.MachineMap.TryGetValue(mid, out Machine machine);
-            return machine as IMachineTimer;
+            return this.GetMachineFromId<MockMachineTimer>(mid);
         }
 
         /// <summary>
@@ -915,6 +936,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             this.Assert(executingMachine.Equals(callerMachine), "Machine '{0}' invoked {1} on behalf of machine '{2}'.",
                 executingMachine.Id, calledAPI, callerMachine.Id);
+        }
+
+        /// <summary>
+        /// Asserts that no task that is not controlled by the runtime is currently executing.
+        /// </summary>
+        internal void AssertNoExternalConcurrencyUsed()
+        {
+            var machine = this.GetExecutingMachine<AsyncMachine>();
+            this.Assert(machine != null && Task.CurrentId.HasValue && this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value),
+                "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
+                Task.CurrentId.HasValue ? Task.CurrentId.Value.ToString() : "<unknown>");
         }
 
         /// <summary>
@@ -1348,7 +1380,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyHalted(Machine machine)
         {
             this.BugTrace.AddHaltStep(machine.Id, null);
-            this.MachineMap.TryRemove(machine.Id, out Machine _);
         }
 
         /// <summary>
@@ -1551,26 +1582,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         /// <summary>
         /// Gets the currently executing machine of type <typeparamref name="TMachine"/>,
-        /// or null if no machine is currently executing.
+        /// or null if no such machine is currently executing.
         /// </summary>
         internal TMachine GetExecutingMachine<TMachine>()
-            where TMachine : AsyncMachine
-        {
-            // The current task does not correspond to a machine.
-            if (Task.CurrentId != null &&
-                this.TaskMap.TryGetValue((int)Task.CurrentId, out AsyncMachine value) &&
-                value is TMachine machine)
-            {
-                return machine;
-            }
-
-            return null;
-        }
+            where TMachine : AsyncMachine =>
+            this.GetMachineFromId<TMachine>(AsyncLocalMachineId.Value);
 
         /// <summary>
-        /// Gets the id of the currently executing <see cref="AsyncMachine"/>.
+        /// Gets the id of the currently executing machine.
         /// </summary>
-        internal MachineId GetCurrentMachineId() => this.GetExecutingMachine<AsyncMachine>()?.Id;
+        internal MachineId GetCurrentMachineId() => AsyncLocalMachineId.Value;
 
         /// <summary>
         /// Gets the asynchronous operation associated with the specified id.
@@ -1629,7 +1650,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Monitors.Clear();
                 this.MachineMap.Clear();
                 this.MachineOperations.Clear();
-                this.TaskMap.Clear();
+                this.ControlledTaskMap.Clear();
             }
 
             base.Dispose(disposing);

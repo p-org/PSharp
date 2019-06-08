@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout=15000)]
+        [Fact(Timeout=18000)]
         public async Task TestNoMemoryLeakInEventSending()
         {
             await this.RunAsync(async r =>

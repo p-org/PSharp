@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private async Task Act()
             {
-                await Task.Delay(10);
+                await Task.Delay(0);
                 throw new Ex1();
             }
 
@@ -373,7 +373,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             this.Test(r =>
             {
-                r.CreateMachine(typeof(M1c));
+                r.CreateMachine(typeof(M1d));
             });
         }
 

@@ -103,8 +103,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new ExecutionCanceledException();
             }
 
-            // Checks if synchronisation not controlled by P# was used.
-            this.CheckIfExternalConcurrencyIsUsed();
+            // Checks if concurrency not controlled by the runtime was used.
+            this.Runtime.AssertNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
@@ -166,8 +166,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal bool GetNextNondeterministicBooleanChoice(int maxValue, string uniqueId = null)
         {
-            // Checks if synchronisation not controlled by P# was used.
-            this.CheckIfExternalConcurrencyIsUsed();
+            // Checks if concurrency not controlled by the runtime was used.
+            this.Runtime.AssertNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
@@ -196,8 +196,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal int GetNextNondeterministicIntegerChoice(int maxValue)
         {
-            // Checks if synchronisation not controlled by P# was used.
-            this.CheckIfExternalConcurrencyIsUsed();
+            // Checks if concurrency not controlled by the runtime was used.
+            this.Runtime.AssertNoExternalConcurrencyUsed();
 
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
@@ -422,25 +422,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.Runtime.Scheduler.NotifyAssertionFailure(message);
-        }
-
-        /// <summary>
-        /// Checks if the scheduler was invoked by a task that is not controlled by the runtime.
-        /// If yes, it stops the scheduler and all operations, and reports an error.
-        /// </summary>
-        internal void CheckIfExternalConcurrencyIsUsed()
-        {
-            int? taskId = Task.CurrentId;
-            if (taskId is null)
-            {
-                string message = "Detected concurrency that is not controlled by the P# runtime.";
-                this.NotifyAssertionFailure(message);
-            }
-            else if (taskId.Value != this.ScheduledOperation.Task.Id)
-            {
-                string message = $"Detected task with id '{taskId}' that is not controlled by the P# runtime.";
-                this.NotifyAssertionFailure(message);
-            }
         }
 
         /// <summary>

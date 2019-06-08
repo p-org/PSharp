@@ -1129,7 +1129,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the cached state of this machine.
         /// </summary>
-        internal int GetCachedState()
+        internal override int GetCachedState()
         {
             unchecked
             {

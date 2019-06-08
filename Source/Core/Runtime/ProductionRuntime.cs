@@ -155,12 +155,8 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         public override Guid GetCurrentOperationGroupId(MachineId currentMachine)
         {
-            if (!this.MachineMap.TryGetValue(currentMachine, out Machine machine))
-            {
-                return Guid.Empty;
-            }
-
-            return machine.OperationGroupId;
+            Machine machine = this.GetMachineFromId<Machine>(currentMachine);
+            return machine is null ? Guid.Empty : machine.OperationGroupId;
         }
 
         /// <summary>
@@ -299,7 +295,8 @@ namespace Microsoft.PSharp.Runtime
                 e.OperationGroupId != Guid.Empty ? e.OperationGroupId :
                 sender != null ? sender.OperationGroupId : Guid.Empty;
 
-            if (!this.MachineMap.TryGetValue(target, out targetMachine))
+            targetMachine = this.GetMachineFromId<Machine>(target);
+            if (targetMachine is null)
             {
                 this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                     e.GetType().FullName, e.OperationGroupId, isTargetHalted: true);
@@ -310,7 +307,13 @@ namespace Microsoft.PSharp.Runtime
             this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                 e.GetType().FullName, e.OperationGroupId, isTargetHalted: false);
 
-            return targetMachine.Enqueue(e, null);
+            EnqueueStatus enqueueStatus = targetMachine.Enqueue(e, null);
+            if (enqueueStatus == EnqueueStatus.Dropped)
+            {
+                this.TryHandleDroppedEvent(e, target);
+            }
+
+            return enqueueStatus;
         }
 
         /// <summary>
@@ -334,6 +337,13 @@ namespace Microsoft.PSharp.Runtime
                 {
                     this.IsRunning = false;
                     this.RaiseOnFailureEvent(ex);
+                }
+                finally
+                {
+                    if (machine.IsHalted)
+                    {
+                        this.MachineMap.TryRemove(machine.Id, out AsyncMachine _);
+                    }
                 }
             });
         }
@@ -637,14 +647,6 @@ namespace Microsoft.PSharp.Runtime
         internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
-        }
-
-        /// <summary>
-        /// Notifies that a machine has halted.
-        /// </summary>
-        internal override void NotifyHalted(Machine machine)
-        {
-            this.MachineMap.TryRemove(machine.Id, out Machine _);
         }
 
         /// <summary>

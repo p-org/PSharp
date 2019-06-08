@@ -295,8 +295,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             var mid = this.CreateMachineId(typeof(MockMachineTimer));
             this.CreateMachine(mid, typeof(MockMachineTimer), new TimerSetupEvent(info, owner, this.Configuration.TimeoutDelay));
-            this.MachineMap.TryGetValue(mid, out Machine machine);
-            return machine as IMachineTimer;
+            return this.GetMachineFromId<MockMachineTimer>(mid);
         }
 
         /// <summary>
@@ -560,7 +559,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyHalted(Machine machine)
         {
-            this.MachineMap.TryRemove(machine.Id, out Machine _);
+            this.MachineMap.TryRemove(machine.Id, out AsyncMachine _);
         }
 
         /// <summary>
