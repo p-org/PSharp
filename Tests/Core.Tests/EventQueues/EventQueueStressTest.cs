@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.Tests.Common;
@@ -40,7 +41,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 for (int i = 0; i < numMessages; i++)
                 {
-                    queue.Enqueue(new E1(), null);
+                    queue.Enqueue(new E1(), Guid.Empty, null);
                 }
             });
 
@@ -48,7 +49,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 for (int i = 0; i < numMessages; i++)
                 {
-                    var (deqeueStatus, e, info) = queue.Dequeue();
+                    var (deqeueStatus, e, opGroupId, info) = queue.Dequeue();
                     if (deqeueStatus is DequeueStatus.Success)
                     {
                         Assert.IsType<E1>(e);
@@ -75,7 +76,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 for (int i = 0; i < numMessages; i++)
                 {
-                    queue.Enqueue(new E1(), null);
+                    queue.Enqueue(new E1(), Guid.Empty, null);
                 }
             });
 
@@ -108,11 +109,11 @@ namespace Microsoft.PSharp.Core.Tests
                 {
                     if (i % 2 == 0)
                     {
-                        queue.Enqueue(new E1(), null);
+                        queue.Enqueue(new E1(), Guid.Empty, null);
                     }
                     else
                     {
-                        queue.Enqueue(new E2(), null);
+                        queue.Enqueue(new E2(), Guid.Empty, null);
                     }
                 }
             });

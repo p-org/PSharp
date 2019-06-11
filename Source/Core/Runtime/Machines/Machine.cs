@@ -155,6 +155,23 @@ namespace Microsoft.PSharp
         protected internal Event ReceivedEvent { get; private set; }
 
         /// <summary>
+        /// Id used to identify subsequent operations performed by this machine. This value is
+        /// initially either <see cref="Guid.Empty"/> or the <see cref="Guid"/> specified upon
+        /// machine creation. This value is automatically set to the operation group id of the
+        /// last dequeue, raise or receive operation, if it is not <see cref="Guid.Empty"/>.
+        /// This value can also be manually set using the property.
+        /// </summary>
+        protected internal override Guid OperationGroupId
+        {
+            get => this.StateManager.OperationGroupId;
+
+            set
+            {
+                this.StateManager.OperationGroupId = value;
+            }
+        }
+
+        /// <summary>
         /// User-defined hashed state of the machine. Override to improve the
         /// accuracy of liveness checking when state-caching is enabled.
         /// </summary>
@@ -177,10 +194,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes this machine.
         /// </summary>
-        internal void Initialize(MachineRuntime runtime, MachineId mid, IMachineStateManager stateManager,
-            IEventQueue inbox, Guid operationGroupId)
+        internal void Initialize(MachineRuntime runtime, MachineId mid, IMachineStateManager stateManager, IEventQueue inbox)
         {
-            this.Initialize(runtime, mid, operationGroupId);
+            this.Initialize(runtime, mid);
             this.StateManager = stateManager;
             this.Inbox = inbox;
         }
@@ -192,12 +208,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional initialization event.</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, Event e = null, Guid operationGroupId = default)
-        {
-            return this.Runtime.CreateMachine(null, type, null, e, this, operationGroupId);
-        }
+        protected MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
+            this.Runtime.CreateMachine(null, type, null, e, this, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified type and name, and with the
@@ -207,12 +221,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid operationGroupId = default)
-        {
-            return this.Runtime.CreateMachine(null, type, friendlyName, e, this, operationGroupId);
-        }
+        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid opGroupId = default) =>
+            this.Runtime.CreateMachine(null, type, friendlyName, e, this, opGroupId);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
@@ -223,42 +235,34 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
-        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid operationGroupId = default)
-        {
-            this.Runtime.CreateMachine(mid, type, friendlyName, e, this, operationGroupId);
-        }
+        /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid opGroupId = default) =>
+            this.Runtime.CreateMachine(mid, type, friendlyName, e, this, opGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
         /// <param name="mid">The id of the target machine.</param>
         /// <param name="e">The event to send.</param>
-        /// <param name="operationGroupId">Optional operation group id.</param>
+        /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
         /// <param name="options">Optional configuration of a send operation.</param>
-        protected void Send(MachineId mid, Event e, Guid operationGroupId = default, SendOptions options = null)
-        {
-            this.Runtime.SendEvent(mid, e, this, operationGroupId, options);
-        }
+        protected void Send(MachineId mid, Event e, Guid opGroupId = default, SendOptions options = null) =>
+            this.Runtime.SendEvent(mid, e, this, opGroupId, options);
 
         /// <summary>
         /// Raises an <see cref="Event"/> internally at the end of the current action.
         /// </summary>
         /// <param name="e">The event to raise.</param>
-        /// <param name="operationGroupId">The operation group id.</param>
-        protected void Raise(Event e, Guid operationGroupId = default)
+        /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        protected void Raise(Event e, Guid opGroupId = default)
         {
             this.Assert(!this.IsHalted, "Machine '{0}' invoked Raise while halted.", this.Id);
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.Id);
 
-            // The operation group id of the event is set using the following precedence:
+            // The operation group id of this operation is set using the following precedence:
             // (1) To the specified raise operation group id, if it is non-empty.
-            // (2) To the operation group id specified on the event constructor, if it is non-empty.
-            // (3) To the operation group id of this machine.
-            // (4) To the empty operation group id.
-            e.OperationGroupId = operationGroupId != Guid.Empty ? operationGroupId :
-                e.OperationGroupId != Guid.Empty ? e.OperationGroupId : this.OperationGroupId;
-            this.Inbox.Raise(e);
+            // (2) To the operation group id of this machine.
+            this.Inbox.Raise(e, opGroupId != Guid.Empty ? opGroupId : this.OperationGroupId);
         }
 
         /// <summary>
@@ -521,16 +525,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Enqueues the specified event and its optional metadata.
+        /// Enqueues the specified event and its metadata.
         /// </summary>
-        internal EnqueueStatus Enqueue(Event e, EventInfo info)
+        internal EnqueueStatus Enqueue(Event e, Guid opGroupId, EventInfo info)
         {
             if (this.IsHalted)
             {
                 return EnqueueStatus.Dropped;
             }
 
-            return this.Inbox.Enqueue(e, info);
+            return this.Inbox.Enqueue(e, opGroupId, info);
         }
 
         /// <summary>
@@ -547,15 +551,18 @@ namespace Microsoft.PSharp
             Event lastDequeuedEvent = null;
             while (!this.IsHalted && this.Runtime.IsRunning)
             {
-                (DequeueStatus status, Event e, EventInfo info) = this.Inbox.Dequeue();
+                (DequeueStatus status, Event e, Guid opGroupId, EventInfo info) = this.Inbox.Dequeue();
+                if (opGroupId != Guid.Empty)
+                {
+                    // Inherit the operation group id of the dequeue or raise operation, if it is non-empty.
+                    this.StateManager.OperationGroupId = opGroupId;
+                }
+
                 if (status is DequeueStatus.Success)
                 {
-                    // The machine inherits the operation group id of the dequeued event.
-                    this.OperationGroupId = e.OperationGroupId;
-
-                    // Notifies the runtime for a new event to handle. This is only used
-                    // during bug-finding and operation bounding, because the runtime has
-                    // to schedule a machine when a new operation is dequeued.
+                    // Notify the runtime for a new event to handle. This is only used
+                    // during bug-finding and operation bounding, because the runtime
+                    // has to schedule a machine when a new operation is dequeued.
                     this.Runtime.NotifyDequeuedEvent(this, e, info);
                 }
                 else if (status is DequeueStatus.Raised)
@@ -1129,7 +1136,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the cached state of this machine.
         /// </summary>
-        internal int GetCachedState()
+        internal override int GetCachedState()
         {
             unchecked
             {

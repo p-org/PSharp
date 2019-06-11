@@ -48,13 +48,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
             }
 
-            public E(Guid operationGroup)
-                : base(operationGroup)
-            {
-            }
-
-            public E(MachineId id, Guid operationGroup)
-                : base(operationGroup)
+            public E(MachineId id)
             {
                 this.Id = id;
             }
@@ -138,7 +132,7 @@ namespace Microsoft.PSharp.Core.Tests
             private void InitOnEntry()
             {
                 this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
-                this.Runtime.SendEvent(this.Id, new E(OperationGroup1));
+                this.Runtime.SendEvent(this.Id, new E(), OperationGroup1);
             }
 
             private void CheckEvent()
@@ -266,7 +260,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 var tcs = (this.ReceivedEvent as SetupEvent).Tcs;
                 var target = this.CreateMachine(typeof(M6B), new SetupEvent(tcs));
-                this.Runtime.SendEvent(target, new E(OperationGroup1));
+                this.Runtime.SendEvent(target, new E(), OperationGroup1);
             }
         }
 
@@ -321,7 +315,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
                 this.Tcs = tcss[0];
                 var target = this.CreateMachine(typeof(M7B), new SetupEvent(tcss[1]));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
             }
 
             private void CheckEvent()
@@ -386,7 +380,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
                 this.Tcs = tcss[0];
                 var target = this.CreateMachine(typeof(M8B), new SetupEvent(tcss[1]));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
             }
 
             private void CheckEvent()
@@ -414,7 +408,7 @@ namespace Microsoft.PSharp.Core.Tests
             private void CheckEvent()
             {
                 this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 
@@ -451,7 +445,7 @@ namespace Microsoft.PSharp.Core.Tests
                 var tcss = (this.ReceivedEvent as SetupMultipleEvent).Tcss;
                 this.Tcs = tcss[0];
                 var target = this.CreateMachine(typeof(M9B), new SetupMultipleEvent(tcss[1], tcss[2]));
-                this.Runtime.SendEvent(target, new E(this.Id, OperationGroup1));
+                this.Runtime.SendEvent(target, new E(this.Id), OperationGroup1);
             }
 
             private void CheckEvent()
@@ -483,7 +477,7 @@ namespace Microsoft.PSharp.Core.Tests
             {
                 this.CreateMachine(typeof(M9C), new SetupEvent(this.TargetTcs));
                 this.Tcs.SetResult(this.OperationGroupId == OperationGroup1);
-                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(OperationGroup2));
+                this.Runtime.SendEvent((this.ReceivedEvent as E).Id, new E(), OperationGroup2);
             }
         }
 

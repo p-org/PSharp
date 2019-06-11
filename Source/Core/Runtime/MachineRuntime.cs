@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Map from unique machine ids to machines.
         /// </summary>
-        protected readonly ConcurrentDictionary<MachineId, Machine> MachineMap;
+        protected readonly ConcurrentDictionary<MachineId, AsyncMachine> MachineMap;
 
         /// <summary>
         /// The installed logger.
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Runtime
         protected MachineRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.MachineMap = new ConcurrentDictionary<MachineId, Machine>();
+            this.MachineMap = new ConcurrentDictionary<MachineId, AsyncMachine>();
             this.MachineIdCounter = 0;
             this.Logger = configuration.IsVerbose ?
                 (ILogger)new ConsoleLogger(true) : new DisposingLogger();
@@ -87,21 +87,21 @@ namespace Microsoft.PSharp.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(Type type, Event e = null, Guid operationGroupId = default);
+        public abstract MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(Type type, string machineName, Event e = null, Guid operationGroupId = default);
+        public abstract MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid operationGroupId = default);
+        public abstract MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -151,24 +151,24 @@ namespace Microsoft.PSharp.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid operationGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        public abstract void SendEvent(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null);
+        public abstract void SendEvent(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null);
+        public abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null);
 
         /// <summary>
         /// Sends an <see cref="Event"/> to a machine. Returns immediately if the target machine was already
         /// running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
-        public abstract Task<bool> SendEventAndExecute(MachineId target, Event e, Guid operationGroupId = default, SendOptions options = null);
+        public abstract Task<bool> SendEventAndExecute(MachineId target, Event e, Guid opGroupId = default, SendOptions options = null);
 
         /// <summary>
         /// Registers a new specification monitor of the specified <see cref="Type"/>.
@@ -258,7 +258,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid operationGroupId);
+            Machine creator, Guid opGroupId);
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
@@ -266,19 +266,19 @@ namespace Microsoft.PSharp.Runtime
         /// (if any) is handled.
         /// </summary>
         internal abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid operationGroupId);
+            Machine creator, Guid opGroupId);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
         /// </summary>
-        internal abstract void SendEvent(MachineId target, Event e, AsyncMachine sender, Guid operationGroupId, SendOptions options);
+        internal abstract void SendEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId, SendOptions options);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine. Returns immediately if the target machine was
         /// already running. Otherwise blocks until the machine handles the event and reaches quiescense.
         /// </summary>
         internal abstract Task<bool> SendEventAndExecuteAsync(MachineId target, Event e, AsyncMachine sender,
-            Guid operationGroupId, SendOptions options);
+            Guid opGroupId, SendOptions options);
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.
@@ -367,6 +367,17 @@ namespace Microsoft.PSharp.Runtime
         /// controlled during analysis or testing.
         /// </summary>
         internal abstract int GetNondeterministicIntegerChoice(AsyncMachine machine, int maxValue);
+
+        /// <summary>
+        /// Gets the machine of type <typeparamref name="TMachine"/> with the specified id,
+        /// or null if no such machine exists.
+        /// </summary>
+        internal TMachine GetMachineFromId<TMachine>(MachineId id)
+            where TMachine : AsyncMachine
+        {
+            return id != null && this.MachineMap.TryGetValue(id, out AsyncMachine value) &&
+                value is TMachine machine ? machine : null;
+        }
 
         /// <summary>
         /// Notifies that a machine entered a state.

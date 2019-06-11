@@ -22,12 +22,12 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The internal queue.
         /// </summary>
-        private readonly LinkedList<Event> Queue;
+        private readonly LinkedList<(Event e, Guid opGroupId)> Queue;
 
         /// <summary>
-        /// The raised event, or null if no event has been raised.
+        /// The raised event and its metadata, or null if no event has been raised.
         /// </summary>
-        private Event RaisedEvent;
+        private (Event e, Guid opGroupId) RaisedEvent;
 
         /// <summary>
         /// Map from the types of events that the owner of the queue is waiting to receive
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Checks if an event has been raised.
         /// </summary>
-        public bool IsEventRaised => this.RaisedEvent != null;
+        public bool IsEventRaised => this.RaisedEvent != default;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventQueue"/> class.
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Runtime
         internal EventQueue(IMachineStateManager machineStateManager)
         {
             this.MachineStateManager = machineStateManager;
-            this.Queue = new LinkedList<Event>();
+            this.Queue = new LinkedList<(Event, Guid)>();
             this.EventWaitTypes = new Dictionary<Type, Func<Event, bool>>();
             this.IsClosed = false;
         }
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Enqueues the specified event and its optional metadata.
         /// </summary>
-        public EnqueueStatus Enqueue(Event e, EventInfo info)
+        public EnqueueStatus Enqueue(Event e, Guid opGroupId, EventInfo info)
         {
             EnqueueStatus enqueueStatus = EnqueueStatus.EventHandlerRunning;
             lock (this.Queue)
@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Runtime
                 }
                 else
                 {
-                    this.Queue.AddLast(e);
+                    this.Queue.AddLast((e, opGroupId));
                     if (!this.MachineStateManager.IsEventHandlerRunning)
                     {
                         this.MachineStateManager.IsEventHandlerRunning = true;
@@ -101,13 +101,13 @@ namespace Microsoft.PSharp.Runtime
 
             if (enqueueStatus is EnqueueStatus.Received)
             {
-                this.MachineStateManager.OnReceiveEvent(e, info);
+                this.MachineStateManager.OnReceiveEvent(e, opGroupId, info);
                 this.ReceiveCompletionSource.SetResult(e);
                 return enqueueStatus;
             }
             else
             {
-                this.MachineStateManager.OnEnqueueEvent(e, info);
+                this.MachineStateManager.OnEnqueueEvent(e, opGroupId, info);
             }
 
             return enqueueStatus;
@@ -116,23 +116,23 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Dequeues the next event, if there is one available.
         /// </summary>
-        public (DequeueStatus status, Event e, EventInfo info) Dequeue()
+        public (DequeueStatus status, Event e, Guid opGroupId, EventInfo info) Dequeue()
         {
             // Try to get the raised event, if there is one. Raised events
             // have priority over the events in the inbox.
-            if (this.RaisedEvent != null)
+            if (this.RaisedEvent != default)
             {
-                if (this.MachineStateManager.IsEventIgnoredInCurrentState(this.RaisedEvent, null))
+                if (this.MachineStateManager.IsEventIgnoredInCurrentState(this.RaisedEvent.e, this.RaisedEvent.opGroupId, null))
                 {
                     // TODO: should the user be able to raise an ignored event?
                     // The raised event is ignored in the current state.
-                    this.RaisedEvent = null;
+                    this.RaisedEvent = default;
                 }
                 else
                 {
-                    Event e = this.RaisedEvent;
-                    this.RaisedEvent = null;
-                    return (DequeueStatus.Raised, e, null);
+                    (Event e, Guid opGroupId) = this.RaisedEvent;
+                    this.RaisedEvent = default;
+                    return (DequeueStatus.Raised, e, opGroupId, null);
                 }
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.Runtime
                 while (node != null)
                 {
                     // Iterates through the events in the inbox.
-                    if (this.MachineStateManager.IsEventIgnoredInCurrentState(node.Value, null))
+                    if (this.MachineStateManager.IsEventIgnoredInCurrentState(node.Value.e, node.Value.opGroupId, null))
                     {
                         // Removes an ignored event.
                         var nextNode = node.Next;
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.Runtime
                         node = nextNode;
                         continue;
                     }
-                    else if (this.MachineStateManager.IsEventDeferredInCurrentState(node.Value, null))
+                    else if (this.MachineStateManager.IsEventDeferredInCurrentState(node.Value.e, node.Value.opGroupId, null))
                     {
                         // Skips a deferred event.
                         node = node.Next;
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.Runtime
 
                     // Found next event that can be dequeued.
                     this.Queue.Remove(node);
-                    return (DequeueStatus.Success, node.Value, null);
+                    return (DequeueStatus.Success, node.Value.e, node.Value.opGroupId, null);
                 }
 
                 // No event can be dequeued, so check if there is a default event handler.
@@ -170,22 +170,22 @@ namespace Microsoft.PSharp.Runtime
                     // Setting 'IsEventHandlerRunning' must happen inside the lock as it needs
                     // to be synchronized with the enqueue and starting a new event handler.
                     this.MachineStateManager.IsEventHandlerRunning = false;
-                    return (DequeueStatus.NotAvailable, null, null);
+                    return (DequeueStatus.NotAvailable, null, Guid.Empty, null);
                 }
             }
 
             // TODO: check op-id of default event.
             // A default event handler exists.
-            return (DequeueStatus.Default, Default.Event, null);
+            return (DequeueStatus.Default, Default.Event, Guid.Empty, null);
         }
 
         /// <summary>
         /// Enqueues the specified raised event.
         /// </summary>
-        public void Raise(Event e)
+        public void Raise(Event e, Guid opGroupId)
         {
-            this.RaisedEvent = e;
-            this.MachineStateManager.OnRaiseEvent(e, null);
+            this.RaisedEvent = (e, opGroupId);
+            this.MachineStateManager.OnRaiseEvent(e, opGroupId, null);
         }
 
         /// <summary>
@@ -234,17 +234,17 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         private Task<Event> ReceiveAsync(Dictionary<Type, Func<Event, bool>> eventWaitTypes)
         {
-            Event e = null;
+            (Event e, Guid opGroupId) receivedEvent = default;
             lock (this.Queue)
             {
                 var node = this.Queue.First;
                 while (node != null)
                 {
                     // Dequeue the first event that the caller waits to receive, if there is one in the queue.
-                    if (eventWaitTypes.TryGetValue(node.Value.GetType(), out Func<Event, bool> predicate) &&
-                        (predicate is null || predicate(node.Value)))
+                    if (eventWaitTypes.TryGetValue(node.Value.e.GetType(), out Func<Event, bool> predicate) &&
+                        (predicate is null || predicate(node.Value.e)))
                     {
-                        e = node.Value;
+                        receivedEvent = node.Value;
                         this.Queue.Remove(node);
                         break;
                     }
@@ -252,14 +252,14 @@ namespace Microsoft.PSharp.Runtime
                     node = node.Next;
                 }
 
-                if (e is null)
+                if (receivedEvent == default)
                 {
                     this.ReceiveCompletionSource = new TaskCompletionSource<Event>();
                     this.EventWaitTypes = eventWaitTypes;
                 }
             }
 
-            if (e is null)
+            if (receivedEvent == default)
             {
                 // Note that 'EventWaitTypes' is racy, so should not be accessed outside
                 // the lock, this is why we access 'eventWaitTypes' instead.
@@ -267,8 +267,8 @@ namespace Microsoft.PSharp.Runtime
                 return this.ReceiveCompletionSource.Task;
             }
 
-            this.MachineStateManager.OnReceiveEventWithoutWaiting(e, null);
-            return Task.FromResult(e);
+            this.MachineStateManager.OnReceiveEventWithoutWaiting(receivedEvent.e, receivedEvent.opGroupId, null);
+            return Task.FromResult(receivedEvent.e);
         }
 
         /// <summary>
@@ -297,9 +297,9 @@ namespace Microsoft.PSharp.Runtime
                 return;
             }
 
-            foreach (var e in this.Queue)
+            foreach (var (e, opGroupId) in this.Queue)
             {
-                this.MachineStateManager.OnDropEvent(e, null);
+                this.MachineStateManager.OnDropEvent(e, opGroupId, null);
             }
 
             this.Queue.Clear();

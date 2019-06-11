@@ -30,13 +30,19 @@ namespace Microsoft.PSharp.Runtime
         public bool IsEventHandlerRunning { get; set; }
 
         /// <summary>
+        /// Id used to identify subsequent operations performed by the machine.
+        /// </summary>
+        public Guid OperationGroupId { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MachineStateManager"/> class.
         /// </summary>
-        internal MachineStateManager(MachineRuntime runtime, Machine machine)
+        internal MachineStateManager(MachineRuntime runtime, Machine machine, Guid operationGroupId)
         {
             this.Runtime = runtime;
             this.Machine = machine;
             this.IsEventHandlerRunning = true;
+            this.OperationGroupId = operationGroupId;
         }
 
         /// <summary>
@@ -48,13 +54,15 @@ namespace Microsoft.PSharp.Runtime
         /// Checks if the specified event is ignored in the current machine state.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsEventIgnoredInCurrentState(Event e, EventInfo eventInfo) => this.Machine.IsEventIgnoredInCurrentState(e);
+        public bool IsEventIgnoredInCurrentState(Event e, Guid opGroupId, EventInfo eventInfo) =>
+            this.Machine.IsEventIgnoredInCurrentState(e);
 
         /// <summary>
         /// Checks if the specified event is deferred in the current machine state.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsEventDeferredInCurrentState(Event e, EventInfo eventInfo) => this.Machine.IsEventDeferredInCurrentState(e);
+        public bool IsEventDeferredInCurrentState(Event e, Guid opGroupId, EventInfo eventInfo) =>
+            this.Machine.IsEventDeferredInCurrentState(e);
 
         /// <summary>
         /// Checks if a default handler is installed in the current machine state.
@@ -66,34 +74,34 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that an event has been enqueued.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnEnqueueEvent(Event e, EventInfo eventInfo)
-        {
+        public void OnEnqueueEvent(Event e, Guid opGroupId, EventInfo eventInfo) =>
             this.Runtime.Logger.OnEnqueue(this.Machine.Id, e.GetType().FullName);
-        }
 
         /// <summary>
         /// Notifies the machine that an event has been raised.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnRaiseEvent(Event e, EventInfo eventInfo)
-        {
+        public void OnRaiseEvent(Event e, Guid opGroupId, EventInfo eventInfo) =>
             this.Runtime.NotifyRaisedEvent(this.Machine, e, eventInfo);
-        }
 
         /// <summary>
         /// Notifies the machine that it is waiting to receive an event of one of the specified types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnWaitEvent(IEnumerable<Type> eventTypes)
-        {
+        public void OnWaitEvent(IEnumerable<Type> eventTypes) =>
             this.Runtime.NotifyWaitEvent(this.Machine, eventTypes);
-        }
 
         /// <summary>
         /// Notifies the machine that an event it was waiting to receive has been enqueued.
         /// </summary>
-        public void OnReceiveEvent(Event e, EventInfo eventInfo)
+        public void OnReceiveEvent(Event e, Guid opGroupId, EventInfo eventInfo)
         {
+            if (opGroupId != Guid.Empty)
+            {
+                // Inherit the operation group id of the receive operation, if it is non-empty.
+                this.OperationGroupId = opGroupId;
+            }
+
             this.Runtime.NotifyReceivedEvent(this.Machine, e, eventInfo);
         }
 
@@ -102,8 +110,14 @@ namespace Microsoft.PSharp.Runtime
         /// event queue when the machine invoked the receive statement.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnReceiveEventWithoutWaiting(Event e, EventInfo eventInfo)
+        public void OnReceiveEventWithoutWaiting(Event e, Guid opGroupId, EventInfo eventInfo)
         {
+            if (opGroupId != Guid.Empty)
+            {
+                // Inherit the operation group id of the receive operation, if it is non-empty.
+                this.OperationGroupId = opGroupId;
+            }
+
             this.Runtime.NotifyReceivedEventWithoutWaiting(this.Machine, e, eventInfo);
         }
 
@@ -111,45 +125,32 @@ namespace Microsoft.PSharp.Runtime
         /// Notifies the machine that an event has been dropped.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnDropEvent(Event e, EventInfo eventInfo)
-        {
+        public void OnDropEvent(Event e, Guid opGroupId, EventInfo eventInfo) =>
             this.Runtime.TryHandleDroppedEvent(e, this.Machine.Id);
-        }
 
         /// <summary>
         /// Asserts if the specified condition holds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Assert(bool predicate, string s, object arg0)
-        {
-            this.Runtime.Assert(predicate, s, arg0);
-        }
+        public void Assert(bool predicate, string s, object arg0) => this.Runtime.Assert(predicate, s, arg0);
 
         /// <summary>
         /// Asserts if the specified condition holds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Assert(bool predicate, string s, object arg0, object arg1)
-        {
-            this.Runtime.Assert(predicate, s, arg0, arg1);
-        }
+        public void Assert(bool predicate, string s, object arg0, object arg1) => this.Runtime.Assert(predicate, s, arg0, arg1);
 
         /// <summary>
         /// Asserts if the specified condition holds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
-        {
+        public void Assert(bool predicate, string s, object arg0, object arg1, object arg2) =>
             this.Runtime.Assert(predicate, s, arg0, arg1, arg2);
-        }
 
         /// <summary>
         /// Asserts if the specified condition holds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Assert(bool predicate, string s, params object[] args)
-        {
-            this.Runtime.Assert(predicate, s, args);
-        }
+        public void Assert(bool predicate, string s, params object[] args) => this.Runtime.Assert(predicate, s, args);
     }
 }

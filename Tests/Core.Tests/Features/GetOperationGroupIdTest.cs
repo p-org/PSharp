@@ -33,8 +33,7 @@ namespace Microsoft.PSharp.Core.Tests
         {
             public MachineId Id;
 
-            public E(MachineId id, Guid operationGroupId)
-                : base(operationGroupId)
+            public E(MachineId id)
             {
                 this.Id = id;
             }
@@ -82,7 +81,7 @@ namespace Microsoft.PSharp.Core.Tests
             private void InitOnEntry()
             {
                 this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
-                this.Runtime.SendEvent(this.Id, new E(this.Id, OperationGroup));
+                this.Runtime.SendEvent(this.Id, new E(this.Id), OperationGroup);
             }
 
             private void CheckEvent()

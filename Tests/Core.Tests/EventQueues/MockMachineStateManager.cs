@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
-using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
@@ -32,6 +31,8 @@ namespace Microsoft.PSharp.Core.Tests
 
         public bool IsEventHandlerRunning { get; set; }
 
+        public Guid OperationGroupId { get; set; }
+
         internal MockMachineStateManager(ILogger logger, Action<Notification, Event, EventInfo> notify,
             Type[] ignoredEvents = null, Type[] deferredEvents = null, bool isDefaultHandlerInstalled = false)
         {
@@ -45,19 +46,21 @@ namespace Microsoft.PSharp.Core.Tests
 
         public int GetCachedState() => 0;
 
-        public bool IsEventIgnoredInCurrentState(Event e, EventInfo eventInfo) => this.IgnoredEvents.Contains(e.GetType());
+        public bool IsEventIgnoredInCurrentState(Event e, Guid opGroupId, EventInfo eventInfo) =>
+            this.IgnoredEvents.Contains(e.GetType());
 
-        public bool IsEventDeferredInCurrentState(Event e, EventInfo eventInfo) => this.DeferredEvents.Contains(e.GetType());
+        public bool IsEventDeferredInCurrentState(Event e, Guid opGroupId, EventInfo eventInfo) =>
+            this.DeferredEvents.Contains(e.GetType());
 
         public bool IsDefaultHandlerInstalledInCurrentState() => this.IsDefaultHandlerInstalled;
 
-        public void OnEnqueueEvent(Event e, EventInfo eventInfo)
+        public void OnEnqueueEvent(Event e, Guid opGroupId, EventInfo eventInfo)
         {
             this.Logger.WriteLine("Enqueued event of type '{0}'.", e.GetType().FullName);
             this.Notify(Notification.EnqueueEvent, e, eventInfo);
         }
 
-        public void OnRaiseEvent(Event e, EventInfo eventInfo)
+        public void OnRaiseEvent(Event e, Guid opGroupId, EventInfo eventInfo)
         {
             this.Logger.WriteLine("Raised event of type '{0}'.", e.GetType().FullName);
             this.Notify(Notification.RaiseEvent, e, eventInfo);
@@ -73,19 +76,31 @@ namespace Microsoft.PSharp.Core.Tests
             this.Notify(Notification.WaitEvent, null, null);
         }
 
-        public void OnReceiveEvent(Event e, EventInfo eventInfo)
+        public void OnReceiveEvent(Event e, Guid opGroupId, EventInfo eventInfo)
         {
+            if (opGroupId != Guid.Empty)
+            {
+                // Inherit the operation group id of the receive operation, if it is non-empty.
+                this.OperationGroupId = opGroupId;
+            }
+
             this.Logger.WriteLine("Received event of type '{0}'.", e.GetType().FullName);
             this.Notify(Notification.ReceiveEvent, e, eventInfo);
         }
 
-        public void OnReceiveEventWithoutWaiting(Event e, EventInfo eventInfo)
+        public void OnReceiveEventWithoutWaiting(Event e, Guid opGroupId, EventInfo eventInfo)
         {
+            if (opGroupId != Guid.Empty)
+            {
+                // Inherit the operation group id of the receive operation, if it is non-empty.
+                this.OperationGroupId = opGroupId;
+            }
+
             this.Logger.WriteLine("Received event of type '{0}' without waiting.", e.GetType().FullName);
             this.Notify(Notification.ReceiveEventWithoutWaiting, e, eventInfo);
         }
 
-        public void OnDropEvent(Event e, EventInfo eventInfo)
+        public void OnDropEvent(Event e, Guid opGroupId, EventInfo eventInfo)
         {
             this.Logger.WriteLine("Dropped event of type '{0}'.", e.GetType().FullName);
             this.Notify(Notification.DropEvent, e, eventInfo);
