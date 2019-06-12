@@ -5,8 +5,9 @@
 
 #if NET46
 using System.ServiceModel;
-#endif
+
 using Microsoft.PSharp.TestingServices.Coverage;
+#endif
 
 namespace Microsoft.PSharp.TestingServices
 {
@@ -15,14 +16,15 @@ namespace Microsoft.PSharp.TestingServices
     /// </summary>
 #if NET46
     [ServiceContract(Namespace = "Microsoft.PSharp")]
-    [ServiceKnownType("GetKnownTypes", typeof(KnownTypesProvider))]
+    [ServiceKnownType(typeof(TestReport))]
+    [ServiceKnownType(typeof(CoverageInfo))]
+    [ServiceKnownType(typeof(Transition))]
 #endif
     internal interface ITestingProcess
     {
         /// <summary>
         /// Returns the test report.
         /// </summary>
-        /// <returns>TestReport</returns>
 #if NET46
         [OperationContract]
 #endif
