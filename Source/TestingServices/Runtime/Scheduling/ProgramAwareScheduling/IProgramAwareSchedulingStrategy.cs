@@ -1,0 +1,40 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.PSharp.Runtime;
+
+namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
+{
+    internal interface IProgramAwareSchedulingStrategy : ISchedulingStrategy
+    {
+        void RecordCreateMachine(Machine createdMachine, Machine creatorMachine);
+
+#if false
+        [Obsolete("targetMachine/EventInfo is not set if the target is halted. Use the MachineId/Event version.")]
+        void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo);
+#endif
+        void RecordReceiveEvent(Machine machine, EventInfo eventInfo);
+
+        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo);
+
+        // Non-det choices
+        void RecordNonDetBooleanChoice(bool boolChoice);
+
+        void RecordNonDetIntegerChoice(int intChoice);
+
+        // Functions to keep things neat.
+
+        /// <summary>
+        /// To be called when the scheduler has stopped scheduling
+        /// ( whether it completed, hit the bound or found a bug )
+        /// </summary>
+        void NotifySchedulingEnded(bool bugFound);
+
+        string GetProgramTrace();
+    }
+}

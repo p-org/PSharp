@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -305,7 +306,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            SystematicTestingRuntime runtime = null;
+            // SystematicTestingRuntime runtime = null;
+            ProgramAwareTestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -320,13 +322,15 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (this.TestRuntimeFactoryMethod != null)
                 {
-                    runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
-                        null,
-                        new object[] { this.Configuration, this.Strategy, this.Reporter });
+                    throw new NotImplementedException("Krishnan is testing stuff. This shouldn't be checked in");
+                    // runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                    //    null,
+                    //    new object[] { this.Configuration, this.Strategy, this.Reporter });
                 }
                 else
                 {
-                    runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                     // runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                     runtime = new ProgramAwareTestingRuntime(this.Configuration, this.Strategy as IProgramAwareSchedulingStrategy, this.Reporter);
                 }
 
                 if (this.Configuration.EnableDataRaceDetection)
@@ -371,6 +375,10 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     callback(iteration);
                 }
+
+                // TODO: Make neater
+                (this.Strategy as IProgramAwareSchedulingStrategy).NotifySchedulingEnded(runtime.Scheduler.BugFound);
+                Console.WriteLine((this.Strategy as IProgramAwareSchedulingStrategy).GetProgramTrace());
 
                 if (this.Configuration.RaceFound)
                 {

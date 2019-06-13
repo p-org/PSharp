@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -420,6 +421,13 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit("Portfolio testing strategy is only " +
                     "available in parallel testing.");
             }
+
+            // TODO: Write an elegant way to turn on program-aware strategies
+            // Wrap our original strategy into a fake ProgramAware strategy
+            // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAgnosticWrapperStrategy(this.Strategy);
+            // Test our program model based strategy
+            // this.Strategy = new BasicProgramModelBasedStrategy(this.Strategy);
+            this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.InboxBasedDHittingMetricStrategy(this.Strategy, 3);
 
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
                 this.Configuration.ScheduleFile.Length > 0)
