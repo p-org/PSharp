@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             }
 
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMachine,
-                mid, machineState, eventInfo, null, targetMachine, null, null, null, null, null);
+                mid, machineState, eventInfo, null, targetMachine, null, null, null, null, eventInfo.Event.GetEventRepresentation(), null);
             this.Push(scheduleStep);
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddCreateMonitorStep(MachineId monitor)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMonitor,
-                null, null, null, null, monitor, null, null, null, null, null);
+                null, null, null, null, monitor, null, null, null, null, null, null);
             this.Push(scheduleStep);
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.SendEvent,
                 machine.Id, machineState, eventInfo, null, targetMachine.Id, null, null,
-                (machine as Machine)?.GetStateInfo(), targetMachine.GetStateInfo(), null);
+                (machine as Machine)?.GetStateInfo(), targetMachine.GetStateInfo(), eventInfo.Event.GetEventRepresentation(), null);
             this.Push(scheduleStep);
         }
 
@@ -111,8 +111,28 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddDequeueEventStep(Machine machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.DequeueEvent,
-                machine.Id, machineState, eventInfo, null, null, null, null, machine.GetStateInfo(), null, null);
+                machine.Id, machineState, eventInfo, null, null, null, null, machine.GetStateInfo(), null, eventInfo.Event.GetEventRepresentation(), null);
             this.Push(scheduleStep);
+        }
+
+        internal void ReplaceDequedEventMachineStateInfo(Machine machine, string machineState)
+        {
+            bool foundEvent = false;
+            for (int i = this.Steps.Count - 1; i >= 0; i--)
+            {
+                var step = this.Steps[i];
+                if (step.Machine.Equals(machine.Id) && step.Type == BugTraceStepType.DequeueEvent)
+                {
+                    step.MachineStateInfo = machineState;
+                    foundEvent = true;
+                    break;
+                }
+            }
+
+            if (!foundEvent)
+            {
+                throw new System.Exception("Assert: foundEvent == true");
+            }
         }
 
         /// <summary>
@@ -124,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddRaiseEventStep(MachineId machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RaiseEvent,
-                machine, machineState, eventInfo, null, null, null, null, null, null, null);
+                machine, machineState, eventInfo, null, null, null, null, null, null, eventInfo.Event.GetEventRepresentation(), null);
             this.Push(scheduleStep);
         }
 
@@ -136,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddGotoStateStep(MachineId machine, string machineState)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.GotoState,
-                machine, machineState, null, null, null, null, null, null, null, null);
+                machine, machineState, null, null, null, null, null, null, null, null, null);
             this.Push(scheduleStep);
         }
 
@@ -149,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddInvokeActionStep(MachineId machine, string machineState, MethodInfo action)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.InvokeAction,
-                machine, machineState, null, action, null, null, null, null, null, null);
+                machine, machineState, null, action, null, null, null, null, null, null, null);
             this.Push(scheduleStep);
         }
 
@@ -162,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddWaitToReceiveStep(MachineId machine, string machineState, string eventNames)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.WaitToReceive,
-                machine, machineState, null, null, null, null, null, null, null, eventNames);
+                machine, machineState, null, null, null, null, null, null, null, null, eventNames);
             this.Push(scheduleStep);
         }
 
@@ -175,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddReceivedEventStep(MachineId machine, string machineState, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.ReceiveEvent,
-                machine, machineState, eventInfo, null, null, null, null, null, null, null);
+                machine, machineState, eventInfo, null, null, null, null, null, null, eventInfo.Event.GetEventRepresentation(), null);
             this.Push(scheduleStep);
         }
 
@@ -188,7 +208,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddRandomChoiceStep(MachineId machine, string machineState, bool choice)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RandomChoice,
-                machine, machineState, null, null, null, choice, null, null, null, null);
+                machine, machineState, null, null, null, choice, null, null, null, null, null);
             this.Push(scheduleStep);
         }
 
@@ -201,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddRandomChoiceStep(MachineId machine, string machineState, int choice)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RandomChoice,
-                machine, machineState, null, null, null, null, choice, null, null, null);
+                machine, machineState, null, null, null, null, choice, null, null,  null, null);
             this.Push(scheduleStep);
         }
 
@@ -213,7 +233,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddHaltStep(MachineId machine, string machineState)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.Halt,
-                machine, machineState, null, null, null, null, null, null, null, null);
+                machine, machineState, null, null, null, null, null, null, null, null, null);
             this.Push(scheduleStep);
         }
 
@@ -278,8 +298,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
                     trace.AppendLine($"    \"To\": \"{step.Machine}\",");
 
                     bool toStateInfoExists = step.MachineStateInfo != null && step.MachineStateInfo.Length > 0;
-                    trace.AppendLine($"    \"Event\": \"{step.EventInfo.EventType}\"{(toStateInfoExists ? "," : "")}");
-
+                    trace.AppendLine($"    \"Message\": \"{step.EventRepresentation}\"{(toStateInfoExists ? "," : "")}");
+                    
                     if (toStateInfoExists)
                     {
                         trace.AppendLine($"    \"State\":");

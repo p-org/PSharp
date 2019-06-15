@@ -66,6 +66,9 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
+    <Content Include="jquery-1.12.4.js" />
+    <Content Include="jquery-ui.css" />
+    <Content Include="jquery-ui.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

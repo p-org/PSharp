@@ -667,6 +667,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies the machine state after the event has been dequed and the event
+        /// handler has run to completion.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="machineState">Machine state representation</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void NotifyMachineStateAfterEventHandlerCompletion(Machine machine, string machineState)
+        {
+            // Override to implement the notification
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">Machine</param>

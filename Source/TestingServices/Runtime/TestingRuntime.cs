@@ -1336,6 +1336,17 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Notifies the machine state after the event has been dequed and the event
+        /// handler has run to completion.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="machineStaet">Machine state representation</param>
+        internal override void NotifyMachineStateAfterEventHandlerCompletion(Machine machine, string machineStaet)
+        {
+            this.BugTrace.ReplaceDequedEventMachineStateInfo(machine, machineStaet);
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked pop.
         /// </summary>
         /// <param name="machine">Machine</param>

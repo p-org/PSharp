@@ -5,9 +5,9 @@
     <meta charset="utf-8" />
     <title>P# Visualizer</title>
     <link rel="stylesheet" href="app.css" type="text/css" />
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="jquery-ui.css"/>
+    <script src="jquery-1.12.4.js"></script>
+    <script src="jquery-ui.js"></script>
     <script src="d3.v4.min.js"></script>
     <script src="app.js"></script>
 </head>
@@ -26,12 +26,25 @@
     <div class="section" id="machine-order"></div>
 
     <div class="section">
-        <div id="diagram-container" class="section">
-            <svg id="diagram">
-            </svg>
-        </div>
-        <div id="machine-states">
-        </div>
-    </div>  
+      <div id="machine-states">
+      </div>
+      <div id="diagram-container">
+          <div id="header-container">
+              <svg id="diagram-header" height="10">
+              </svg>
+          </div>
+          <div id="sequence-diagram-container" class="section">
+              <svg id="diagram">
+                  <defs>
+                      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth" fill="gray">
+                          <path d="M0,0 L0,6 L9,3 z" />
+                      </marker>
+                  </defs>
+                  <g id="sequence-diagram">
+                  </g>
+              </svg>
+          </div>
+      </div>
+    </div>
 </body>
 </html>

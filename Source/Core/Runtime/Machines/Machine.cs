@@ -389,7 +389,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Transitions the machine to the specified <see cref="MachineState"/>
-        /// at the end of the current action, pushing current state on the stack. 
+        /// at the end of the current action, pushing current state on the stack.
         /// Deprecated in favor of Push&lt;T&gt;().
         /// </summary>
         /// <param name="s">Type of the state</param>
@@ -797,7 +797,7 @@ namespace Microsoft.PSharp
                     // Notifies the runtime for a new event to handle. This is only used
                     // during bug-finding and operation bounding, because the runtime has
                     // to schedule a machine when a new operation is dequeued.
-                    //base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                    base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
                 }
                 else if (defaultHandling)
                 {
@@ -824,7 +824,10 @@ namespace Microsoft.PSharp
                 // Handles next event.
                 await this.HandleEvent(nextEventInfo.Event);
 
-                base.Runtime.NotifyDequeuedEvent(this, nextEventInfo);
+                if (dequeued)
+                {
+                    base.Runtime.NotifyMachineStateAfterEventHandlerCompletion(this, this.GetStateInfo());
+                }
 
                 if (this.RaisedEvent == null && previouslyDequeuedEvent != null && !this.Info.IsHalted)
                 {
@@ -1123,7 +1126,7 @@ namespace Microsoft.PSharp
         /// <param name="onExitActionName">Action name</param>
         private async Task GotoState(Type s, string onExitActionName)
         {
-            this.Logger.OnGoto(this.Id, this.CurrentStateName, 
+            this.Logger.OnGoto(this.Id, this.CurrentStateName,
                 $"{s.DeclaringType}.{StateGroup.GetQualifiedStateName(s)}");
 
             // The machine performs the on exit action of the current state.
@@ -1514,7 +1517,7 @@ namespace Microsoft.PSharp
                         {
                             this.Assert(false, $"Machine '{base.Id}' {ex.Message} in state '{state}'.");
                         }
-                        
+
                         StateMap[machineType].Add(state);
                     }
                 }

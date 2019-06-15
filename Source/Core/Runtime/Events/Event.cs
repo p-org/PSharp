@@ -61,5 +61,15 @@ namespace Microsoft.PSharp
             this.Assert = assert;
             this.Assume = assume;
         }
+
+        /// <summary>
+        /// This function returns a textual representation of the event useful
+        /// for debugging and visualization purposes.
+        /// </summary>
+        /// <returns>The textual representation of the event</returns>
+        public virtual string GetEventRepresentation()
+        {
+            return GetType().ToString();
+        }
     }
 }

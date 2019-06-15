@@ -16,11 +16,18 @@
 
 #diagram-container {
     display: inline-block;
+    position: absolute;
+}
+
+#sequence-diagram-container {
+    overflow-y: auto;
 }
 
 #machine-states {
     display: inline-block;
     vertical-align: top;
+    max-width: 300px;
+    overflow-x: auto;
 }
 
 .machine-state-container {
