@@ -802,7 +802,7 @@ namespace Microsoft.PSharp.Core.Tests
             this.Run(configuration, test);
         }
 
-        // TODO: this test dosn't work: why?
+        // TODO: this test doesn't work: why?
         // [Fact(Timeout = 5000)]
         // Similar to \P\Tst\RegressionTests\Feature1SMLevelDecls\Correct\bug1\bug1.p
         public void Bug1FromP()
