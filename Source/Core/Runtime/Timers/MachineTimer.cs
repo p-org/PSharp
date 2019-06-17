@@ -44,7 +44,13 @@ namespace Microsoft.PSharp.Timers
             this.Owner = owner;
 
             this.TimeoutEvent = new TimerElapsedEvent(this.Info);
-            this.InternalTimer = new Timer(this.HandleTimeout, null, this.Info.DueTime, Timeout.InfiniteTimeSpan);
+
+            // To avoid a race condition between assigning the field of the timer
+            // and HandleTimeout accessing the field before the assignment happens,
+            // we first create a timer that cannot get triggered, then assign it to
+            // the field, and finally we start the timer.
+            this.InternalTimer = new Timer(this.HandleTimeout, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            this.InternalTimer.Change(this.Info.DueTime, Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
