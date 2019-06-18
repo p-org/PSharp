@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Core.Tests
         {
         }
 
-        private class Main : Machine
+        private class Main1 : Machine
         {
             private TaskCompletionSource<bool> Tcs;
             private int Count;
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.Core.Tests
 
             private void StateEntry()
             {
-                this.PongId = this.CreateMachine(typeof(Pong), new SetupEvent(this.Tcs));
+                this.PongId = this.CreateMachine(typeof(Pong1), new SetupEvent(this.Tcs));
                 this.Raise(new Success());
             }
 
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        private class Pong : Machine
+        private class Pong1 : Machine
         {
             private TaskCompletionSource<bool> Tcs;
 
@@ -224,6 +224,231 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
+        private class Main2 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private int Count;
+            private MachineId PongId;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(State))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventGotoState(typeof(Success), typeof(Ping_SendPing))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.PongId = this.CreateMachine(typeof(Pong2), new SetupEvent(this.Tcs));
+                this.Raise(new Success());
+            }
+
+            [OnEntry(nameof(Ping_SendPingEntry))]
+            [OnEventGotoState(typeof(Success), typeof(Ping_WaitPong))]
+            private class Ping_SendPing : MachineState
+            {
+            }
+
+            private void Ping_SendPingEntry()
+            {
+                this.Count++;
+                if (this.Count == 1)
+                {
+                    this.Send(this.PongId, new Ping(this.Tcs, this.Id), new SendOptions(assert: 1));
+                }
+
+                // Halt Pong machine after one exchange:
+                if (this.Count == 2)
+                {
+                    this.Send(this.PongId, new Halt());
+                    this.Logger.WriteLine("Count == 2");
+                    this.Send(this.PongId, new PingIgnored());
+                }
+
+                this.Raise(new Success());
+            }
+
+            [OnEventGotoState(typeof(PongEvt), typeof(Ping_SendPing))]
+            private class Ping_WaitPong : MachineState
+            {
+            }
+
+            private class Done : MachineState
+            {
+            }
+        }
+
+        private class Pong2 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(Pong_WaitPing))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEventGotoState(typeof(Ping), typeof(Pong_SendPong))]
+            [OnEventGotoState(typeof(Halt), typeof(Pong_Halt))]
+            private class Pong_WaitPing : MachineState
+            {
+            }
+
+            [OnEntry(nameof(Pong_SendPongEntry))]
+            [OnEventGotoState(typeof(Success), typeof(Pong_WaitPing))]
+            private class Pong_SendPong : MachineState
+            {
+            }
+
+            private void Pong_SendPongEntry()
+            {
+                MachineId payload = (this.ReceivedEvent as Ping).Machine;
+                this.Send(payload, new PongEvt(), new SendOptions(assert: 1));
+                this.Raise(new Success());
+            }
+
+            [IgnoreEvents(typeof(Ping))]
+            [OnEventDoAction(typeof(PingIgnored), nameof(Action))]
+            private class Pong_Halt : MachineState
+            {
+            }
+
+            private void Action()
+            {
+                this.Tcs.SetResult(true);
+            }
+        }
+
+        private class Main3 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private MachineId PongId;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(State))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEntry(nameof(StateEntry))]
+            [OnEventGotoState(typeof(Success), typeof(Ping_SendPing))]
+            private class State : MachineState
+            {
+            }
+
+            private void StateEntry()
+            {
+                this.PongId = this.CreateMachine(typeof(Pong3), new SetupEvent(this.Tcs));
+                this.Raise(new Success());
+            }
+
+            [OnEntry(nameof(Ping_SendPingEntry))]
+            [OnEventGotoState(typeof(Success), typeof(Ping_WaitPong))]
+            private class Ping_SendPing : MachineState
+            {
+            }
+
+            private void Ping_SendPingEntry()
+            {
+                this.Send(this.PongId, new Ping(this.Tcs, this.Id), new SendOptions(assert: 1));
+                this.Raise(new Success());
+            }
+
+            [OnEventGotoState(typeof(PongEvt), typeof(Ping_SendPing))]
+            private class Ping_WaitPong : MachineState
+            {
+            }
+
+            private class Done : MachineState
+            {
+            }
+        }
+
+        private class Pong3 : Machine
+        {
+            private TaskCompletionSource<bool> Tcs;
+            private int Count;
+
+            [Start]
+            [OnEntry(nameof(InitOnEntry))]
+            [OnEventGotoState(typeof(Unit), typeof(Pong_WaitPing))]
+            private class Init : MachineState
+            {
+            }
+
+            private void InitOnEntry()
+            {
+                this.Tcs = (this.ReceivedEvent as SetupEvent).Tcs;
+                this.Raise(new Unit());
+            }
+
+            [OnEventGotoState(typeof(Ping), typeof(Pong_SendPong))]
+            private class Pong_WaitPing : MachineState
+            {
+            }
+
+            [OnEntry(nameof(Pong_SendPongEntry))]
+            [OnEventDoAction(typeof(Halt), nameof(Action))]
+            [OnEventGotoState(typeof(Success), typeof(Pong_WaitPing))]
+            private class Pong_SendPong : MachineState
+            {
+            }
+
+            private void Pong_SendPongEntry()
+            {
+                this.Count++;
+                MachineId payload = (this.ReceivedEvent as Ping).Machine;
+                if (this.Count == 1)
+                {
+                    this.Send(payload, new PongEvt(), new SendOptions(assert: 1));
+                    this.Raise(new Success());
+                }
+                else if (this.Count == 2)
+                {
+                    this.Logger.WriteLine("Count == 2");
+                    this.Send(payload, new PongEvt(), new SendOptions(assert: 1));
+                    this.Raise(new Halt());
+                }
+                else
+                {
+                    // this.Logger.WriteLine("Count == {0}", this.Count);
+                    // Unreachable:
+                    this.Tcs.SetResult(false);
+                }
+            }
+
+            private void Action()
+            {
+                this.Tcs.SetResult(true);
+            }
+        }
+
         [Fact(Timeout=5000)]
         // Similar to \P\Tst\RegressionTests\Integration\DynamicError\SEM_OneMachine_32\RaisedHaltHandled.p
         public void RaisedHaltHandled()
@@ -250,7 +475,41 @@ namespace Microsoft.PSharp.Core.Tests
             var test = new Action<IMachineRuntime>(async (r) =>
             {
                 var tcs = new TaskCompletionSource<bool>();
-                r.CreateMachine(typeof(Main), new SetupEvent(tcs));
+                r.CreateMachine(typeof(Main1), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Integration\DynamicError\SEM_TwoMachines_4\EventSentAfterSentHaltHandled_v.p
+        public void EventSentAfterSentHaltPrime()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(Main2), new SetupEvent(tcs));
+                var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
+                Assert.True(tcs.Task.Result);
+            });
+
+            this.Run(configuration, test);
+        }
+
+        [Fact(Timeout = 5000)]
+        // Similar to \P\Tst\RegressionTests\Integration\DynamicError\SEM_TwoMachines_6\RaisedHaltHandled.p
+        public void RaisedHaltHandledPingPong()
+        {
+            var configuration = GetConfiguration();
+            configuration.IsVerbose = true;
+            var test = new Action<IMachineRuntime>(async (r) =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                r.CreateMachine(typeof(Main3), new SetupEvent(tcs));
                 var result = await Task.WhenAny(tcs.Task, Task.Delay(0));
                 Assert.True(tcs.Task.Result);
             });
