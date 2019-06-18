@@ -84,7 +84,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         internal class RootStepSignature : IProgramStepSignature
         {
-            public bool Equals(IProgramStepSignature other)
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
+            public override bool Equals(object other)
             {
                 return false;
             }

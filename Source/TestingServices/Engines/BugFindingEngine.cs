@@ -378,7 +378,6 @@ namespace Microsoft.PSharp.TestingServices
 
                 // TODO: Make neater
                 (this.Strategy as IProgramAwareSchedulingStrategy).NotifySchedulingEnded(runtime.Scheduler.BugFound);
-                Console.WriteLine((this.Strategy as IProgramAwareSchedulingStrategy).GetProgramTrace());
 
                 if (this.Configuration.RaceFound)
                 {

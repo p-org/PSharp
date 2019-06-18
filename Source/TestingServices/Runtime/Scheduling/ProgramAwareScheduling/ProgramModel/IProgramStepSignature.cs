@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
 {
-    internal interface IProgramStepSignature : IEquatable<IProgramStepSignature>
+    internal interface IProgramStepSignature
     {
         // The Equals method is to compare steps across runs
     }

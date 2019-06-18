@@ -24,7 +24,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.HAXstep = step;
         }
 
-        public bool Equals(IProgramStepSignature other)
+        public override int GetHashCode()
+        {
+            // https://docs.microsoft.com/en-us/dotnet/api/system.string.gethashcode?view=netframework-4.8
+            // If two string objects are equal, the GetHashCode method returns identical values...
+            return this.EventInfo.EventName.GetHashCode() * this.EventIndex;
+        }
+
+        public override bool Equals(object other)
         {
             if (other is EventTypeIndexStepSignature)
             {
@@ -41,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         public override string ToString()
         {
-            return $"{this.HAXstep.TotalOrderingIndex}:{this.HAXstep.SrcId}:{this.HAXstep.OpType}";
+            return $"{this.HAXstep.TotalOrderingIndex}:{this.HAXstep.SrcId}:{this.HAXstep.OpType}:{this.HAXstep.TargetId}";
             // return $"{this.HAXstep.TotalOrderingIndex}:{this.HAXstep.ProgramStepType}:{this.HAXstep.SrcId}:{this.HAXstep.OpType}:{this.HAXstep.TargetId}";
             // return $"{this.EventInfo.OriginInfo.SenderMachineName}:{this.EventInfo.EventName}:{this.EventInfo}";
         }

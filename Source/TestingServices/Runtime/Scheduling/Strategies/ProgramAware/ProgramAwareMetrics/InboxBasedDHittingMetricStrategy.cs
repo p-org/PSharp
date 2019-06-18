@@ -29,8 +29,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override void NotifySchedulingEnded(bool bugFound)
         {
             this.ComputeStepSignatures();
-            DTupleTreeNode dtr = this.EnumerateDTuples();
-            PrintDTupleTree(dtr, 0);
+            this.EnumerateDTuples();
+
+            // Console.WriteLine(this.GetProgramTrace());
+            // PrintDTupleTree(this.DTupleTreeRoot, 0);
 
             for (int i = 2; i <= this.MaxDToCount; i++)
             {
@@ -66,7 +68,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             }
         }
 
-        private DTupleTreeNode EnumerateDTuples()
+        private void EnumerateDTuples()
         {
             this.iterationNumber++;
             Dictionary<ulong, List<DTupleTreeNode>> machineIdToSteps = new Dictionary<ulong, List<DTupleTreeNode>>();
@@ -95,8 +97,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                     machineIdToSteps[progStep.SrcId].AddRange(newAdditions);
                 }
             }
-
-            return this.DTupleTreeRoot;
         }
 
         public ulong GetDTupleCount(int d)
