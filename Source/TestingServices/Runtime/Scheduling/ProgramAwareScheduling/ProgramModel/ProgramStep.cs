@@ -137,5 +137,21 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             return new ProgramStep();
         }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            switch (this.ProgramStepType)
+            {
+                case ProgramStepType.SchedulableStep:
+                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.OpType}:{this.TargetId}]";
+                case ProgramStepType.NonDetBoolStep:
+                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.BooleanChoice}]";
+                case ProgramStepType.NonDetIntStep:
+                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.IntChoice}]";
+                default:
+                    return $"[{this.ProgramStepType}:{base.ToString()}]";
+            }
+        }
     }
 }

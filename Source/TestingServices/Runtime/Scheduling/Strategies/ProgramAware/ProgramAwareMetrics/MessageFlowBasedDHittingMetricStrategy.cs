@@ -22,14 +22,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         private readonly DTupleTreeNode DTupleTreeRoot;
 
         private static HashSet<IProgramStepSignature> UniqueSigs = new HashSet<IProgramStepSignature>();
+        private const ulong TESTHARNESSMACHINEID = 0;
+        private const ulong TESTHARNESSMACHINEHASH = 199999;
+
         // private static HashSet<ulong> UniqueSigs = new HashSet<ulong>();
+
+        // TODO: Move RootSignatures to respective signature classes. Declare const variables for primes.
 
         public MessageFlowBasedDHittingMetricStrategy(ISchedulingStrategy childStrategy, int dToHit)
             : base(childStrategy)
         {
             this.MaxDToCount = dToHit;
             this.iterationNumber = 0;
-            this.DTupleTreeRoot = new DTupleTreeNode(DTupleTreeNode.CreateRootNodeSignature());
+            this.DTupleTreeRoot = new DTupleTreeNode(TreeHashStepSignature.CreateRootStepSignature());
         }
 
         public override void NotifySchedulingEnded(bool bugFound)
@@ -50,11 +55,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         private void ComputeStepSignatures()
         {
+#if false
             // TODO: This signature sux without senderId.
             Dictionary<Tuple<ulong, string>, int> inboxEventIndexCounter = new Dictionary<Tuple<ulong, string>, int>();
+
             foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
             {
-                // Tuple<ulong, string> ieicKey = new Tuple<ulong, string>(progStep.SrcId, progStep.EventInfo?.EventName ?? "NullEventInfo");
                 Tuple<ulong, string> ieicKey = Tuple.Create<ulong, string>(progStep.SrcId, progStep.EventInfo?.EventName ?? "NullEventInfo");
 
                 if (!inboxEventIndexCounter.ContainsKey(ieicKey))
@@ -64,10 +70,21 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
                 int currentIndex = inboxEventIndexCounter[ieicKey];
                 // progStep.Signature = new EventTypeIndexStepSignature(progStep, currentIndex);
-                progStep.Signature = new TreeHashStepSignature(progStep);
-                UniqueSigs.Add(progStep.Signature);
-                // UniqueSigs.Add((progStep.Signature as TreeHashStepSignature).Hash);
                 inboxEventIndexCounter[ieicKey] = currentIndex + 1;
+            }
+#endif
+            Dictionary<ulong, ulong> machineIdRemap = new Dictionary<ulong, ulong>();
+            machineIdRemap[TESTHARNESSMACHINEID] = TESTHARNESSMACHINEHASH;
+            foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
+            {
+                progStep.Signature = new TreeHashStepSignature(progStep, machineIdRemap);
+
+                if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == TestingServices.Scheduling.AsyncOperationType.Create)
+                {
+                    machineIdRemap[progStep.TargetId] = (progStep.Signature as TreeHashStepSignature).Hash;
+                }
+
+                UniqueSigs.Add(progStep.Signature);
             }
         }
 

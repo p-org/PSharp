@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The bug-finding scheduling strategy.
         /// </summary>
-        protected ISchedulingStrategy Strategy;
+        internal ISchedulingStrategy Strategy;
 
         /// <summary>
         /// Random number generator used by the scheduling strategies.
@@ -427,7 +427,8 @@ namespace Microsoft.PSharp.TestingServices
             // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAgnosticWrapperStrategy(this.Strategy);
             // Test our program model based strategy
             // this.Strategy = new BasicProgramModelBasedStrategy(this.Strategy);
-            this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.InboxBasedDHittingMetricStrategy(this.Strategy, 3);
+            // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.InboxBasedDHittingMetricStrategy(this.Strategy, 3);
+            this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.MessageFlowBasedDHittingMetricStrategy(this.Strategy, 3);
 
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
                 this.Configuration.ScheduleFile.Length > 0)

@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         internal static void PrintDTupleTree(DTupleTreeNode dtr, int depth)
         {
-            Console.WriteLine(new string('\t', depth) + $"::{dtr.StepSig}");
+            Console.WriteLine(new string('\t', depth) + $"*{dtr.StepSig}");
             foreach (KeyValuePair<IProgramStepSignature, DTupleTreeNode> kvp in dtr.Children)
             {
                 PrintDTupleTree(kvp.Value, depth + 1);

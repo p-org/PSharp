@@ -39,6 +39,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.Rootstep = firstStep;
             this.ActiveStep = this.Rootstep;
             this.MachineIdToLastStep[testHarnessMachineId] = this.Rootstep;
+
+            this.OrderedSteps.Add(this.Rootstep);
         }
 
         public void RecordStep(IProgramStep programStep, int stepIndex)

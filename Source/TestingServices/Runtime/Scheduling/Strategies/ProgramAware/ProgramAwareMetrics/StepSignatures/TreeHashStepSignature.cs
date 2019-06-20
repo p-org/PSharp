@@ -17,21 +17,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         internal IProgramStep ProgramStep;
         internal ulong Hash;
 
-        internal TreeHashStepSignature(IProgramStep step)
+        private TreeHashStepSignature()
+        {
+            // This exists only for the RootSignature
+        }
+
+        internal TreeHashStepSignature(IProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
         {
             this.ProgramStep = step;
-            this.ComputeHash();
+            this.ComputeHash(machineIdRemap);
 
             step.Signature = this;
         }
 
         private const int MOD = 1000000007;
 
-        private void ComputeHash()
+        private void ComputeHash(Dictionary<ulong, ulong> machineIdRemap)
         {
             // The hash is a function of the parent's hashes and the contents of this step.
             ulong parentHash = 1;
-            if (this.ProgramStep.ProgramStepType == ProgramStepType.SchedulableStep && this.ProgramStep.OpType == AsyncOperationType.Receive)
+            // if (this.ProgramStep.ProgramStepType == ProgramStepType.SchedulableStep && this.ProgramStep.OpType == AsyncOperationType.Receive)
+            if (this.ProgramStep.ProgramStepType == ProgramStepType.SchedulableStep && this.ProgramStep.CreatorParent != null)
             {
                 parentHash *= (this.ProgramStep.CreatorParent.Signature as TreeHashStepSignature).Hash;
             }
@@ -46,9 +52,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             switch (this.ProgramStep.ProgramStepType)
             {
                 case ProgramStepType.SchedulableStep:
-                    stepHash = ((ulong)this.ProgramStep.OpType + 1) * (this.ProgramStep.SrcId + 1);
+                    stepHash = ((ulong)this.ProgramStep.OpType + 1) * (machineIdRemap[this.ProgramStep.SrcId] + 1);
                     stepHash %= MOD;
-                    stepHash *= ~(this.ProgramStep.TargetId + 1);
+                    if (this.ProgramStep.OpType != AsyncOperationType.Create)
+                    {
+                        stepHash *= ~(machineIdRemap[this.ProgramStep.TargetId] + 1);
+                    }
+
                     stepHash %= MOD;
                     break;
                 case ProgramStepType.NonDetBoolStep:
@@ -97,8 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 return
                     otherSig.Hash == this.Hash &&
                     // Some easy checks to save us from silly collissions
-                    otherSig.ProgramStep.OpType.Equals(this.ProgramStep.OpType) &&
-                    otherSig.ProgramStep.SrcId.Equals(this.ProgramStep.SrcId);
+                    otherSig.ProgramStep.OpType.Equals(this.ProgramStep.OpType);
             }
             else
             {
@@ -109,6 +118,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override int GetHashCode()
         {
             return Convert.ToInt32(this.Hash);
+        }
+
+        private const ulong ROOTHASH = 499979;
+
+        internal static IProgramStepSignature CreateRootStepSignature()
+        {
+            return new TreeHashRootStepSignature(ROOTHASH);
+        }
+
+        private class TreeHashRootStepSignature : TreeHashStepSignature
+        {
+            internal TreeHashRootStepSignature(ulong hash)
+            {
+                this.Hash = hash;
+            }
+
+            public override string ToString()
+            {
+                return "RootStep";
+            }
         }
     }
 }
