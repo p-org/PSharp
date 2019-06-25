@@ -135,15 +135,50 @@
     <Compile Include="Tagging\PSharpTokenTagProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Snippets\1033\PSharp\declareEvent.snippet" />
-    <None Include="Snippets\1033\PSharp\if.snippet" />
-    <None Include="Snippets\1033\PSharp\ifElse.snippet" />
-    <None Include="Snippets\1033\PSharp\machine.snippet" />
-    <None Include="Snippets\1033\PSharp\onEventDo.snippet" />
-    <None Include="Snippets\1033\PSharp\onEventGoto.snippet" />
-    <None Include="Snippets\1033\PSharp\onEventGotoWith.snippet" />
-    <None Include="Snippets\1033\PSharp\onEventPush.snippet" />
-    <None Include="Snippets\1033\PSharp\state.snippet" />
+    <Content Include="Snippets\1033\PSharp\declareEvent.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\if.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\ifElse.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\machine.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\onEventDo.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\onEventGoto.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\onEventGotoWith.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\onEventPush.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\state.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\PSharp\state.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Snippets\1033\SnippetsIndex.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
