@@ -53,11 +53,15 @@ namespace Microsoft.PSharp.VisualStudio
             // Get existing indent from the preceding line.
             var indent = precedingLineText.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => (c == '\t') ? 4 : 1).Sum();
 
-            // Don't increase the indent for the openBracket of the preceding line if its closeBracket is the first non-blank character on the current line.
-            var fnbcIsCloseBrace = currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace;
+            // Increase the indent if the preceding line ended with an openBracket
+            if (this.RegionParser.GetBoundaryChar(precedingLineText) != RegionParser.BoundaryChar.None)
+            {
+                indent += tabSize;
+            }
 
-            return !fnbcIsCloseBrace && this.RegionParser.GetBoundaryChar(precedingLineText) != RegionParser.BoundaryChar.None
-                ? indent + tabSize
+            // Decrease the indent if a closeBracket is the first non-blank character on the current line.
+            return currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace
+                ? indent -= tabSize
                 : indent;
         }
 

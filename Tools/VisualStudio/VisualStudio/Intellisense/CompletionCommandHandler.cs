@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -27,20 +28,26 @@ namespace Microsoft.PSharp.VisualStudio
     {
         internal const string LanguageGuidStr = "DEE9105E-DD6A-4950-87B9-1435A6668226"; // Guid from SnippetsIndex.xml
     }
+
     /// <summary>
     /// The P# completion command handler. As it is an IOleCommandTarget we also implement CodeExpansion in it.
     /// </summary>
     /// <remarks>
     /// Current source for CodeExpansion is https://docs.microsoft.com/en-us/visualstudio/extensibility/walkthrough-implementing-code-snippets?view=vs-2019
+    /// but the VSIX build process does not appear to pick up the snippet files from from %InstallRoot%. Distribution of snippets without
+    /// <see cref="ProvideLanguageCodeExpansionAttribute"/> (instead creating the pkgdef manually) is described in 
+    /// https://docs.microsoft.com/en-us/visualstudio/ide/how-to-distribute-code-snippets?view=vs-2019. The approach used below is a hybrid of 
+    /// these, using <see cref="ProvideLanguageCodeExpansionAttribute"/> but based upon $PackageFolder$ instead of %InstallRoot% (note that the
+    /// $ vs % is significant).
     /// </remarks>
     [ProvideLanguageCodeExpansion(
         SnippetUtilities.LanguageGuidStr,       // Guid from SnippetsIndex.xml
         "PSharp",                               // Language name from SnippetsIndex.xml
         0,                                      // Resource id of the language
         "PSharp",                               // Language ID used in the .snippet files
-        @"%InstallRoot%\P#\Snippets\%LCID%\SnippetsIndex.xml", // Path of the index file
-        SearchPaths = @"%InstallRoot%\P#\Snippets\%LCID%\PSharp",
-        ForceCreateDirs = @"%InstallRoot%\P#\Snippets\%LCID%\PSharp")]
+        @"$PackageFolder$%\Snippets\%LCID%\SnippetsIndex.xml", // Path of the index file
+        SearchPaths = @"$PackageFolder$\Snippets\%LCID%\PSharp",
+        ForceCreateDirs = @"$PackageFolder$\Snippets\%LCID%\PSharp")]
     internal class CompletionCommandHandler : IOleCommandTarget, IVsExpansionClient
     {
         private IOleCommandTarget NextCommandHandler;
@@ -102,11 +109,12 @@ namespace Microsoft.PSharp.VisualStudio
                 return this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
             }
 
-#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
             // Make sure the input is a char before getting it.
-            var typedChar = pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR
+            var typedChar = pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR && pvaIn != IntPtr.Zero
                 ? (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn)
                 : char.MinValue;
+
+#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
 
             // Check for a commit character.
             if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
@@ -233,6 +241,21 @@ namespace Microsoft.PSharp.VisualStudio
 
             // Pass along the command so the char is added to the buffer.
             int nextCommandRetVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+            // Indenting is not triggered on typing '}' so do it ourselves
+            if (nextCommandRetVal == VSConstants.S_OK && typedChar == '}')
+            {
+                var line = this.TextView.Caret.Position.BufferPosition.GetContainingLine();
+                var span = new TextSpan
+                {
+                    iStartLine = line.LineNumber,
+                    iStartIndex = line.Start.Position,
+                    iEndLine = line.LineNumber,
+                    iEndIndex = line.Start.Position + 1
+                };
+                nextCommandRetVal = FormatSpan(new[] { span });
+            }
+
             return nextCommandRetVal;
         }
 
@@ -243,7 +266,9 @@ namespace Microsoft.PSharp.VisualStudio
             return VSConstants.S_OK;
         }
 
-        public int FormatSpan(IVsTextLines textLines, TextSpan[] ts)
+        public int FormatSpan(IVsTextLines textLines, TextSpan[] ts) => FormatSpan(ts);
+
+        private int FormatSpan(TextSpan[] ts)
         {
             // This is for snippets so take only the first span, and replace only the indent so the field markers are preserved.
             var span = ts[0];

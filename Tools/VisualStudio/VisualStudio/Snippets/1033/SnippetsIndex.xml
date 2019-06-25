@@ -5,7 +5,7 @@
             <OnOff>On</OnOff>
             <Installed>true</Installed>
             <Locale>1033</Locale>
-            <DirPath>%InstallRoot%\P#\Snippets\%LCID%\PSharp\</DirPath>	
+            <DirPath>%PackageFolder%\Snippets\%LCID%\PSharp\</DirPath>	
             <LocalizedName>PSharp</LocalizedName>
         </SnippetDir>
     </Language>
