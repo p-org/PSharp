@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -119,7 +120,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += GetIndent(indentLevel) + this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            this.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
+            this.TextUnit = this.StateGroupKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>
@@ -189,6 +190,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
+
+            this.ProjectionNode.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
+
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             var newLine = string.Empty;  // no newline for the first

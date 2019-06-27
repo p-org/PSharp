@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         identifierBuilder.Append(token.TextUnit.Text);
                     }
 
-                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifier[0].TextUnit.Line);
+                    TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifier[0].TextUnit);
                     resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier), eventIdentifier);
                 }
             }
@@ -63,27 +63,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 if (!parentNode.AddIgnoredEvent(kvp.Key, kvp.Value))
                 {
-                    throw new ParsingException("Unexpected defer declaration.");
+                    throw new ParsingException("Unexpected defer declaration.", this.TokenStream.Peek());
                 }
             }
 
             if (!this.TokenStream.Done &&
                 this.TokenStream.Peek().Type == TokenType.Identifier)
             {
-                throw new ParsingException("Expected \",\".", TokenType.Comma);
+                throw new ParsingException("Expected \",\".", this.TokenStream.Peek(), TokenType.Comma);
             }
 
             if (!this.TokenStream.Done &&
                 (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket ||
                 this.TokenStream.Peek().Type == TokenType.RightAngleBracket))
             {
-                throw new ParsingException("Invalid generic expression.");
+                throw new ParsingException("Invalid generic expression.", this.TokenStream.Peek());
             }
 
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".", TokenType.Semicolon);
+                throw new ParsingException("Expected \";\".", this.TokenStream.Peek(), TokenType.Semicolon);
             }
         }
     }

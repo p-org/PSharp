@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 Error.ReportAndExit("Failed to rewrite event '{0}'.", this.Identifier.TextUnit.Text);
             }
 
-            this.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+            this.TextUnit = this.EventKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>

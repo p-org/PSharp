@@ -20,9 +20,7 @@ namespace Microsoft.PSharp
     {
         private static void Main(string[] args)
         {
-            AppDomain currentDomain = AppDomain.CurrentDomain;
-
-            // currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
             var configuration = new CompilerCommandLineOptions(args).Parse();
@@ -39,8 +37,8 @@ namespace Microsoft.PSharp
             // Creates the compilation context and loads the solution.
             var context = CompilationContext.Create(configuration).LoadSolution();
 
-            ConsoleLogger logger = new ConsoleLogger(true);
-            ErrorReporter errorReporter = new ErrorReporter(configuration, logger);
+            var logger = new ConsoleLogger(true);
+            var errorReporter = new ErrorReporter(configuration, logger);
 
             try
             {
@@ -63,10 +61,10 @@ namespace Microsoft.PSharp
                     errorReporter.WriteWarningLine(warning);
                 }
 
-                if (ex.Warnings.Count > 0)
+                if (ex.Warnings.Length > 0)
                 {
-                    logger.WriteLine("Found {0} parsing warning{1}.", ex.Warnings.Count,
-                        ex.Warnings.Count == 1 ? string.Empty : "s");
+                    logger.WriteLine("Found {0} parsing warning{1}.", ex.Warnings.Length,
+                        ex.Warnings.Length == 1 ? string.Empty : "s");
                 }
 
                 foreach (var error in ex.Errors)
@@ -74,10 +72,10 @@ namespace Microsoft.PSharp
                     errorReporter.WriteErrorLine(error);
                 }
 
-                if (ex.Errors.Count > 0)
+                if (ex.Errors.Length > 0)
                 {
-                    logger.WriteLine("Found {0} parsing error{1}.", ex.Errors.Count,
-                        ex.Errors.Count == 1 ? string.Empty : "s");
+                    logger.WriteLine("Found {0} parsing error{1}.", ex.Errors.Length,
+                        ex.Errors.Length == 1 ? string.Empty : "s");
                 }
             }
             catch (RewritingException ex)

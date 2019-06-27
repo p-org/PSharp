@@ -56,9 +56,15 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             this.typeNameQualifier.InitializeForNode(node);
 
             var fullyQualifiedName = this.typeNameQualifier.GetQualifiedName(node.Type, out var succeeded);
-            var rewritten = succeeded
-                ? SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")").WithTriviaFrom(node)
-                : node;
+            if (!succeeded)
+            {
+                return node;
+            }
+
+            var rewritten = SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")");
+            this.Program.AddRewrittenTerm(node, rewritten.ToString());
+
+            rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
     }

@@ -60,6 +60,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
+            if (this.Configuration.ForVsLanguageService)
+            {
+                // Do not change formatting
+                this.TextUnit = this.OpenBraceToken.TextUnit.WithText(this.Block.ToString());
+                return;
+            }
+
             // Adjust the indent of lines in the block to match the surrounding indentation, according to
             // the line in the block with the minimum indentation.
             var lines = this.Block.ToString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -98,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 sb.Append("\n").Append(indent).Append(splitLines.Last().Item2);
             }
 
-            this.TextUnit = new TextUnit(sb.ToString(), this.OpenBraceToken.TextUnit.Line);
+            this.TextUnit = this.OpenBraceToken.TextUnit.WithText(sb.ToString());
         }
 
         private IEnumerable<Tuple<string, string>> SplitAndNormalizeLeadingWhitespace(IEnumerable<string> lines)

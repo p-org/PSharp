@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: types,
-                computeReplacementNode: (node, rewritten) => RewriteType(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteType(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -49,13 +49,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the type with a halt event type.
         /// </summary>
-        private static ExpressionSyntax RewriteType(IdentifierNameSyntax node)
+        private ExpressionSyntax RewriteType(IdentifierNameSyntax node)
         {
             var text = typeof(Halt).FullName;
+            this.Program.AddRewrittenTerm(node, text);
 
-            var rewritten = SyntaxFactory.ParseName(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            var rewritten = SyntaxFactory.ParseName(text).WithTriviaFrom(node);
             return rewritten;
         }
     }

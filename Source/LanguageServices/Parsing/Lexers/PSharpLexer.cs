@@ -167,11 +167,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case "using":
                     return new Token(unit, TokenType.Using);
 
+                case "machineid":
+                    return new Token(unit, TokenType.MachineIdDecl);
+
                 case "machine":
                     return new Token(unit, TokenType.MachineDecl);
 
                 case "monitor":
-                    return new Token(unit, TokenType.Monitor);
+                    return new Token(unit, TokenType.MonitorDecl);
 
                 case "state":
                     return new Token(unit, TokenType.StateDecl);
@@ -276,7 +279,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     return new Token(unit, TokenType.Return);
 
                 case "pop":
-                    return new Token(unit, TokenType.Pop);
+                    return new Token(unit, TokenType.PopState);
 
                 case "lock":
                     return new Token(unit, TokenType.Lock);

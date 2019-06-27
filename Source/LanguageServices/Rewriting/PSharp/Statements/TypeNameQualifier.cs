@@ -132,6 +132,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             return state;
         }
 
+#if false // TODO remove if not used
         /// <summary>
         /// Tokenizes a qualified name.
         /// </summary>
@@ -151,5 +152,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             return state.Aggregate(string.Empty, (acc, name) => string.IsNullOrEmpty(acc) ? name : acc + "." + name);
         }
+#endif
     }
 }

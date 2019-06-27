@@ -319,7 +319,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Machine.Identifier.TextUnit.Text);
             }
 
-            this.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+            this.TextUnit = this.StateKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>
@@ -433,6 +433,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
             text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            // Note: MachineDeclaration.cs handles the state Entry/ExitDeclaration hierarchy
+            this.ProjectionNode.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
 
             return text;
         }

@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the statement with a raise statement.
         /// </summary>
-        private static SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
+        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var invocation = node.Expression as InvocationExpressionSyntax;
 
@@ -78,9 +78,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 SyntaxFactory.SeparatedList(arguments)));
 
             var text = node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Raise"))).ToString();
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            this.Program.AddRewrittenTerm(node, text);
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
     }

@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
-                computeReplacementNode: (node, rewritten) => RewriteExpression());
+                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -50,10 +50,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the expression with a random choice expression.
         /// </summary>
-        private static SyntaxNode RewriteExpression()
+        private SyntaxNode RewriteExpression(PrefixUnaryExpressionSyntax node)
         {
             var text = "this.Random()";
-            var rewritten = SyntaxFactory.ParseExpression(text);
+            this.Program.AddRewrittenTerm(node, text);
+
+            var rewritten = SyntaxFactory.ParseExpression(text);    // TODO: .WithTriviaFrom(node); ?
             return rewritten;
         }
     }
