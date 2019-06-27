@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the expression with a create machine expression.
         /// </summary>
-        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
@@ -96,6 +96,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 SyntaxFactory.IdentifierName(machineIdentifier)));
 
             string text = "this.CreateMachine";
+            this.Program.AddRewrittenTerm(node, text);
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// </summary>
         internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier, ModifierSet modSet)
         {
-            CheckMachineMethodModifierSet(modSet);
+            this.CheckMachineMethodModifierSet(modSet);
 
             var node = new MethodDeclaration(this.TokenStream.Program, parentNode);
             node.AccessModifier = modSet.AccessModifier;
@@ -43,8 +43,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             while (!this.TokenStream.Done &&
                 this.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit));
-
                 node.Parameters.Add(this.TokenStream.Peek());
 
                 this.TokenStream.Index++;
@@ -60,7 +58,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 (this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket &&
                 this.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"{\" or \";\".", TokenType.LeftCurlyBracket, TokenType.Semicolon);
+                throw new ParsingException("Expected \"{\" or \";\".", this.TokenStream.Peek(), TokenType.LeftCurlyBracket, TokenType.Semicolon);
             }
 
             if (this.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
@@ -80,15 +78,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Checks the modifier set for errors.
         /// </summary>
-        private static void CheckMachineMethodModifierSet(ModifierSet modSet)
+        private void CheckMachineMethodModifierSet(ModifierSet modSet)
         {
             if (modSet.AccessModifier == AccessModifier.Public)
             {
-                throw new ParsingException("A machine method cannot be public.");
+                throw new ParsingException("A machine method cannot be public.", this.TokenStream.Peek());
             }
             else if (modSet.AccessModifier == AccessModifier.Internal)
             {
-                throw new ParsingException("A machine method cannot be internal.");
+                throw new ParsingException("A machine method cannot be internal.", this.TokenStream.Peek());
             }
         }
     }

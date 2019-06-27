@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.VisualStudio
             // Note: the triple-slash comments are not available via Reflection.
             [TokenType.MachineDecl] = "An abstract class representing a P# state machine.",
             //TODO [TokenType.MachineIdDecl] = "A unique reference to a P# state machine class instance",
-            [TokenType.Monitor] = "An abstract class representing a P# monitor.",
+            [TokenType.MonitorDecl] = "An abstract class representing a P# monitor.",
             [TokenType.StateDecl] = "A state in a P# state machine.",
             [TokenType.StateGroupDecl] = "A group of states or of other state groups in a P# state machine.",
             [TokenType.EventDecl] = "An event that will be sent from one machine to another machine or raised to itself, usually triggering a state transition",
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.VisualStudio
             [TokenType.Jump] = "Transition this machine to another state",
             [TokenType.Assert] = "Assert that a condition is true",
             [TokenType.Assume] = "Assume that a condition is true",
-            [TokenType.Pop] = "Pop a state from the state queue",
+            [TokenType.PopState] = "Pop a state from the state queue",
             [TokenType.OnAction] = "Specify an event for which an action is to be performed",
             [TokenType.DoAction] = "Specify an action to be performed when an event occurs",
             [TokenType.GotoState] = "Transition this machine to another state",

@@ -90,6 +90,11 @@ namespace Microsoft.PSharp
         public bool ShowFullDataFlowInformation;
 
         /// <summary>
+        /// Indicates that rewriting is being done for the VS Language Service.
+        /// </summary>
+        public bool ForVsLanguageService;
+
+        /// <summary>
         /// The version of CSharp to target in rewriting, if specified.
         /// </summary>
         public Version RewriteCSharpVersion;
@@ -453,6 +458,7 @@ namespace Microsoft.PSharp
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
+            this.ForVsLanguageService = false;
             this.RewriteCSharpVersion = new Version();
 
             this.RuntimeGeneration = 0;

@@ -7,6 +7,7 @@ using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
+#if false // TODO verify ArgumentsListVisitor is not used
     /// <summary>
     /// The P# argument list parsing visitor.
     /// </summary>
@@ -47,7 +48,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (this.TokenStream.Peek().Type == TokenType.NonDeterministic)
                 {
-                    throw new ParsingException("Can only use the nondeterministic \"$\" keyword as the guard of an if statement.");
+                    throw new ParsingException("Can only use the nondeterministic \"$\" keyword as the guard of an if statement.", this.TokenStream.Peek());
                 }
 
                 node.StmtTokens.Add(this.TokenStream.Peek());
@@ -59,8 +60,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                throw new ParsingException("Expected \")\".", TokenType.RightParenthesis);
+                throw new ParsingException("Expected \")\".", this.TokenStream.Peek(), TokenType.RightParenthesis);
             }
         }
     }
+#endif // not used
 }

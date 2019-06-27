@@ -25,11 +25,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="PSharpRewriter"/> class.
         /// </summary>
-        protected PSharpRewriter(IPSharpProgram program)
-        {
-            this.Program = program;
-        }
+        protected PSharpRewriter(IPSharpProgram program) => this.Program = program;
 
+#if false // TODO remove if not used
         /// <summary>
         /// Returns the next statement.
         /// </summary>
@@ -54,27 +52,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// True if the given syntax node is a machine field.
         /// </summary>
         protected bool IsMachineField(SyntaxNode node)
-        {
-            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
-            {
-                return machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
-            return false;
-        }
+            => this.TryGetParentMachine(node, out MachineDeclaration machine)
+                ? machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()))
+                : false;
 
         /// <summary>
         /// True if the given syntax node is a machine method.
         /// </summary>
         protected bool IsMachineMethod(SyntaxNode node)
-        {
-            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
-            {
-                return machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
-            return false;
-        }
+            => this.TryGetParentMachine(node, out MachineDeclaration machine)
+                ? machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()))
+                : false;
 
         /// <summary>
         /// Tries to return the parent machine identifier, if any.
@@ -101,13 +89,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return result;
         }
+#endif // not used
 
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        protected void UpdateSyntaxTree(string text)
-        {
-            this.Program.UpdateSyntaxTree(text);
-        }
+        protected void UpdateSyntaxTree(string text) => this.Program.UpdateSyntaxTree(text);
     }
 }

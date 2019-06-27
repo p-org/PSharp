@@ -14,19 +14,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
     /// </summary>
     internal sealed class NameVisitor : BaseTokenVisitor
     {
+        private readonly TokenRange headerTokenRange;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="NameVisitor"/> class.
         /// </summary>
-        internal NameVisitor(TokenStream tokenStream)
+        internal NameVisitor(TokenStream tokenStream, TokenRange headerTokenRange = null)
             : base(tokenStream)
-        {
-        }
+            => this.headerTokenRange = headerTokenRange;
 
         /// <summary>
         /// Consumes a qualified name from the tokenstream.
         /// QN = Identifier || Identifier.QN
         /// </summary>
-        internal List<Token> ConsumeQualifiedName(TokenType replacement)
+        internal List<Token> ConsumeQualifiedName(TokenType replacementType)
         {
             var qualifiedName = new List<Token>();
 
@@ -34,10 +35,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected identifier.", TokenType.Identifier);
+                throw new ParsingException("Expected identifier.", this.TokenStream.Peek(), TokenType.Identifier);
             }
 
-            this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, replacement));
+            this.TokenStream.Swap(replacementType);
             qualifiedName.Add(this.TokenStream.Peek());
 
             this.TokenStream.Index++;
@@ -53,11 +54,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 // Consumes identifier.
                 if (this.TokenStream.Done || this.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    throw new ParsingException("Expected identifier.", TokenType.Identifier);
+                    throw new ParsingException("Expected identifier.", this.TokenStream.Peek(), TokenType.Identifier);
                 }
 
-                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit, replacement));
+                this.TokenStream.Swap(replacementType);
                 qualifiedName.Add(this.TokenStream.Peek());
+
+                if (this.headerTokenRange != null)
+                {
+                    this.headerTokenRange.ExtendStop();
+                }
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -75,15 +81,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 identifierBuilder.Append(token.TextUnit.Text);
             }
 
-            TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifiers[0].TextUnit.Line);
+            TextUnit textUnit = new TextUnit(identifierBuilder.ToString(), eventIdentifiers[0].TextUnit);
             return new Token(textUnit, replacementType);
         }
 
+#if false // TODO: Remove if not used
         /// <summary>
         /// Consumes a qualified event name from the tokenstream.
         /// QEN = halt || default || * || QN
         /// </summary>
-        internal List<Token> ConsumeQualifiedEventName(TokenType replacement)
+        internal List<Token> ConsumeQualifiedEventName(TokenType replacementType)
         {
             var qualifiedName = new List<Token>();
 
@@ -93,8 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 this.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException(
-                    "Expected event identifier.",
+                throw new ParsingException("Expected event identifier.", this.TokenStream.Peek(),
                     TokenType.Identifier,
                     TokenType.MulOp,
                     TokenType.HaltEvent,
@@ -111,11 +117,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else
             {
-                qualifiedName = this.ConsumeQualifiedName(replacement);
+                qualifiedName = this.ConsumeQualifiedName(replacementType);
             }
 
             return qualifiedName;
         }
+#endif // not used
 
         /// <summary>
         /// Consumes comma-separated names from the tokenstream.
@@ -149,7 +156,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             // Consumes qualified name.
             var qualifiedName = this.ConsumeQualifiedName(replacement);
 
-            // consures template parameters
+            // Consumes template parameters
             qualifiedName.AddRange(this.ConsumeTemplateParams());
 
             return qualifiedName;
@@ -195,7 +202,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     this.TokenStream.Peek().Type != TokenType.Float &&
                     this.TokenStream.Peek().Type != TokenType.Double)
                     {
-                        throw new ParsingException("Unexpected token inside a generic name.", TokenType.Identifier);
+                        throw new ParsingException("Unexpected token inside a generic name.", this.TokenStream.Peek(), TokenType.Identifier);
                     }
 
                     if (this.TokenStream.Peek().Type == TokenType.RightAngleBracket)
@@ -228,7 +235,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     }
                 }
 
-                throw new ParsingException("Incomplete generic name.", TokenType.RightAngleBracket);
+                throw new ParsingException("Incomplete generic name.", this.TokenStream.Peek(), TokenType.RightAngleBracket);
             }
 
             return templateParams;
@@ -250,8 +257,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.TokenStream.Peek().Type != TokenType.HaltEvent &&
                 this.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
-                throw new ParsingException(
-                    "Expected event identifier.",
+                throw new ParsingException("Expected event identifier.", this.TokenStream.Peek(),
                     TokenType.Identifier,
                     TokenType.MulOp,
                     TokenType.HaltEvent,

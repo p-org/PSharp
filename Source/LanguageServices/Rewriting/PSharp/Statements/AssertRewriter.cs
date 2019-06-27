@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -49,10 +49,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the statement with a assert statement.
         /// </summary>
-        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            var rewritten = node.WithExpression(SyntaxFactory.IdentifierName("this.Assert"));
-            rewritten = rewritten.WithTriviaFrom(node);
+            var text = "this.Assert";
+            this.Program.AddRewrittenTerm(node, text);
+
+            var rewritten = node.WithExpression(SyntaxFactory.IdentifierName(text)).WithTriviaFrom(node);
             return rewritten;
         }
     }

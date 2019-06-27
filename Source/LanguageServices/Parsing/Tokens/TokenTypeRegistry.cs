@@ -193,7 +193,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "machine";
                     break;
 
-                case TokenType.Monitor:
+                case TokenType.MonitorDecl:
                     text = "monitor";
                     break;
 
@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "return";
                     break;
 
-                case TokenType.Pop:
+                case TokenType.PopState:
                     text = "pop";
                     break;
 

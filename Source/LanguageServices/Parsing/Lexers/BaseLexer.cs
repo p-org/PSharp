@@ -53,16 +53,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     var split = this.SplitText(lineText);
                     foreach (var token in split)
                     {
-                        if (string.IsNullOrEmpty(token))
+                        if (token.Length > 0)
                         {
-                            continue;
+                            this.TextUnits.Add(new TextUnit(token, line, position));
+                            position += token.Length;
                         }
-
-                        this.TextUnits.Add(new TextUnit(token, line));
-                        position += token.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", line));
+                    this.TextUnits.Add(new TextUnit("\n", line, position));
                     position++;
                     line++;
                 }

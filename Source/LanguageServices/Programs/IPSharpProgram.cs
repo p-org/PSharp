@@ -34,5 +34,10 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="text">Text</param>
         void UpdateSyntaxTree(string text);
+
+        /// <summary>
+        /// Add a record of a rewritten term (type, statement, expression) from P# to C#.
+        /// </summary>
+        void AddRewrittenTerm(SyntaxNode node, string rewrittenText);
     }
 }

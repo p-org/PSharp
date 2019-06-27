@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: types,
-                computeReplacementNode: (node, rewritten) => RewriteType(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteType(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -48,13 +48,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the type with a machine type.
         /// </summary>
-        private static ExpressionSyntax RewriteType(IdentifierNameSyntax node)
+        private ExpressionSyntax RewriteType(IdentifierNameSyntax node)
         {
             var text = "MachineId";
+            this.Program.AddRewrittenTerm(node, text);
 
-            var rewritten = SyntaxFactory.ParseExpression(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            var rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             return rewritten;
         }
     }

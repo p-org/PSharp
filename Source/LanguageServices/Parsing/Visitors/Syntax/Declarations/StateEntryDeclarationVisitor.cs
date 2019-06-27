@@ -23,15 +23,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        internal void Visit(StateDeclaration parentNode, bool isAsync = false)
+        internal void Visit(StateDeclaration parentNode, TokenRange tokenRange, bool isAsync = false)
         {
             if (parentNode.EntryDeclaration != null)
             {
-                throw new ParsingException("Duplicate entry declaration.");
+                throw new ParsingException("Duplicate entry declaration.", this.TokenStream.Peek());
             }
 
             var node = new EntryDeclaration(this.TokenStream.Program, parentNode, isAsync);
             node.EntryKeyword = this.TokenStream.Peek();
+            node.HeaderTokenRange = tokenRange.FinishAndClone();
 
             this.TokenStream.Index++;
             this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -39,7 +40,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".", TokenType.LeftCurlyBracket);
+                throw new ParsingException("Expected \"{\".", this.TokenStream.Peek(), TokenType.LeftCurlyBracket);
             }
 
             var blockNode = new BlockSyntax(this.TokenStream.Program, parentNode.Machine, parentNode);

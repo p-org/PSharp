@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the statement with a monitor statement.
         /// </summary>
-        private static SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
@@ -74,9 +74,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).
                 WithExpression((node.Expression as GenericNameSyntax).
-                WithIdentifier(SyntaxFactory.Identifier("this.Monitor"))).
-                WithTriviaFrom(node);
+                WithIdentifier(SyntaxFactory.Identifier("this.Monitor")));
 
+            this.Program.AddRewrittenTerm(node, rewritten.ToString());
+
+            rewritten = rewritten.WithTriviaFrom(node);
             return rewritten;
         }
     }

@@ -61,6 +61,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var fakeGenericExpression = SyntaxFactory.ParseExpression($"X<{qualifiedNamesCsv}>") as GenericNameSyntax;
             var rewritten = node.WithArguments(fakeGenericExpression.TypeArgumentList.Arguments);
+            this.Program.AddRewrittenTerm(node, rewritten.ToString());  // TODO verify this
             return rewritten;
         }
     }

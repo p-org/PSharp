@@ -64,6 +64,13 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
+        /// Add a record of a rewritten term (type, statement, expression) from P# to C#.
+        /// </summary>
+        public virtual void AddRewrittenTerm(SyntaxNode node, string rewrittenText)
+        {
+        }
+
+        /// <summary>
         /// Creates a new library using syntax node.
         /// </summary>
         protected static UsingDirectiveSyntax CreateLibrary(string name)

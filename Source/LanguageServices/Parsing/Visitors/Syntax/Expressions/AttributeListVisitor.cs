@@ -40,8 +40,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     break;
                 }
 
-                this.TokenStream.Swap(new Token(this.TokenStream.Peek().TextUnit));
-
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
@@ -49,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.RightSquareBracket)
             {
-                throw new ParsingException("Expected \"]\".", TokenType.RightSquareBracket);
+                throw new ParsingException("Expected \"]\".", this.TokenStream.Peek(), TokenType.RightSquareBracket);
             }
         }
     }

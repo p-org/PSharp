@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System.Runtime.InteropServices;
+
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
@@ -43,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.TokenStream.Peek().Type != TokenType.Double &&
                 this.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected type identifier.", TokenType.Identifier);
+                throw new ParsingException("Expected type identifier.", this.TokenStream.Peek(), TokenType.Identifier);
             }
 
             var line = this.TokenStream.Peek().TextUnit.Line;
@@ -103,25 +105,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (this.TokenStream.Peek().Type == TokenType.MachineDecl)
                 {
-                    this.TokenStream.Swap(new Token(new TextUnit("MachineId", this.TokenStream.Peek().TextUnit.Line), TokenType.MachineDecl));
+                    this.TokenStream.Swap(this.TokenStream.Peek().TextUnit.WithText("MachineId"), TokenType.MachineDecl);
                 }
 
-                if (textUnit is null)
-                {
-                    textUnit = new TextUnit(this.TokenStream.Peek().TextUnit.Text, line);
-                }
-                else
-                {
-                    textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
-                }
+                var peekTextUnit = this.TokenStream.Peek().TextUnit;
+                var initialText = (textUnit == null) ? string.Empty : textUnit.Text;
+                textUnit = (textUnit == null)
+                    ? new TextUnit(peekTextUnit.Text, line, peekTextUnit.Start)
+                    : textUnit + peekTextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
+            if (this.TokenStream.Done && this.TokenStream.PrevNonWhitespaceType() != TokenType.Identifier)
+            {
+                throw new ParsingException("Expected identifier.", this.TokenStream.Peek(), TokenType.Identifier);
+            }
+
             if (this.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += this.TokenStream.Peek().TextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -169,10 +173,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     if (this.TokenStream.Peek().Type == TokenType.MachineDecl)
                     {
-                        this.TokenStream.Swap(new Token(new TextUnit("MachineId", this.TokenStream.Peek().TextUnit.Line), TokenType.MachineDecl));
+                        this.TokenStream.Swap(this.TokenStream.Peek().TextUnit.WithText("MachineId"), TokenType.MachineDecl);
                     }
 
-                    textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
+                    textUnit += this.TokenStream.Peek().TextUnit;
 
                     this.TokenStream.Index++;
                     this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -181,10 +185,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (this.TokenStream.Done ||
                     this.TokenStream.Peek().Type != TokenType.RightAngleBracket)
                 {
-                    throw new ParsingException("Expected \">\".", TokenType.RightAngleBracket);
+                    throw new ParsingException("Expected \">\".", this.TokenStream.Peek(), TokenType.RightAngleBracket);
                 }
 
-                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += this.TokenStream.Peek().TextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -192,7 +196,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (this.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += this.TokenStream.Peek().TextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -200,10 +204,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (this.TokenStream.Done ||
                     this.TokenStream.Peek().Type != TokenType.RightSquareBracket)
                 {
-                    throw new ParsingException("Expected \"]\".", TokenType.RightSquareBracket);
+                    throw new ParsingException("Expected \"]\".", this.TokenStream.Peek(), TokenType.RightSquareBracket);
                 }
 
-                textUnit = new TextUnit(textUnit.Text + this.TokenStream.Peek().TextUnit.Text, line);
+                textUnit += this.TokenStream.Peek().TextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
