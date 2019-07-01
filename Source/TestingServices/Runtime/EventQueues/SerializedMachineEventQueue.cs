@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             // TODO: check op-id of default event.
             // A default event handler exists.
-            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.GetType().Name,
+            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.Machine.GetType().FullName,
                 NameResolver.GetStateNameForLogging(this.Machine.CurrentState));
             return (DequeueStatus.Default, Default.Event, Guid.Empty, new EventInfo(Default.Event, eventOrigin));
         }
@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         public void Raise(Event e, Guid opGroupId)
         {
-            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.GetType().Name,
+            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.Machine.GetType().Name,
                 NameResolver.GetStateNameForLogging(this.Machine.CurrentState));
             var info = new EventInfo(e, eventOrigin);
             this.RaisedEvent = (e, opGroupId, info);

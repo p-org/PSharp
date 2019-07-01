@@ -641,7 +641,8 @@ namespace Microsoft.PSharp
                     else
                     {
                         // If the event cannot be handled then report an error and exit.
-                        this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.", this.Id, e.GetType().FullName);
+                        this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.",
+                            this.Id, e.GetType().FullName);
                     }
                 }
 
@@ -1457,17 +1458,17 @@ namespace Microsoft.PSharp
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), binding.Key.FullName));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), transition.Key.FullName));
                 }
 
                 foreach (var pushtransition in state.PushTransitions)
                 {
-                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), pushtransition.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), pushtransition.Key.FullName));
                 }
             }
 
