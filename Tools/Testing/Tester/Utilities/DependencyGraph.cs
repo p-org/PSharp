@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.TestingServices.Utilities
                 // We need to do this in a separate AppDomain so we can unload the assemblies to allow instrumentation.
                 var loader = (DependentAssemblyLoader)domain.CreateInstanceAndUnwrap(
                         Assembly.GetExecutingAssembly().FullName, typeof(DependentAssemblyLoader).FullName);
-                return DependentAssemblyLoader.GetDependenciesToPSharp(configuration.AssemblyToBeAnalyzed);
+                return loader.GetDependenciesToPSharp(configuration.AssemblyToBeAnalyzed);
             }
             finally
             {

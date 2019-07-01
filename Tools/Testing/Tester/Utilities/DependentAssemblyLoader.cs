@@ -14,7 +14,8 @@ namespace Microsoft.PSharp.TestingServices.Utilities
 {
     public sealed class DependentAssemblyLoader : MarshalByRefObject
     {
-        public static string[] GetDependenciesToPSharp(string assemblyUnderTest)
+#pragma warning disable CA1822 // Mark members as static
+        public string[] GetDependenciesToPSharp(string assemblyUnderTest)
         {
             // Get the case-normalized directory name
             var fullTestAssemblyName = Path.GetFullPath(assemblyUnderTest);
@@ -38,6 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Utilities
 
             return DependencyGraph.GetDependenciesToTarget(fullTestAssemblyName, allNames, name => getDependencies(name), name => isTarget(name));
         }
+#pragma warning restore CA1822 // Mark members as static
     }
 }
 #endif
