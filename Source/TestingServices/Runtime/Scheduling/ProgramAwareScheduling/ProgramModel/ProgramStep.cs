@@ -27,13 +27,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private readonly int? IntChoice;
 
         // Children
-        internal ProgramStep NextMachineStep;
-        internal ProgramStep CreatedStep;
-        // internal ProgramStep NextInboxOrderingStep;
+        private ProgramStep NextMachineStep;
+        private ProgramStep CreatedStep;
+        private ProgramStep NextEnqeuedStep; // Only set for receive steps
 
         private ProgramStep CreatorStep;
         private ProgramStep PrevMachineStep;
-        // private ProgramStep PrevInboxOrderingStep;
+        private ProgramStep PrevEnqueuedStep; // Only set for receive steps
 
         // Extra info
         internal readonly ProgramStepType ProgramStepType;
@@ -59,13 +59,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.CreatedStep { get => this.CreatedStep; set => this.CreatedStep = value as ProgramStep; }
 
-        // IProgramStep IProgramStep.NextInboxOrderingStep { get => this.NextInboxOrderingStep; set => this.NextInboxOrderingStep = value as ProgramStep; }
+        IProgramStep IProgramStep.NextEnqueuedStep { get => this.NextEnqeuedStep; set => this.NextEnqeuedStep = value as ProgramStep; }
 
         IProgramStep IProgramStep.PrevMachineStep { get => this.PrevMachineStep; set => this.PrevMachineStep = value as ProgramStep; }
 
         IProgramStep IProgramStep.CreatorParent { get => this.CreatorStep; set => this.CreatorStep = value as ProgramStep; }
 
-        // IProgramStep IProgramStep.PrevInboxOrderingStep { get => this.PrevInboxOrderingStep; set => this.PrevInboxOrderingStep = value as ProgramStep; }
+        IProgramStep IProgramStep.PrevEnqueuedStep { get => this.PrevEnqueuedStep; set => this.PrevEnqueuedStep = value as ProgramStep; }
 
         IProgramStepSignature IProgramStep.Signature { get => this.Signature; set => this.Signature = value; }
 
@@ -144,13 +144,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             switch (this.ProgramStepType)
             {
                 case ProgramStepType.SchedulableStep:
-                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.OpType}:{this.TargetId}]";
+                    return $"[{this.TotalOrderingIndex}:{this.ProgramStepType}:{this.SrcId}:{this.OpType}:{this.TargetId}]";
                 case ProgramStepType.NonDetBoolStep:
-                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.BooleanChoice}]";
+                    return $"[{this.TotalOrderingIndex}:{this.ProgramStepType}:{this.SrcId}:{this.BooleanChoice}]";
                 case ProgramStepType.NonDetIntStep:
-                    return $"[{this.ProgramStepType}:{this.SrcId}:{this.IntChoice}]";
+                    return $"[{this.TotalOrderingIndex}:{this.ProgramStepType}:{this.SrcId}:{this.IntChoice}]";
                 default:
-                    return $"[{this.ProgramStepType}:{base.ToString()}]";
+                    return $"[{this.TotalOrderingIndex}:{this.ProgramStepType}:{base.ToString()}]";
             }
         }
     }

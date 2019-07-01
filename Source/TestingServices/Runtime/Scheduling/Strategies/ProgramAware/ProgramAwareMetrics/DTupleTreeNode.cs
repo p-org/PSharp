@@ -82,6 +82,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             }
         }
 
+        internal static string HAXGetDTupleTreeString(DTupleTreeNode dtr)
+        {
+            StringBuilder sb = new StringBuilder();
+            HAXPrintDTupleTree(sb, dtr, 0);
+            return sb.ToString();
+        }
+
+        private static void HAXPrintDTupleTree(StringBuilder sb, DTupleTreeNode dtr, int depth)
+        {
+            sb.Append(new string('\t', depth) + $"*{dtr.StepSig}\n");
+            foreach (KeyValuePair<IProgramStepSignature, DTupleTreeNode> kvp in dtr.Children)
+            {
+                HAXPrintDTupleTree(sb, kvp.Value, depth + 1);
+            }
+        }
+
         internal class RootStepSignature : IProgramStepSignature
         {
             public override int GetHashCode()

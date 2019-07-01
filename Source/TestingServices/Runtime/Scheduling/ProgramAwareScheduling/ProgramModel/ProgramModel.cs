@@ -12,6 +12,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 {
     internal class ProgramModel
     {
+        private const bool ConnectSuccessiveHandlers = false;
+
         internal ProgramStep Rootstep;
         internal ProgramStep ActiveStep;
         internal List<IProgramStep> OrderedSteps;
@@ -19,12 +21,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private readonly Dictionary<ulong, IProgramStep> MachineIdToCreateStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLastStep;
         private readonly Dictionary<int, IProgramStep> SendIndexToSendStep;
+        private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
 
         internal ProgramModel()
         {
             this.MachineIdToCreateStep = new Dictionary<ulong, IProgramStep>();
             this.MachineIdToLastStep = new Dictionary<ulong, IProgramStep>();
             this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
+            this.MachineIdToLatestSendTo = new Dictionary<ulong, IProgramStep>();
 
             this.OrderedSteps = new List<IProgramStep>();
 
@@ -45,19 +49,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         public void RecordStep(IProgramStep programStep, int stepIndex)
         {
-            if ( programStep.ProgramStepType == ProgramStepType.SchedulableStep )
+            if (programStep.ProgramStepType == ProgramStepType.SchedulableStep)
             {
                 switch (programStep.OpType)
                 {
                     case AsyncOperationType.Create:
                         this.MachineIdToCreateStep.Add(programStep.TargetId, programStep);
-                        this.MachineIdToLastStep.Add(programStep.TargetId, programStep);
-
                         break;
 
                     case AsyncOperationType.Send:
-                        // assert(programStep.EventInfo.SendStep == stepIndex);
                         this.SendIndexToSendStep[programStep.EventInfo.SendStep] = programStep;
+                        if (this.MachineIdToLatestSendTo.ContainsKey(programStep.TargetId))
+                        {
+                            SetInboxOrderingRelation( this.MachineIdToLatestSendTo[programStep.TargetId], programStep);
+                        }
+
+                        this.MachineIdToLatestSendTo[programStep.TargetId] = programStep;
                         break;
 
                     case AsyncOperationType.Receive:
@@ -66,31 +73,40 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         break;
                 }
             }
-            else if ( programStep.ProgramStepType == ProgramStepType.NonDetBoolStep
+            else if (programStep.ProgramStepType == ProgramStepType.NonDetBoolStep
                 || programStep.ProgramStepType == ProgramStepType.NonDetIntStep)
             {
                 // Do nothing special
             }
 
-            // Add thread link
+            // Process the machine thread relation
             IProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
-            if ( previousMachineStep.OpType == AsyncOperationType.Create && previousMachineStep.TargetId == programStep.SrcId)
-            {
-                // Make this the created child
-                SetCreatedRelation(previousMachineStep, programStep);
-            }
-            else
+
+            if (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers)
             {
                 SetMachineThreadRelation(previousMachineStep, programStep);
             }
 
             this.MachineIdToLastStep[programStep.SrcId] = programStep;
 
+            this.AppendStepToTotalOrdering(programStep);
+
+            if (programStep.OpType == AsyncOperationType.Create )
+            {
+                ProgramStep startStep = new ProgramStep(AsyncOperationType.Start, programStep.TargetId, programStep.TargetId, null);
+                this.MachineIdToLastStep.Add(programStep.TargetId, startStep);
+                SetCreatedRelation(programStep, startStep);
+                this.AppendStepToTotalOrdering(startStep);
+            }
+
+            // This line is only so we don't get an unused parameter error
+            stepIndex++;
+        }
+
+        private void AppendStepToTotalOrdering(IProgramStep programStep)
+        {
             programStep.TotalOrderingIndex = this.OrderedSteps.Count;
             this.OrderedSteps.Add(programStep);
-
-            // TODO: Remove fake use for stepIndex
-            stepIndex++;
         }
 
         private static void SetCreatedRelation(IProgramStep parent, IProgramStep child)
@@ -104,13 +120,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             parent.NextMachineStep = child;
             child.PrevMachineStep = parent;
         }
-#if false
+
         private static void SetInboxOrderingRelation(IProgramStep parent, IProgramStep child)
         {
-            parent.NextInboxOrderingStep = child;
-            child.PrevInboxOrderingStep = parent;
+            parent.NextEnqueuedStep = child;
+            child.PrevEnqueuedStep = parent;
         }
-#endif
 
         internal string SerializeProgramTrace()
         {
@@ -127,6 +142,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             IProgramStep s = step;
             return $"{s.TotalOrderingIndex}:{s.ProgramStepType}:{s.SrcId}:{s.OpType}:{s.TargetId}:{s.BooleanChoice}:{s.IntChoice}:{s.NextMachineStep?.TotalOrderingIndex ?? -1}:{s.CreatedStep?.TotalOrderingIndex ?? -1}";
+        }
+
+        // Prints tree, assuming only PrevMachineStep or CreatorStep can be parents
+        internal string HAXGetProgramTreeString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            HAXSerializeStepProgramTree(sb, this.Rootstep, 0);
+
+            return sb.ToString();
+        }
+
+        private static void HAXSerializeStepProgramTree(StringBuilder sb, IProgramStep atNode, int depth)
+        {
+            sb.Append(new string('\t', depth) + $"*{atNode}\n");
+            if (atNode.NextMachineStep != null)
+            {
+                HAXSerializeStepProgramTree(sb, atNode.NextMachineStep, depth + 1);
+            }
+
+            if (atNode.CreatedStep != null)
+            {
+                HAXSerializeStepProgramTree(sb, atNode.CreatedStep, depth + 1);
+            }
         }
     }
 }
