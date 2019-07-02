@@ -98,6 +98,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             }
         }
 
+        internal string GetReport(int maxDepth)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 1; i <= maxDepth; i++)
+            {
+                sb.AppendLine($"{i}-tuples\t:\t{this.GetDTupleCount(i)}");
+            }
+
+            return sb.ToString();
+        }
+
         internal class RootStepSignature : IProgramStepSignature
         {
             public override int GetHashCode()

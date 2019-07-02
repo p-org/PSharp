@@ -108,6 +108,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             return string.Empty;
         }
+
+        public string GetReport()
+        {
+            return null;
+        }
 #if false
         public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo)
         {

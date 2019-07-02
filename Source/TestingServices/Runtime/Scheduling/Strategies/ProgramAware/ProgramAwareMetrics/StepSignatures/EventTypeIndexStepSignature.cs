@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             // https://docs.microsoft.com/en-us/dotnet/api/system.string.gethashcode?view=netframework-4.8
             // If two string objects are equal, the GetHashCode method returns identical values...
-            return this.EventInfo.EventName.GetHashCode() * this.EventIndex;
+            return this.EventInfo.EventName.GetHashCode() * (this.EventIndex + 1);
         }
 
         public override bool Equals(object other)

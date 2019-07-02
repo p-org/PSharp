@@ -19,6 +19,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
     /// </summary>
     internal /*abstract*/ class BasicProgramModelBasedStrategy : IProgramAwareSchedulingStrategy
     {
+        // Some handy constants
+        protected const ulong TESTHARNESSMACHINEID = 0;
+        protected const ulong TESTHARNESSMACHINEHASH = 199999;
+
         // TODO: Make this class abstract?
         internal ProgramModel ProgramModel;
         private readonly ISchedulingStrategy ChildStrategy;
@@ -138,6 +142,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
         public virtual string GetProgramTrace()
         {
             return this.ProgramModel.SerializeProgramTrace();
+        }
+
+        public virtual string GetReport()
+        {
+            return null;
         }
     }
 }

@@ -90,6 +90,20 @@ namespace Microsoft.PSharp.Utilities
         /// Random delay-bounding scheduling.
         /// </summary>
         [EnumMember(Value = "RandomDelayBounding")]
-        RandomDelayBounding
+        RandomDelayBounding,
+
+        // Wrapper metric strategies
+
+        /// <summary>
+        /// Wraps the scheduler in MessageFlowBasedDHittingMetricStrategy
+        /// </summary>
+        [EnumMember(Value = "MsgFlowDHittingMetric")]
+        MsgFlowDHittingMetric,
+
+        /// <summary>
+        /// Wraps the scheduler in InboxBasedDHittingMetricStrategy
+        /// </summary>
+        [EnumMember(Value = "InboxDhittingMetric")]
+        InboxDHittingMetric
     }
 }

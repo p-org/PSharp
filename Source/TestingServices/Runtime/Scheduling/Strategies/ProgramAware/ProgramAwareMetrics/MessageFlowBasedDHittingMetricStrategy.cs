@@ -13,6 +13,7 @@ using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
+using Microsoft.PSharp.TestingServices.Statistics;
 
 // Considers the possibility of re-ordered events in inbox of machine A effecting the downstream behaviour of a machine B.
 // A send event A is considered to come before a send event B if any information in A could possibly effect B.
@@ -35,9 +36,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         private static HashSet<IProgramStepSignature> UniqueSigs = new HashSet<IProgramStepSignature>();
         private static HashSet<ulong> UniqueMachineSigs = new HashSet<ulong>();
-        private const ulong TESTHARNESSMACHINEID = 0;
-        private const ulong TESTHARNESSMACHINEHASH = 199999;
 
+        private readonly TimelyStatisticLogger<Tuple<ulong, ulong, ulong>> StatLogger;
         // private static HashSet<ulong> UniqueSigs = new HashSet<ulong>();
 
         // TODO: Move RootSignatures to respective signature classes. Declare const variables for primes.
@@ -48,49 +48,33 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.MaxDToCount = dToHit;
             this.iterationNumber = 0;
             this.DTupleTreeRoot = new DTupleTreeNode(TreeHashStepSignature.CreateRootStepSignature());
+
+            this.StatLogger = new TimelyStatisticLogger<Tuple<ulong, ulong, ulong>>();
         }
 
         public override void NotifySchedulingEnded(bool bugFound)
         {
-            string programTreeSerialized = this.ProgramModel.HAXGetProgramTreeString();
-            string programSerialized = this.GetProgramTrace();
-
             this.ComputeStepSignatures();
             this.EnumerateDTuples();
 
-            Console.WriteLine(programTreeSerialized);
+            this.StatLogger.AddValue(new Tuple<ulong, ulong, ulong>(
+                this.GetDTupleCount(1), this.GetDTupleCount(2), this.GetDTupleCount(3)));
+
+            // string programTreeSerialized = this.ProgramModel.HAXGetProgramTreeString();
+            // string programSerialized = this.GetProgramTrace();
+            // Console.WriteLine(programTreeSerialized);
             // DTupleTreeNode.PrintDTupleTree(this.DTupleTreeRoot, 0);
-            string dTupleTreeSerialized = DTupleTreeNode.HAXGetDTupleTreeString(this.DTupleTreeRoot);
+            // string dTupleTreeSerialized = DTupleTreeNode.HAXGetDTupleTreeString(this.DTupleTreeRoot);
             // Console.WriteLine(dTupleTreeSerialized);
-
-            for (int i = 2; i <= this.MaxDToCount; i++)
-            {
-                Console.WriteLine($"{i}-tuple count={this.GetDTupleCount(i)}");
-            }
-
-            Console.WriteLine($"Unique hashes={UniqueSigs.Count}");
-         }
+            // for (int i = 2; i <= this.MaxDToCount; i++)
+            // {
+            //      Console.WriteLine($"{i}-tuple count={this.GetDTupleCount(i)}");
+            // }
+            // Console.WriteLine($"Unique hashes={UniqueSigs.Count}");
+        }
 
         private void ComputeStepSignatures()
         {
-#if false
-            // TODO: This signature sux without senderId.
-            Dictionary<Tuple<ulong, string>, int> inboxEventIndexCounter = new Dictionary<Tuple<ulong, string>, int>();
-
-            foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
-            {
-                Tuple<ulong, string> ieicKey = Tuple.Create<ulong, string>(progStep.SrcId, progStep.EventInfo?.EventName ?? "NullEventInfo");
-
-                if (!inboxEventIndexCounter.ContainsKey(ieicKey))
-                {
-                    inboxEventIndexCounter.Add(ieicKey, 0);
-                }
-
-                int currentIndex = inboxEventIndexCounter[ieicKey];
-                // progStep.Signature = new EventTypeIndexStepSignature(progStep, currentIndex);
-                inboxEventIndexCounter[ieicKey] = currentIndex + 1;
-            }
-#endif
             Dictionary<ulong, ulong> machineIdRemap = new Dictionary<ulong, ulong>();
             machineIdRemap[TESTHARNESSMACHINEID] = TESTHARNESSMACHINEHASH;
             foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
@@ -248,6 +232,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public ulong GetDTupleCount(int d)
         {
             return this.DTupleTreeRoot.GetDTupleCount(d);
+        }
+
+        public override string GetReport()
+        {
+            // return this.DTupleTreeRoot.GetReport(this.MaxDToCount);
+
+            StringBuilder sb = new StringBuilder();
+            foreach ( Tuple<int, Tuple<ulong, ulong, ulong>> stat in this.StatLogger)
+            {
+                sb.AppendLine($"{stat.Item1}\t:\t{stat.Item2.Item1}\t{stat.Item2.Item2}\t{stat.Item2.Item3}");
+            }
+
+            return sb.ToString();
         }
     }
 }

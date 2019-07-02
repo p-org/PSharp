@@ -6,6 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics;
+using Microsoft.PSharp.Utilities;
+using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
 {
@@ -113,6 +116,42 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 MachineId targetId = (eWrap.TargetId == null) ? createdId : eWrap.TargetId;
                 this.Send(targetId, eWrap.Event);
             }
+        }
+    }
+
+    // Some utils
+    internal class ProgramAwareTestUtils
+    {
+        internal static void CheckDTupleCount(MessageFlowBasedDHittingMetricStrategy strategy, int d, int expectedDTupleCount)
+        {
+            ulong actualDTupleCount = strategy.GetDTupleCount(d);
+            Assert.True(
+                actualDTupleCount == (ulong)expectedDTupleCount,
+                $"Number of expected {d}-tuples did not match. Expected {expectedDTupleCount} ; Received {actualDTupleCount}");
+        }
+
+        internal static void CheckDTupleCount(InboxBasedDHittingMetricStrategy strategy, int d, int expectedDTupleCount)
+        {
+            ulong actualDTupleCount = strategy.GetDTupleCount(d);
+            Assert.True(
+                actualDTupleCount == (ulong)expectedDTupleCount,
+                $"Number of expected {d}-tuples did not match. Expected {expectedDTupleCount} ; Received {actualDTupleCount}");
+        }
+
+        internal static int Permute(int n, int r)
+        {
+            int p = 1;
+            for (int i = n; i > (n - r); i--)
+            {
+                p *= i;
+            }
+
+            return p;
+        }
+
+        internal static int Choose(int n, int r)
+        {
+            return Permute(n, r) / Permute(r, r);
         }
     }
 }

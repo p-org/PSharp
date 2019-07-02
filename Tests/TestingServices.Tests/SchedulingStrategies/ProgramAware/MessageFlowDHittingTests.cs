@@ -41,24 +41,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                             new EventWrapper(xId, new ForwarderEvent()),
                             new EventWrapper(bId, new ForwarderEvent(xId, new ForwarderEvent()))
                         }));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 
-            ulong oneTuples = strategy.GetDTupleCount(1);
-            Assert.True(
-                oneTuples == 4,
-                "Number of expected 1-tuples did not match. Expected 5 ; Received " + oneTuples);
-
-            ulong twoTuples = strategy.GetDTupleCount(2);
-            Assert.True(
-                twoTuples == 0,
-                "Number of expected 2-tuples did not match. Expected 0 ; Received " + twoTuples);
-
-            ulong threeTuples = strategy.GetDTupleCount(3);
-            Assert.True(
-                threeTuples == 0,
-                "Number of expected 3-tuples did not match. Expected 0 ; Received " + threeTuples);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 1, 4);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 2, 0);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 3, 0);
         }
 
         /// <summary>
@@ -87,24 +76,13 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 r.SendEvent(aId, new ForwarderEvent(xId, new ForwarderEvent()));
                 r.SendEvent(bId, new ForwarderEvent(xId, new ForwarderEvent(yId, new ForwarderEvent())));
                 r.SendEvent(cId, new ForwarderEvent(yId, new ForwarderEvent()));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(100));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(100).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 
-            ulong oneTuples = strategy.GetDTupleCount(1);
-            Assert.True(
-                oneTuples == 7,
-                "Number of expected 1-tuples did not match. Expected 7 ; Received " + oneTuples);
-
-            ulong twoTuples = strategy.GetDTupleCount(2);
-            Assert.True(
-                twoTuples == 5,
-                "Number of expected 2-tuples did not match. Expected 3 ; Received " + twoTuples);
-
-            ulong threeTuples = strategy.GetDTupleCount(3);
-            Assert.True(
-                threeTuples == 1,
-                "Number of expected 3-tuples did not match. Expected 1 ; Received " + threeTuples);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 1, 7);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 2, 5);
+            ProgramAwareTestUtils.CheckDTupleCount(strategy, 3, 1);
         }
     }
 }

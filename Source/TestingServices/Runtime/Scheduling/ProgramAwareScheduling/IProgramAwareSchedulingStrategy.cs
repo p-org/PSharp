@@ -36,5 +36,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void NotifySchedulingEnded(bool bugFound);
 
         string GetProgramTrace();
+
+        string GetReport();
     }
 }

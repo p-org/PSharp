@@ -126,6 +126,27 @@ namespace Microsoft.PSharp.TestingServices
             return this.TestReport.GetText(this.Configuration, "...");
         }
 
+        public string ExtraReport()
+        {
+            if ( this.Strategy is IProgramAwareSchedulingStrategy)
+            {
+                StringBuilder sb = new StringBuilder();
+                string extraReport = (this.Strategy as IProgramAwareSchedulingStrategy).GetReport();
+                if (extraReport != null)
+                {
+                    sb.AppendLine($"--- Start report from {this.Strategy.GetType().Name} ---");
+                    sb.Append(extraReport);
+                    sb.AppendLine($"--- End report from {this.Strategy.GetType().Name} ---");
+                }
+
+                return sb.ToString();
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
@@ -267,6 +288,8 @@ namespace Microsoft.PSharp.TestingServices
                         // Disposes the test state.
                         this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
                     }
+
+                    Output.Write(this.ExtraReport());
                 }
                 catch (Exception ex)
                 {
@@ -306,8 +329,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             // Runtime used to serialize and test the program in this iteration.
-            // SystematicTestingRuntime runtime = null;
-            ProgramAwareTestingRuntime runtime = null;
+            SystematicTestingRuntime runtime = null;
+            // ProgramAwareTestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -329,8 +352,14 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 else
                 {
-                     // runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
-                     runtime = new ProgramAwareTestingRuntime(this.Configuration, this.Strategy as IProgramAwareSchedulingStrategy, this.Reporter);
+                    if (this.Strategy is IProgramAwareSchedulingStrategy)
+                    {
+                        runtime = new ProgramAwareTestingRuntime(this.Configuration, this.Strategy as IProgramAwareSchedulingStrategy, this.Reporter);
+                    }
+                    else
+                    {
+                        runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                    }
                 }
 
                 if (this.Configuration.EnableDataRaceDetection)
@@ -376,8 +405,8 @@ namespace Microsoft.PSharp.TestingServices
                     callback(iteration);
                 }
 
-                // TODO: Make neater
-                (this.Strategy as IProgramAwareSchedulingStrategy).NotifySchedulingEnded(runtime.Scheduler.BugFound);
+                // If this is a program aware strategy, NotifySchedulingEnded.
+                (this.Strategy as IProgramAwareSchedulingStrategy)?.NotifySchedulingEnded(runtime.Scheduler.BugFound);
 
                 if (this.Configuration.RaceFound)
                 {

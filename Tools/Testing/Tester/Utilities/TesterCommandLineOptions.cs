@@ -347,6 +347,19 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.EnableUserDefinedStateHashing = true;
             }
+            else if (IsMatch(option, @"^[\/|-]wrappers:") && option.Length > 10)
+            {
+                string scheduler = option.Substring(10);
+                if (IsMatch(scheduler, @"InboxDHitting"))
+                {
+                    this.Configuration.WrapperStrategies.Add(SchedulingStrategy.InboxDHittingMetric);
+                }
+
+                if (IsMatch(scheduler, @"MsgFlowDHitting"))
+                {
+                    this.Configuration.WrapperStrategies.Add(SchedulingStrategy.MsgFlowDHittingMetric);
+                }
+            }
             else
             {
                 base.ParseOption(option);

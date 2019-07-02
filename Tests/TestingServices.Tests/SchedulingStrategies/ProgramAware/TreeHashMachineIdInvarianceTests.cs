@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 MachineId m1 = r.CreateMachine(typeof(CreateAndSendOnPingMachine));
                 r.SendEvent(m0, new ForwarderEvent(null, new ForwarderEvent()));
                 r.SendEvent(m1, new ForwarderEvent(null, new ForwarderEvent()));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DFS).WithNumberOfIterations(10));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
             Console.WriteLine(strategy.GetDTupleCount(1));
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                     var senderId = r.CreateMachine(typeof(ForwarderMachine), new ForwarderEvent(creatorMachineId, new ForwarderEvent()));
                     r.SendEvent(senderId, new ForwarderEvent(creatorMachineId, new ForwarderEvent()));
                 }
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(1000));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(1000).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 
