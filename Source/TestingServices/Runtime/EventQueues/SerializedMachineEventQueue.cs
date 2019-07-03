@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         public void Raise(Event e, Guid opGroupId)
         {
-            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.Machine.GetType().Name,
+            var eventOrigin = new EventOriginInfo(this.Machine.Id, this.Machine.GetType().FullName,
                 NameResolver.GetStateNameForLogging(this.Machine.CurrentState));
             var info = new EventInfo(e, eventOrigin);
             this.RaisedEvent = (e, opGroupId, info);
