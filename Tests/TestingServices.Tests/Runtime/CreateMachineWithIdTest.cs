@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -227,15 +228,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             this.TestWithError(r =>
             {
-                var m = r.CreateMachine(typeof(M2));
-
-                // Make sure that the machine halts
-                for (int i = 0; i < 100; i++)
+                bool isEventDropped = false;
+                r.OnEventDropped += (Event e, MachineId target) =>
                 {
+                    isEventDropped = true;
+                };
+
+                var m = r.CreateMachine(typeof(M2));
+                while (!isEventDropped)
+                {
+                    // Make sure the machine halts before trying to reuse its id.
                     r.SendEvent(m, new Halt());
                 }
 
-                // trying to bring up a halted machine
+                // Trying to bring up a halted machine.
                 r.CreateMachine(m, typeof(M2));
             },
             expectedError: "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'");
