@@ -207,7 +207,7 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
 
-            var eventOrigin = new EventOriginInfo(this.Id, this.GetType().Name, NameResolver.GetQualifiedStateName(this.CurrentState));
+            var eventOrigin = new EventOriginInfo(this.Id, this.GetType().FullName, NameResolver.GetQualifiedStateName(this.CurrentState));
             EventInfo raisedEvent = new EventInfo(e, eventOrigin);
             this.Runtime.NotifyRaisedEvent(this, e, raisedEvent);
             this.HandleEvent(e);
@@ -259,7 +259,8 @@ namespace Microsoft.PSharp
                 if (this.State is null)
                 {
                     // If the event cannot be handled, then report an error and exit.
-                    this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.", this.GetType().Name, e.GetType().FullName);
+                    this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
+                        this.GetType().Name, e.GetType().FullName);
                 }
 
                 // If current state cannot handle the event then null the state.
@@ -783,12 +784,12 @@ namespace Microsoft.PSharp
             {
                 foreach (var binding in state.ActionBindings)
                 {
-                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), binding.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), binding.Key.FullName));
                 }
 
                 foreach (var transition in state.GotoTransitions)
                 {
-                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), transition.Key.Name));
+                    pairs.Add(Tuple.Create(NameResolver.GetQualifiedStateName(state.GetType()), transition.Key.FullName));
                 }
             }
 

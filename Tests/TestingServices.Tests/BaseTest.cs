@@ -257,7 +257,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             return report;
         }
 
-        private static string RemoveNonDeterministicValuesFromReport(string report)
+        protected static string RemoveNonDeterministicValuesFromReport(string report)
         {
             string result;
 
@@ -267,8 +267,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             result = Regex.Replace(result, @"\[[^)]*\]", "[]");
 
             // Match a namespace.
-            result = Regex.Replace(result, @"Microsoft\.[^+]*\+", string.Empty);
+            result = RemoveNamespaceReferencesFromReport(result);
             return result;
+        }
+
+        protected static string RemoveNamespaceReferencesFromReport(string report)
+        {
+            return Regex.Replace(report, @"Microsoft\.[^+]*\+", string.Empty);
+        }
+
+        protected static string RemoveExcessiveEmptySpaceFromReport(string report)
+        {
+            return Regex.Replace(report, @"\s+", " ");
         }
     }
 }

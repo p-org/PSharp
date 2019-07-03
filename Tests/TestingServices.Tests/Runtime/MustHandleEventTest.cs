@@ -121,6 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var m = r.CreateMachine(typeof(M1));
                 r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
             },
+            configuration: Configuration.Create().WithNumberOfIterations(100),
             expectedErrors: new string[]
                 {
                     "A must-handle event 'E' was sent to the halted machine 'M1()'.",

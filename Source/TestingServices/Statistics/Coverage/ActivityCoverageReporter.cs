@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         {
             using (var writer = new StreamWriter(coverageFile))
             {
-                this.WriteCoverageFile(writer);
+                this.WriteCoverageText(writer);
             }
         }
 
@@ -151,9 +151,9 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         }
 
         /// <summary>
-        /// Writes the visualization graph.
+        /// Writes the visualization text.
         /// </summary>
-        private void WriteCoverageFile(TextWriter writer)
+        internal void WriteCoverageText(TextWriter writer)
         {
             var machines = new List<string>(this.CoverageInfo.MachinesToStates.Keys);
 
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                 }
             }
 
-            string eventCoverage = this.CoverageInfo.RegisteredEvents.Count == 0 ? "100" :
+            string eventCoverage = this.CoverageInfo.RegisteredEvents.Count == 0 ? "100.0" :
                 ((this.CoverageInfo.RegisteredEvents.Count - uncoveredEvents.Count) * 100.0 / this.CoverageInfo.RegisteredEvents.Count).ToString("F1");
             writer.WriteLine("Total event coverage: {0}%", eventCoverage);
 
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     numUncoveredEvents += tup.Value.Count;
                 }
 
-                eventCoverage = numTotalEvents == 0 ? "100" : ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1");
+                eventCoverage = numTotalEvents == 0 ? "100.0" : ((numTotalEvents - numUncoveredEvents) * 100.0 / numTotalEvents).ToString("F1");
                 writer.WriteLine("Machine event coverage: {0}%", eventCoverage);
 
                 // Find uncovered states.
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                     writer.WriteLine("\tState: {0}{1}", state, uncoveredStates.Contains(state) ? " is uncovered" : string.Empty);
                     if (!uncoveredStates.Contains(state))
                     {
-                        eventCoverage = machineToStatesToEvents[machine][state].Count == 0 ? "100" :
+                        eventCoverage = machineToStatesToEvents[machine][state].Count == 0 ? "100.0" :
                             ((machineToStatesToEvents[machine][state].Count - machineUncoveredEvents[state].Count) * 100.0 /
                               machineToStatesToEvents[machine][state].Count).ToString("F1");
                         writer.WriteLine("\t\tState event coverage: {0}%", eventCoverage);
