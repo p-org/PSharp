@@ -723,13 +723,41 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     IO.Debug.WriteLine($"<ScheduleDebug> Terminated event handler of '{machine.Id}' with task id '{op.Task.Id}'.");
                     ResetProgramCounter(machine);
                 }
-                catch (ExecutionCanceledException)
+                catch (Exception ex)
                 {
-                    IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
-                }
-                catch (ObjectDisposedException ex)
-                {
-                    IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}' with reason '{ex.Message}'.");
+                    Exception innerException = ex;
+                    while (innerException is TargetInvocationException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is AggregateException)
+                    {
+                        innerException = innerException.InnerException;
+                    }
+
+                    if (innerException is ExecutionCanceledException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                    }
+                    else if (innerException is TaskSchedulerException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from machine '{machine.Id}'.");
+                    }
+                    else if (innerException is ObjectDisposedException)
+                    {
+                        IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}' with reason '{ex.Message}'.");
+                    }
+                    else
+                    {
+                        // Reports the unhandled exception.
+                        string message = string.Format(CultureInfo.InvariantCulture,
+                            $"Exception '{ex.GetType()}' was thrown in machine '{machine.Id}', " +
+                            $"'{ex.Source}':\n" +
+                            $"   {ex.Message}\n" +
+                            $"The stack trace is:\n{ex.StackTrace}");
+                        this.Scheduler.NotifyAssertionFailure(message, killTasks: true, cancelExecution: false);
+                    }
                 }
                 finally
                 {
@@ -1589,8 +1617,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// or null if no such machine is currently executing.
         /// </summary>
         internal TMachine GetExecutingMachine<TMachine>()
-            where TMachine : AsyncMachine =>
-            this.GetMachineFromId<TMachine>(AsyncLocalMachineId.Value);
+            where TMachine : AsyncMachine
+        {
+            var machine = this.GetMachineFromId<TMachine>(AsyncLocalMachineId.Value);
+            if (machine == null && Task.CurrentId.HasValue &&
+                this.ControlledTaskMap.TryGetValue(Task.CurrentId.Value, out AsyncMachine value))
+            {
+                machine = value as TMachine;
+            }
+
+            return machine;
+        }
 
         /// <summary>
         /// Gets the id of the currently executing machine.

@@ -3,19 +3,25 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.IO;
 
 namespace Microsoft.PSharp.IO
 {
     /// <summary>
-    /// Logger that writes text in-memory.
+    /// Thread safe logger that writes text in-memory.
     /// </summary>
-    internal sealed class InMemoryLogger : MachineLogger
+    public sealed class InMemoryLogger : MachineLogger
     {
         /// <summary>
         /// Underlying string writer.
         /// </summary>
         private readonly StringWriter Writer;
+
+        /// <summary>
+        /// Serializes access to the string writer.
+        /// </summary>
+        private readonly object Lock;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InMemoryLogger"/> class.
@@ -25,6 +31,7 @@ namespace Microsoft.PSharp.IO
             : base(isVerbose)
         {
             this.Writer = new StringWriter();
+            this.Lock = new object();
         }
 
         /// <summary>
@@ -34,7 +41,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.Write(value);
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(value);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -45,7 +62,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.Write(format, arg0.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -56,7 +83,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString(), arg1.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -67,7 +104,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -80,7 +127,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.Write(format, args);
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.Write(format, args);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -92,7 +149,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.WriteLine(value);
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(value);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -104,7 +171,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.WriteLine(format, arg0.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -116,7 +193,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -128,7 +215,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, arg0.ToString(), arg1.ToString(), arg2.ToString());
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -142,7 +239,17 @@ namespace Microsoft.PSharp.IO
         {
             if (this.IsVerbose)
             {
-                this.Writer.WriteLine(format, args);
+                try
+                {
+                    lock (this.Lock)
+                    {
+                        this.Writer.WriteLine(format, args);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The writer was disposed.
+                }
             }
         }
 
@@ -151,7 +258,10 @@ namespace Microsoft.PSharp.IO
         /// </summary>
         public override string ToString()
         {
-            return this.Writer.ToString();
+            lock (this.Lock)
+            {
+                return this.Writer.ToString();
+            }
         }
 
         /// <summary>

@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,7 +20,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
         }
 
-        private class M : Machine
+        private class M1 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -38,7 +37,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        private class N : Machine
+        [Fact(Timeout = 5000)]
+        public void TestExternalTaskSendingEvent()
+        {
+            this.TestWithError(r =>
+            {
+                r.CreateMachine(typeof(M1));
+            },
+            expectedError: "Task with id '' that is not controlled by the P# runtime invoked a runtime method.",
+            replay: true);
+        }
+
+        private class M2 : Machine
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
@@ -56,22 +66,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout=5000)]
-        public void TestExternalTaskSendingEvent()
-        {
-            this.TestWithError(r =>
-            {
-                r.CreateMachine(typeof(M));
-            },
-            expectedError: "Task with id '' that is not controlled by the P# runtime invoked a runtime method.",
-            replay: true);
-        }
-
-        [Fact(Timeout=5000)]
         public void TestExternalTaskInvokingRandom()
         {
             this.TestWithError(r =>
             {
-                r.CreateMachine(typeof(N));
+                r.CreateMachine(typeof(M2));
             },
             expectedError: "Task with id '' that is not controlled by the P# runtime invoked a runtime method.",
             replay: true);
