@@ -15,6 +15,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
 {
     public class MessageFlowDHittingTests : BaseTest
     {
+        private static readonly WrapperStrategyConfiguration MsgFlowDHittingWithTreeHashSigConfig =
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash);
+
         public MessageFlowDHittingTests(ITestOutputHelper output)
             : base(output)
         {
@@ -41,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                             new EventWrapper(xId, new ForwarderEvent()),
                             new EventWrapper(bId, new ForwarderEvent(xId, new ForwarderEvent()))
                         }));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(MsgFlowDHittingWithTreeHashSigConfig));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 
@@ -76,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 r.SendEvent(aId, new ForwarderEvent(xId, new ForwarderEvent()));
                 r.SendEvent(bId, new ForwarderEvent(xId, new ForwarderEvent(yId, new ForwarderEvent())));
                 r.SendEvent(cId, new ForwarderEvent(yId, new ForwarderEvent()));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(100).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(100).WithWrapperStrategy(MsgFlowDHittingWithTreeHashSigConfig));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 

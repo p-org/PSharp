@@ -349,15 +349,11 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (IsMatch(option, @"^[\/|-]wrappers:") && option.Length > 10)
             {
-                string scheduler = option.Substring(10);
-                if (IsMatch(scheduler, @"InboxDHitting"))
+                string strategyCommandLine = option.Substring(10);
+                WrapperStrategyConfiguration wsc = new WrapperStrategyConfiguration();
+                if (!wsc.TryParse(strategyCommandLine))
                 {
-                    this.Configuration.WrapperStrategies.Add(SchedulingStrategy.InboxDHittingMetric);
-                }
-
-                if (IsMatch(scheduler, @"MsgFlowDHitting"))
-                {
-                    this.Configuration.WrapperStrategies.Add(SchedulingStrategy.MsgFlowDHittingMetric);
+                    throw new ArgumentException("Could not parse wrapper strategy commandline " + option);
                 }
             }
             else

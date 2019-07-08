@@ -15,6 +15,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
 {
     public class TreeHashMachineIdInvarianceTests : BaseTest
     {
+        private static readonly WrapperStrategyConfiguration MsgFlowDHittingWithTreeHashSigConfig =
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash);
+
         public TreeHashMachineIdInvarianceTests(ITestOutputHelper output)
             : base(output)
         {
@@ -29,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 MachineId m1 = r.CreateMachine(typeof(CreateAndSendOnPingMachine));
                 r.SendEvent(m0, new ForwarderEvent(null, new ForwarderEvent()));
                 r.SendEvent(m1, new ForwarderEvent(null, new ForwarderEvent()));
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.Random).WithNumberOfIterations(10).WithWrapperStrategy(MsgFlowDHittingWithTreeHashSigConfig));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
             Console.WriteLine(strategy.GetDTupleCount(1));
@@ -64,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                     var senderId = r.CreateMachine(typeof(ForwarderMachine), new ForwarderEvent(creatorMachineId, new ForwarderEvent()));
                     r.SendEvent(senderId, new ForwarderEvent(creatorMachineId, new ForwarderEvent()));
                 }
-            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(1000).WithWrapperStrategy(SchedulingStrategy.MsgFlowDHittingMetric));
+            }, configuration: Configuration.Create().WithStrategy(SchedulingStrategy.DPOR).WithNumberOfIterations(1000).WithWrapperStrategy(MsgFlowDHittingWithTreeHashSigConfig));
 
             MessageFlowBasedDHittingMetricStrategy strategy = (runtime as BugFindingEngine).Strategy as MessageFlowBasedDHittingMetricStrategy;
 
