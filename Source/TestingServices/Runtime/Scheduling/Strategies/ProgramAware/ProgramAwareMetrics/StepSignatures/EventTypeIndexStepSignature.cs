@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics
@@ -13,12 +14,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         internal readonly int EventIndex;
 
         internal readonly IProgramStep HAXstep;
+        private Type MachineType;
 
-        internal EventTypeIndexStepSignature(IProgramStep step, int eventIndex)
+        internal EventTypeIndexStepSignature(IProgramStep step, Type machineType, int eventIndex)
         {
             this.EventInfo = step.EventInfo;
             this.EventIndex = eventIndex;
-
+            this.MachineType = machineType;
             step.Signature = this;
 
             this.HAXstep = step;
@@ -37,6 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             {
                 EventTypeIndexStepSignature otherSig = other as EventTypeIndexStepSignature;
                 return
+                    otherSig.MachineType.Equals(this.MachineType) &&
                     otherSig.EventInfo.EventName.Equals(this.EventInfo.EventName) &&
                     otherSig.EventIndex == this.EventIndex;
             }

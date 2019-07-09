@@ -14,7 +14,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 {
     internal class TreeHashStepSignature : IProgramStepSignature
     {
-        internal IProgramStep ProgramStep;
         internal ulong Hash;
 
         private TreeHashStepSignature()
@@ -24,39 +23,38 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         internal TreeHashStepSignature(IProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
         {
-            this.ProgramStep = step;
-            this.ComputeHash(machineIdRemap);
+            this.ComputeHash(step, machineIdRemap);
 
             step.Signature = this;
         }
 
         private const int MOD = 1000000007;
 
-        private void ComputeHash(Dictionary<ulong, ulong> machineIdRemap)
+        private void ComputeHash(IProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
         {
             // The hash is a function of the parent's hashes and the contents of this step.
             ulong parentHash = 1;
             // if (this.ProgramStep.ProgramStepType == ProgramStepType.SchedulableStep && this.ProgramStep.OpType == AsyncOperationType.Receive)
-            if (this.ProgramStep.ProgramStepType == ProgramStepType.SchedulableStep && this.ProgramStep.CreatorParent != null)
+            if (step.ProgramStepType == ProgramStepType.SchedulableStep && step.CreatorParent != null)
             {
-                parentHash *= (this.ProgramStep.CreatorParent.Signature as TreeHashStepSignature).Hash;
+                parentHash *= (step.CreatorParent.Signature as TreeHashStepSignature).Hash;
             }
-            else if (this.ProgramStep.PrevMachineStep != null && this.ProgramStep.PrevMachineStep.Signature is TreeHashStepSignature)
+            else if (step.PrevMachineStep != null && step.PrevMachineStep.Signature is TreeHashStepSignature)
             {
                 // Else if because in a "tree" hash handlers, should not be connected to previous handler
                 // ( then it would have more than one parent and not be a tree )
-                parentHash *= (this.ProgramStep.PrevMachineStep.Signature as TreeHashStepSignature).Hash;
+                parentHash *= (step.PrevMachineStep.Signature as TreeHashStepSignature).Hash;
             }
 
             ulong stepHash = 1;
-            switch (this.ProgramStep.ProgramStepType)
+            switch (step.ProgramStepType)
             {
                 case ProgramStepType.SchedulableStep:
-                    stepHash = ((ulong)this.ProgramStep.OpType + 1) * (machineIdRemap[this.ProgramStep.SrcId] + 1);
+                    stepHash = ((ulong)step.OpType + 1) * (machineIdRemap[step.SrcId] + 1);
                     stepHash %= MOD;
-                    if (this.ProgramStep.OpType != AsyncOperationType.Create)
+                    if (step.OpType != AsyncOperationType.Create)
                     {
-                        stepHash *= ~(machineIdRemap[this.ProgramStep.TargetId] + 1);
+                        stepHash *= ~(machineIdRemap[step.TargetId] + 1);
                     }
 
                     stepHash %= MOD;
@@ -85,8 +83,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 return
                     otherSig.Hash == this.Hash &&
                     // Some easy checks to save us from silly collissions
-                    otherSig.ProgramStep.OpType.Equals(this.ProgramStep.OpType) &&
-                    otherSig.ProgramStep.SrcId.Equals(this.ProgramStep.SrcId);
+                    otherSig.ProgramStep.OpType.Equals(step.OpType) &&
+                    otherSig.ProgramStep.SrcId.Equals(step.SrcId);
             }
             else
             {
@@ -96,7 +94,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 #endif
         public override string ToString()
         {
-            return $"{this.ProgramStep.TotalOrderingIndex}:{this.ProgramStep.SrcId}:{this.ProgramStep.OpType}:{this.ProgramStep.TargetId}";
+            return "TreeHash:" + this.Hash;
+            // return $"{this.ProgramStep.TotalOrderingIndex}:{this.ProgramStep.SrcId}:{this.ProgramStep.OpType}:{this.ProgramStep.TargetId}";
         }
 
         public override bool Equals(object other)
@@ -104,10 +103,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             if (other is TreeHashStepSignature)
             {
                 TreeHashStepSignature otherSig = other as TreeHashStepSignature;
-                return
-                    otherSig.Hash == this.Hash &&
-                    // Some easy checks to save us from silly collissions
-                    otherSig.ProgramStep.OpType.Equals(this.ProgramStep.OpType);
+                return otherSig.Hash == this.Hash;
+                // return
+                //    otherSig.Hash == this.Hash &&
+                //    // Some easy checks to save us from silly collissions
+                //    otherSig.ProgramStep.OpType.Equals(this.ProgramStep.OpType);
             }
             else
             {

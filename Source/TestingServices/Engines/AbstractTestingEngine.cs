@@ -426,30 +426,22 @@ namespace Microsoft.PSharp.TestingServices
 
             // TODO: Write an elegant way to turn on program-aware strategies
             // TODO: Work in the depth and signature type
-            foreach (SchedulingStrategy sch in this.Configuration.WrapperStrategies)
+            foreach (WrapperStrategyConfiguration wsc in this.Configuration.WrapperStrategies)
             {
-                switch (sch)
+                switch (wsc.StrategyType)
                 {
-                    case SchedulingStrategy.InboxDHittingMetric:
-                        this.Strategy = new InboxBasedDHittingMetricStrategy(this.Strategy, 3, typeof(EventTypeIndexStepSignature));
+                    case WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting:
+                        this.Strategy = new InboxBasedDHittingMetricStrategy(this.Strategy, wsc);
                         break;
 
-                    case SchedulingStrategy.MsgFlowDHittingMetric:
-                        this.Strategy = new MessageFlowBasedDHittingMetricStrategy(this.Strategy, 3);
+                    case WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting:
+                        this.Strategy = new MessageFlowBasedDHittingMetricStrategy(this.Strategy, wsc);
                         break;
                     default:
-                        Error.ReportAndExit("Unrecognized wrapper strategy" + sch);
+                        Error.ReportAndExit("Unrecognized wrapper strategy" + wsc.StrategyType);
                         break;
                 }
             }
-
-            // Wrap our original strategy into a fake ProgramAware strategy
-            // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAgnosticWrapperStrategy(this.Strategy);
-            // Test our program model based strategy
-            // this.Strategy = new BasicProgramModelBasedStrategy(this.Strategy);
-            // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.InboxBasedDHittingMetricStrategy(this.Strategy, 3, typeof(Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures.TreeHashStepSignature));
-            // this.Strategy = new Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.InboxBasedDHittingMetricStrategy(this.Strategy, 3, typeof(Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.EventTypeIndexStepSignature));
-            // this.Strategy = new MessageFlowBasedDHittingMetricStrategy(this.Strategy, 3);
 
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
                 this.Configuration.ScheduleFile.Length > 0)

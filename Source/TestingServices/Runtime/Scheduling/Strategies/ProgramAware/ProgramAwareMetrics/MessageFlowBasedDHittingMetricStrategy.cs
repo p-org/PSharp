@@ -14,6 +14,7 @@ using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAwar
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Statistics;
+using Microsoft.PSharp.Utilities;
 
 // Considers the possibility of re-ordered events in inbox of machine A effecting the downstream behaviour of a machine B.
 // A send event A is considered to come before a send event B if any information in A could possibly effect B.
@@ -37,19 +38,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         private static HashSet<IProgramStepSignature> UniqueSigs = new HashSet<IProgramStepSignature>();
         private static HashSet<ulong> UniqueMachineSigs = new HashSet<ulong>();
 
-        private readonly TimelyStatisticLogger<Tuple<ulong, ulong, ulong>> StatLogger;
+        private readonly TimelyStatisticLogger<ulong[]> StatLogger;
         // private static HashSet<ulong> UniqueSigs = new HashSet<ulong>();
 
         // TODO: Move RootSignatures to respective signature classes. Declare const variables for primes.
 
-        public MessageFlowBasedDHittingMetricStrategy(ISchedulingStrategy childStrategy, int dToHit)
+        public MessageFlowBasedDHittingMetricStrategy(ISchedulingStrategy childStrategy, WrapperStrategyConfiguration wsc)
             : base(childStrategy)
         {
-            this.MaxDToCount = dToHit;
+            this.MaxDToCount = wsc.MaxDTuplesDepth;
             this.iterationNumber = 0;
             this.DTupleTreeRoot = new DTupleTreeNode(TreeHashStepSignature.CreateRootStepSignature());
 
-            this.StatLogger = new TimelyStatisticLogger<Tuple<ulong, ulong, ulong>>();
+            this.StatLogger = new TimelyStatisticLogger<ulong[]>();
         }
 
         public override void NotifySchedulingEnded(bool bugFound)
@@ -57,8 +58,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.ComputeStepSignatures();
             this.EnumerateDTuples();
 
-            this.StatLogger.AddValue(new Tuple<ulong, ulong, ulong>(
-                this.GetDTupleCount(1), this.GetDTupleCount(2), this.GetDTupleCount(3)));
+            ulong[] iterStats = new ulong[this.MaxDToCount];
+            for (int i = 1; i <= this.MaxDToCount; i++)
+            {
+                iterStats[i - 1] = this.GetDTupleCount(i);
+            }
+
+            this.StatLogger.AddValue(iterStats);
 
             // string programTreeSerialized = this.ProgramModel.HAXGetProgramTreeString();
             // string programSerialized = this.GetProgramTrace();
@@ -236,13 +242,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         public override string GetReport()
         {
-            // return this.DTupleTreeRoot.GetReport(this.MaxDToCount);
-
             StringBuilder sb = new StringBuilder();
-            foreach ( Tuple<int, Tuple<ulong, ulong, ulong>> stat in this.StatLogger)
+            foreach (Tuple<int, ulong[]> stat in this.StatLogger)
             {
-                sb.AppendLine($"{stat.Item1}\t:\t{stat.Item2.Item1}\t{stat.Item2.Item2}\t{stat.Item2.Item3}");
+                string s = string.Join("\t", stat.Item2);
+                sb.AppendLine($"{stat.Item1}\t:\t{s}");
             }
+
+            Tuple<int, ulong[]> finalStat = this.StatLogger.GetFinalValue();
+            sb.AppendLine("-\t:\t-\t-\t-");
+            string s2 = string.Join("\t", finalStat.Item2);
+            sb.AppendLine($"{finalStat.Item1}\t:\t{s2}");
 
             return sb.ToString();
         }

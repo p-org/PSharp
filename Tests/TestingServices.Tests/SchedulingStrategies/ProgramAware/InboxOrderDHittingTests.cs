@@ -17,10 +17,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
     public class InboxOrderDHittingTests : BaseTest
     {
         private static readonly WrapperStrategyConfiguration InboxDHittingWithEventTypeIndexSigConfig =
-            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting, WrapperStrategyConfiguration.DHittingSignature.EventTypeIndex);
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting, WrapperStrategyConfiguration.DHittingSignature.EventTypeIndex, 3);
 
         private static readonly WrapperStrategyConfiguration InboxDHittingWithTreeHashSigConfig =
-            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash);
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash, 3);
 
         public InboxOrderDHittingTests(ITestOutputHelper output)
             : base(output)

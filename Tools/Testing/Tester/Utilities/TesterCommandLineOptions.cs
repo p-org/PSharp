@@ -351,7 +351,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 string strategyCommandLine = option.Substring(10);
                 WrapperStrategyConfiguration wsc = new WrapperStrategyConfiguration();
-                if (!wsc.TryParse(strategyCommandLine))
+                if (wsc.TryParse(strategyCommandLine))
+                {
+                    this.Configuration.WrapperStrategies.Add(wsc);
+                }
+                else
                 {
                     throw new ArgumentException("Could not parse wrapper strategy commandline " + option);
                 }

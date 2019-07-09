@@ -136,6 +136,9 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     sb.AppendLine($"--- Start report from {this.Strategy.GetType().Name} ---");
                     sb.Append(extraReport);
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    sb.Append($"GC.GetTotalMemory=[{GC.GetTotalMemory(false)}]");
                     sb.AppendLine($"--- End report from {this.Strategy.GetType().Name} ---");
                 }
 

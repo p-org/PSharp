@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
     public class MessageFlowDHittingTests : BaseTest
     {
         private static readonly WrapperStrategyConfiguration MsgFlowDHittingWithTreeHashSigConfig =
-            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash);
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash, 3);
 
         public MessageFlowDHittingTests(ITestOutputHelper output)
             : base(output)

@@ -92,13 +92,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
         }
 
         // The program-aware part
-        public void RecordCreateMachine(Machine createdMachine, Machine creatorMachine)
+        public virtual void RecordCreateMachine(Machine createdMachine, Machine creatorMachine)
         {
             ProgramStep createStep = new ProgramStep(AsyncOperationType.Create, creatorMachine?.Id.Value ?? 0, createdMachine.Id.Value, null);
             this.ProgramModel.RecordStep(createStep, this.GetScheduledSteps()); // TODO: Should i do -1?
         }
 
-        public void RecordReceiveEvent(Machine machine, EventInfo eventInfo)
+        public virtual void RecordReceiveEvent(Machine machine, EventInfo eventInfo)
         {
             ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, eventInfo);
             this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
@@ -116,19 +116,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
         }
 #endif
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo)
+        public virtual void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo)
         {
             ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachineId.Value, eventInfo);
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
         }
 
-        public void RecordNonDetBooleanChoice(bool boolChoice)
+        public virtual void RecordNonDetBooleanChoice(bool boolChoice)
         {
             ProgramStep ndBoolStep = new ProgramStep(this.ProgramModel.ActiveStep.SrcId, boolChoice);
             this.ProgramModel.RecordStep(ndBoolStep, this.GetScheduledSteps());
         }
 
-        public void RecordNonDetIntegerChoice(int intChoice)
+        public virtual void RecordNonDetIntegerChoice(int intChoice)
         {
             ProgramStep ndIntStep = new ProgramStep(this.ProgramModel.ActiveStep.SrcId, intChoice);
             this.ProgramModel.RecordStep(ndIntStep, this.GetScheduledSteps());

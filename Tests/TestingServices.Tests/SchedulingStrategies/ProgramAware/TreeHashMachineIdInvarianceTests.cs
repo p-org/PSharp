@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
     public class TreeHashMachineIdInvarianceTests : BaseTest
     {
         private static readonly WrapperStrategyConfiguration MsgFlowDHittingWithTreeHashSigConfig =
-            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash);
+            WrapperStrategyConfiguration.CreateDHittingStrategy(WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting, WrapperStrategyConfiguration.DHittingSignature.TreeHash, 3);
 
         public TreeHashMachineIdInvarianceTests(ITestOutputHelper output)
             : base(output)

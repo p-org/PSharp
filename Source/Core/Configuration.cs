@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -136,7 +135,7 @@ namespace Microsoft.PSharp
         /// Scheduling strategy to use with the P# tester.
         /// </summary>
         [DataMember]
-        public List<SchedulingStrategy> WrapperStrategies;
+        public List<WrapperStrategyConfiguration> WrapperStrategies;
 
         /// <summary>
         /// Number of scheduling iterations.
@@ -474,7 +473,7 @@ namespace Microsoft.PSharp
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.ReductionStrategy = ReductionStrategy.None;
-            this.WrapperStrategies = new List<SchedulingStrategy>();
+            this.WrapperStrategies = new List<WrapperStrategyConfiguration>();
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
             this.IncrementalSchedulingSeed = false;
@@ -571,10 +570,10 @@ namespace Microsoft.PSharp
         /// Adds a wrapper strategy around the this.strategy
         /// Can be called multiple times to add multiple wrappers
         /// </summary>
-        /// <param name="wrapperStrategy">The scheduling strategy.</param>
-        public Configuration WithWrapperStrategy(SchedulingStrategy wrapperStrategy)
+        /// <param name="wrapperStrategyConfig">The config specifying the WrapperStrategy</param>
+        public Configuration WithWrapperStrategy(WrapperStrategyConfiguration wrapperStrategyConfig)
         {
-            this.WrapperStrategies.Add(wrapperStrategy);
+            this.WrapperStrategies.Add(wrapperStrategyConfig);
             return this;
         }
 
