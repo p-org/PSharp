@@ -68,8 +68,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void InitializeState()
         {
-            System.Diagnostics.Debugger.Launch();
-
             this.IsStart = false;
             this.IsHot = false;
             this.IsCold = false;
