@@ -246,7 +246,7 @@ namespace Microsoft.PSharp
         private void HandleEvent(Event e)
         {
             // Do not process an ignored event.
-            if (this.IgnoredEvents.Contains(e.GetType()))
+            if (this.IsEventIgnoredInCurrentState(e))
             {
                 return;
             }
@@ -283,15 +283,41 @@ namespace Microsoft.PSharp
                     var transition = this.GotoTransitions[e.GetType()];
                     this.GotoState(transition.TargetState, transition.Lambda);
                 }
+                else if (this.GotoTransitions.ContainsKey(typeof(WildCardEvent)))
+                {
+                    // Checks if the event can trigger a goto state transition.
+                    var transition = this.GotoTransitions[typeof(WildCardEvent)];
+                    this.GotoState(transition.TargetState, transition.Lambda);
+                }
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
                     // Checks if the event can trigger an action.
                     var handler = this.ActionBindings[e.GetType()];
                     this.Do(handler.Name);
                 }
+                else if (this.ActionBindings.ContainsKey(typeof(WildCardEvent)))
+                {
+                    // Checks if the event can trigger an action.
+                    var handler = this.ActionBindings[typeof(WildCardEvent)];
+                    this.Do(handler.Name);
+                }
 
                 break;
             }
+        }
+
+        /// <summary>
+        /// Checks if the specified event is ignored in the current monitor state.
+        /// </summary>
+        private bool IsEventIgnoredInCurrentState(Event e)
+        {
+            if (this.IgnoredEvents.Contains(e.GetType()) ||
+                this.IgnoredEvents.Contains(typeof(WildCardEvent)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -417,7 +443,9 @@ namespace Microsoft.PSharp
         private bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||
+                this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
                 this.ActionBindings.ContainsKey(e) ||
+                this.ActionBindings.ContainsKey(typeof(WildCardEvent)) ||
                 e == typeof(GotoStateEvent))
             {
                 return true;

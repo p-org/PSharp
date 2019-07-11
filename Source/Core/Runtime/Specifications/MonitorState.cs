@@ -77,46 +77,14 @@ namespace Microsoft.PSharp
 
             this.IgnoredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), false) as OnEntryAttribute;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), false) as OnExitAttribute;
-
-            if (entryAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) is OnEntryAttribute entryAttribute)
             {
                 this.EntryAction = entryAttribute.Action;
             }
 
-            if (exitAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) is OnExitAttribute exitAttribute)
             {
                 this.ExitAction = exitAttribute.Action;
-            }
-
-            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
-                as OnEventGotoStateAttribute[];
-            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
-                as OnEventDoActionAttribute[];
-
-            foreach (var attr in gotoAttributes)
-            {
-                if (attr.Action is null)
-                {
-                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State));
-                }
-                else
-                {
-                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State, attr.Action));
-                }
-            }
-
-            foreach (var attr in doAttributes)
-            {
-                this.ActionBindings.Add(attr.Event, new ActionBinding(attr.Action));
-            }
-
-            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
-
-            if (ignoreEventsAttribute != null)
-            {
-                this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
             }
 
             if (this.GetType().IsDefined(typeof(StartAttribute), false))
@@ -132,6 +100,208 @@ namespace Microsoft.PSharp
             if (this.GetType().IsDefined(typeof(ColdAttribute), false))
             {
                 this.IsCold = true;
+            }
+
+            // Events with already declared handlers.
+            var handledEvents = new HashSet<Type>();
+
+            // Install event handlers.
+            this.InstallGotoTransitions(handledEvents);
+            this.InstallActionHandlers(handledEvents);
+            this.InstallIgnoreHandlers(handledEvents);
+        }
+
+        /// <summary>
+        /// Declares goto event handlers, if there are any.
+        /// </summary>
+        private void InstallGotoTransitions(HashSet<Type> handledEvents)
+        {
+            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
+                as OnEventGotoStateAttribute[];
+
+            foreach (var attr in gotoAttributes)
+            {
+                CheckEventHandlerAlreadyDeclared(attr.Event, handledEvents);
+
+                if (attr.Action is null)
+                {
+                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State));
+                }
+                else
+                {
+                    this.GotoTransitions.Add(attr.Event, new GotoStateTransition(attr.State, attr.Action));
+                }
+
+                handledEvents.Add(attr.Event);
+            }
+
+            this.InheritGotoTransitions(this.GetType().BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Inherits goto event handlers from a base state, if there is one.
+        /// </summary>
+        private void InheritGotoTransitions(Type baseState, HashSet<Type> handledEvents)
+        {
+            if (!baseState.IsSubclassOf(typeof(MonitorState)))
+            {
+                return;
+            }
+
+            var gotoAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventGotoStateAttribute), false)
+                as OnEventGotoStateAttribute[];
+
+            var gotoTransitionsInherited = new Dictionary<Type, GotoStateTransition>();
+            foreach (var attr in gotoAttributesInherited)
+            {
+                if (this.GotoTransitions.ContainsKey(attr.Event))
+                {
+                    continue;
+                }
+
+                CheckEventHandlerAlreadyInherited(attr.Event, baseState, handledEvents);
+
+                if (attr.Action is null)
+                {
+                    gotoTransitionsInherited.Add(attr.Event, new GotoStateTransition(attr.State));
+                }
+                else
+                {
+                    gotoTransitionsInherited.Add(attr.Event, new GotoStateTransition(attr.State, attr.Action));
+                }
+
+                handledEvents.Add(attr.Event);
+            }
+
+            foreach (var kvp in gotoTransitionsInherited)
+            {
+                this.GotoTransitions.Add(kvp.Key, kvp.Value);
+            }
+
+            this.InheritGotoTransitions(baseState.BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Declares action event handlers, if there are any.
+        /// </summary>
+        private void InstallActionHandlers(HashSet<Type> handledEvents)
+        {
+            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
+                as OnEventDoActionAttribute[];
+
+            foreach (var attr in doAttributes)
+            {
+                CheckEventHandlerAlreadyDeclared(attr.Event, handledEvents);
+
+                this.ActionBindings.Add(attr.Event, new ActionBinding(attr.Action));
+                handledEvents.Add(attr.Event);
+            }
+
+            this.InheritActionHandlers(this.GetType().BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Inherits action event handlers from a base state, if there is one.
+        /// </summary>
+        private void InheritActionHandlers(Type baseState, HashSet<Type> handledEvents)
+        {
+            if (!baseState.IsSubclassOf(typeof(MonitorState)))
+            {
+                return;
+            }
+
+            var doAttributesInherited = baseState.GetCustomAttributes(typeof(OnEventDoActionAttribute), false)
+                as OnEventDoActionAttribute[];
+
+            var actionBindingsInherited = new Dictionary<Type, ActionBinding>();
+            foreach (var attr in doAttributesInherited)
+            {
+                if (this.ActionBindings.ContainsKey(attr.Event))
+                {
+                    continue;
+                }
+
+                CheckEventHandlerAlreadyInherited(attr.Event, baseState, handledEvents);
+
+                actionBindingsInherited.Add(attr.Event, new ActionBinding(attr.Action));
+                handledEvents.Add(attr.Event);
+            }
+
+            foreach (var kvp in actionBindingsInherited)
+            {
+                this.ActionBindings.Add(kvp.Key, kvp.Value);
+            }
+
+            this.InheritActionHandlers(baseState.BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Declares ignore event handlers, if there are any.
+        /// </summary>
+        private void InstallIgnoreHandlers(HashSet<Type> handledEvents)
+        {
+            if (this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
+            {
+                foreach (var e in ignoreEventsAttribute.Events)
+                {
+                    CheckEventHandlerAlreadyDeclared(e, handledEvents);
+                }
+
+                this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
+                handledEvents.UnionWith(ignoreEventsAttribute.Events);
+            }
+
+            this.InheritIgnoreHandlers(this.GetType().BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Inherits ignore event handlers from a base state, if there is one.
+        /// </summary>
+        private void InheritIgnoreHandlers(Type baseState, HashSet<Type> handledEvents)
+        {
+            if (!baseState.IsSubclassOf(typeof(MonitorState)))
+            {
+                return;
+            }
+
+            if (baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
+            {
+                foreach (var e in ignoreEventsAttribute.Events)
+                {
+                    if (this.IgnoredEvents.Contains(e))
+                    {
+                        continue;
+                    }
+
+                    CheckEventHandlerAlreadyInherited(e, baseState, handledEvents);
+                }
+
+                this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
+                handledEvents.UnionWith(ignoreEventsAttribute.Events);
+            }
+
+            this.InheritIgnoreHandlers(baseState.BaseType, handledEvents);
+        }
+
+        /// <summary>
+        /// Checks if an event handler has been already declared.
+        /// </summary>
+        private static void CheckEventHandlerAlreadyDeclared(Type e, HashSet<Type> handledEvents)
+        {
+            if (handledEvents.Contains(e))
+            {
+                throw new InvalidOperationException($"declared multiple handlers for event '{e}'");
+            }
+        }
+
+        /// <summary>
+        /// Checks if an event handler has been already inherited.
+        /// </summary>
+        private static void CheckEventHandlerAlreadyInherited(Type e, Type baseState, HashSet<Type> handledEvents)
+        {
+            if (handledEvents.Contains(e))
+            {
+                throw new InvalidOperationException($"inherited multiple handlers for event '{e}' from state '{baseState}'");
             }
         }
     }

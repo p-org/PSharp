@@ -77,17 +77,19 @@ namespace Microsoft.PSharp
             this.IgnoredEvents = new HashSet<Type>();
             this.DeferredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) as OnEntryAttribute;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) as OnExitAttribute;
-
-            if (entryAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) is OnEntryAttribute entryAttribute)
             {
                 this.EntryAction = entryAttribute.Action;
             }
 
-            if (exitAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) is OnExitAttribute exitAttribute)
             {
                 this.ExitAction = exitAttribute.Action;
+            }
+
+            if (this.GetType().IsDefined(typeof(StartAttribute), false))
+            {
+                this.IsStart = true;
             }
 
             // Events with already declared handlers.
@@ -99,11 +101,6 @@ namespace Microsoft.PSharp
             this.InstallActionHandlers(handledEvents);
             this.InstallIgnoreHandlers(handledEvents);
             this.InstallDeferHandlers(handledEvents);
-
-            if (this.GetType().IsDefined(typeof(StartAttribute), false))
-            {
-                this.IsStart = true;
-            }
         }
 
         /// <summary>
@@ -289,9 +286,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void InstallIgnoreHandlers(HashSet<Type> handledEvents)
         {
-            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
-
-            if (ignoreEventsAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
             {
                 foreach (var e in ignoreEventsAttribute.Events)
                 {
@@ -315,9 +310,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var ignoreEventsAttribute = baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
-
-            if (ignoreEventsAttribute != null)
+            if (baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
             {
                 foreach (var e in ignoreEventsAttribute.Events)
                 {
@@ -341,8 +334,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void InstallDeferHandlers(HashSet<Type> handledEvents)
         {
-            var deferEventsAttribute = this.GetType().GetCustomAttribute(typeof(DeferEventsAttribute), false) as DeferEventsAttribute;
-            if (deferEventsAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(DeferEventsAttribute), false) is DeferEventsAttribute deferEventsAttribute)
             {
                 foreach (var e in deferEventsAttribute.Events)
                 {
@@ -366,8 +358,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var deferEventsAttribute = baseState.GetCustomAttribute(typeof(DeferEventsAttribute), false) as DeferEventsAttribute;
-            if (deferEventsAttribute != null)
+            if (baseState.GetCustomAttribute(typeof(DeferEventsAttribute), false) is DeferEventsAttribute deferEventsAttribute)
             {
                 foreach (var e in deferEventsAttribute.Events)
                 {
@@ -393,7 +384,7 @@ namespace Microsoft.PSharp
         {
             if (handledEvents.Contains(e))
             {
-                throw new InvalidOperationException($"declared multiple handlers for '{e}'");
+                throw new InvalidOperationException($"declared multiple handlers for event '{e}'");
             }
         }
 
@@ -404,7 +395,7 @@ namespace Microsoft.PSharp
         {
             if (handledEvents.Contains(e))
             {
-                throw new InvalidOperationException($"inherited multiple handlers for '{e}' from state '{baseState}'");
+                throw new InvalidOperationException($"inherited multiple handlers for event '{e}' from state '{baseState}'");
             }
         }
     }

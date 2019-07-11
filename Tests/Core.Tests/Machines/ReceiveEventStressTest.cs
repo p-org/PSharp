@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout = 15000)]
+        [Fact(Timeout = 20000)]
         public async Task TestReceiveEvent()
         {
             for (int i = 0; i < 100; i++)
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 10000));
+                    r.CreateMachine(typeof(M1), new SetupTcsEvent(tcs, 18000));
 
                     var result = await GetResultAsync(tcs.Task);
                     Assert.True(result);
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout = 15000)]
+        [Fact(Timeout = 20000)]
         public async Task TestReceiveEventAlternate()
         {
             for (int i = 0; i < 100; i++)
@@ -181,7 +181,7 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M3), new SetupTcsEvent(tcs, 10000));
+                    r.CreateMachine(typeof(M3), new SetupTcsEvent(tcs, 18000));
 
                     var result = await GetResultAsync(tcs.Task);
                     Assert.True(result);
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
         }
 
-        [Fact(Timeout = 15000)]
+        [Fact(Timeout = 20000)]
         public async Task TestReceiveEventExchange()
         {
             for (int i = 0; i < 100; i++)
@@ -249,7 +249,7 @@ namespace Microsoft.PSharp.Core.Tests
                     r.Logger.WriteLine($"Iteration #{i}");
 
                     var tcs = new TaskCompletionSource<bool>();
-                    r.CreateMachine(typeof(M5), new SetupTcsEvent(tcs, 10000));
+                    r.CreateMachine(typeof(M5), new SetupTcsEvent(tcs, 18000));
 
                     var result = await GetResultAsync(tcs.Task);
                     Assert.True(result);
