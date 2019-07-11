@@ -77,8 +77,8 @@ namespace Microsoft.PSharp
 
             this.IgnoredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), false) as OnEntryAttribute;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), false) as OnExitAttribute;
+            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) as OnEntryAttribute;
+            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) as OnExitAttribute;
 
             if (entryAttribute != null)
             {
