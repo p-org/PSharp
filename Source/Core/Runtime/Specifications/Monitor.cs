@@ -307,14 +307,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the event if ignored by the monitor
+        /// Checks if the specified event is ignored in the current monitor state.
         /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Returns true if the event is ignored</returns>
         private bool IsEventIgnoredInCurrentState(Event e)
         {
-            if (this.IgnoredEvents.Contains(e.GetType())
-                || this.IgnoredEvents.Contains(typeof(WildCardEvent)))
+            if (this.IgnoredEvents.Contains(e.GetType()) ||
+                this.IgnoredEvents.Contains(typeof(WildCardEvent)))
             {
                 return true;
             }
@@ -445,8 +443,8 @@ namespace Microsoft.PSharp
         private bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e) ||
                 this.GotoTransitions.ContainsKey(typeof(WildCardEvent)) ||
+                this.ActionBindings.ContainsKey(e) ||
                 this.ActionBindings.ContainsKey(typeof(WildCardEvent)) ||
                 e == typeof(GotoStateEvent))
             {

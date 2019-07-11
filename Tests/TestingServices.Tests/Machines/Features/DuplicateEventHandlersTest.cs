@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M1));
             },
-            expectedError: "Machine 'M1()' declared multiple handlers for 'E' in state 'M1+Init'.");
+            expectedError: "Machine 'M1()' declared multiple handlers for event 'E' in state 'M1+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M2));
             },
-            expectedError: "Machine 'M2()' declared multiple handlers for 'E' in state 'M2+Init'.");
+            expectedError: "Machine 'M2()' declared multiple handlers for event 'E' in state 'M2+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M3));
             },
-            expectedError: "Machine 'M3()' declared multiple handlers for 'E' in state 'M3+Init'.");
+            expectedError: "Machine 'M3()' declared multiple handlers for event 'E' in state 'M3+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M4));
             },
-            expectedError: "Machine 'M4()' inherited multiple handlers for 'E' from state 'M4+BaseState' in state 'M4+Init'.");
+            expectedError: "Machine 'M4()' inherited multiple handlers for event 'E' from state 'M4+BaseState' in state 'M4+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M5));
             },
-            expectedError: "Machine 'M5()' inherited multiple handlers for 'E' from state 'M5+BaseState' in state 'M5+Init'.");
+            expectedError: "Machine 'M5()' inherited multiple handlers for event 'E' from state 'M5+BaseState' in state 'M5+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M6));
             },
-            expectedError: "Machine 'M6()' inherited multiple handlers for 'E' from state 'M6+BaseState' in state 'M6+Init'.");
+            expectedError: "Machine 'M6()' inherited multiple handlers for event 'E' from state 'M6+BaseState' in state 'M6+Init'.");
         }
 
         [Fact(Timeout=5000)]
@@ -230,7 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 r.CreateMachine(typeof(M7));
             },
-            expectedError: "Machine 'M7()' declared multiple handlers for 'E' in state 'M7+Init'.");
+            expectedError: "Machine 'M7()' declared multiple handlers for event 'E' in state 'M7+Init'.");
         }
     }
 }

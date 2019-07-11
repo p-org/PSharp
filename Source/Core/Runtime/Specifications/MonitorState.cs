@@ -77,15 +77,12 @@ namespace Microsoft.PSharp
 
             this.IgnoredEvents = new HashSet<Type>();
 
-            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) as OnEntryAttribute;
-            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) as OnExitAttribute;
-
-            if (entryAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnEntryAttribute), true) is OnEntryAttribute entryAttribute)
             {
                 this.EntryAction = entryAttribute.Action;
             }
 
-            if (exitAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(OnExitAttribute), true) is OnExitAttribute exitAttribute)
             {
                 this.ExitAction = exitAttribute.Action;
             }
@@ -243,9 +240,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void InstallIgnoreHandlers(HashSet<Type> handledEvents)
         {
-            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
-
-            if (ignoreEventsAttribute != null)
+            if (this.GetType().GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
             {
                 foreach (var e in ignoreEventsAttribute.Events)
                 {
@@ -269,9 +264,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            var ignoreEventsAttribute = baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) as IgnoreEventsAttribute;
-
-            if (ignoreEventsAttribute != null)
+            if (baseState.GetCustomAttribute(typeof(IgnoreEventsAttribute), false) is IgnoreEventsAttribute ignoreEventsAttribute)
             {
                 foreach (var e in ignoreEventsAttribute.Events)
                 {
@@ -297,7 +290,7 @@ namespace Microsoft.PSharp
         {
             if (handledEvents.Contains(e))
             {
-                throw new InvalidOperationException($"declared multiple handlers for '{e}'");
+                throw new InvalidOperationException($"declared multiple handlers for event '{e}'");
             }
         }
 
@@ -308,7 +301,7 @@ namespace Microsoft.PSharp
         {
             if (handledEvents.Contains(e))
             {
-                throw new InvalidOperationException($"inherited multiple handlers for '{e}' from state '{baseState}'");
+                throw new InvalidOperationException($"inherited multiple handlers for event '{e}' from state '{baseState}'");
             }
         }
     }
