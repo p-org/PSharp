@@ -19,8 +19,7 @@ using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: SuggestedActions are currently only for errors which requires NotYetImplemented ParsingException.FailingToken,
-          //       as well as requiring ProjectionTree so we don't try to apply P# operations in C# blocks.
+#if false // TODO: SuggestedActions are currently only for errors and requires NotYetImplemented ProjectionTree for performance
     internal class SuggestedActionsSource : ISuggestedActionsSource
     {
         private readonly SuggestedActionsSourceProvider sourceProvider;

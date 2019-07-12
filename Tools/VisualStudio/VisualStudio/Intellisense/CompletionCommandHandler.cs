@@ -72,8 +72,8 @@ namespace Microsoft.PSharp.VisualStudio
             this.VsTextView = textViewAdapter;
             this.Provider = provider;
 
-            //get the text manager from the service provider
-            IVsTextManager2 textManager = (IVsTextManager2)this.Provider.ServiceProvider.GetService(typeof(SVsTextManager));
+            // Get the text manager from the service provider
+            var textManager = (IVsTextManager2)this.Provider.ServiceProvider.GetService(typeof(SVsTextManager));
             textManager.GetExpansionManager(out this.ExpansionManager);
             this.ExpansionSession = null;
 
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.VisualStudio
                 ? (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn)
                 : char.MinValue;
 
-#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
+#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
 
             // Check for a commit character.
             if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
@@ -137,7 +137,6 @@ namespace Microsoft.PSharp.VisualStudio
 
             // Pass along the command so the char is added to the buffer.
             int nextCommandRetVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-            bool handled = false;
 
             if (!typedChar.Equals(char.MinValue) && char.IsLetterOrDigit(typedChar))
             {
@@ -151,19 +150,18 @@ namespace Microsoft.PSharp.VisualStudio
                     }
                 }
                 this.Session.Filter();
-                handled = true;
+                return VSConstants.S_OK;
             }
-            else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE || nCmdID == (uint)VSConstants.VSStd2KCmdID.DELETE)
+            
+            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE || nCmdID == (uint)VSConstants.VSStd2KCmdID.DELETE)
             {
                 // There is a deletion so redo the filter if we have an active session.
                 if (this.Session != null && !this.Session.IsDismissed)
                 {
                     this.Session.Filter();
                 }
-                handled = true;
+                return VSConstants.S_OK;
             }
-
-            return handled ? VSConstants.S_OK : nextCommandRetVal;
 #endif
 
             if (pguidCmdGroup == VSConstants.VSStd2K)
@@ -239,8 +237,10 @@ namespace Microsoft.PSharp.VisualStudio
                 }
             }
 
+#if true    // TODO: NotYetImplemented ProjectionTree will remove this in favor of calling it above (in the #ifdef'd part)
             // Pass along the command so the char is added to the buffer.
             int nextCommandRetVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+#endif
 
             // Indenting is not triggered on typing '}' so do it ourselves
             if (nextCommandRetVal == VSConstants.S_OK && typedChar == '}')
@@ -456,7 +456,7 @@ namespace Microsoft.PSharp.VisualStudio
             return hr;
         }
 
-#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
+#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
 
         private bool TriggerCompletion()
         {

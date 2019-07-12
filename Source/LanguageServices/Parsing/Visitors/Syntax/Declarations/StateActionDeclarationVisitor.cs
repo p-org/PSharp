@@ -100,16 +100,20 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 bool isAsync = false;
-                if (this.TokenStream.Peek().Type == TokenType.Async)
-                {
-                    isAsync = true;
-                    this.TokenStream.Index++;
-                    this.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                }
 
-                if (this.TokenStream.Peek().Type == TokenType.Await)
+                if (!this.TokenStream.Done)
                 {
-                    throw new ParsingException("'await' should not be used on actions.", this.TokenStream.Peek());
+                    if (this.TokenStream.Peek().Type == TokenType.Async)
+                    {
+                        isAsync = true;
+                        this.TokenStream.Index++;
+                        this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+
+                    if (this.TokenStream.Peek().Type == TokenType.Await)
+                    {
+                        throw new ParsingException("'await' should not be used on actions.", this.TokenStream.Peek());
+                    }
                 }
 
                 if (this.TokenStream.Done ||

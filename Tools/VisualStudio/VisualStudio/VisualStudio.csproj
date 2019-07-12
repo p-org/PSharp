@@ -132,7 +132,7 @@
     <Compile Include="RegionParser.cs" />
     <Compile Include="Tagging\PSharpTokenTag.cs" />
     <Compile Include="Tagging\PSharpTokenTagger.cs" />
-    <Compile Include="Tagging\PSharpTokenTagProvider.cs" />
+    <Compile Include="Tagging\PSharpTagProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Snippets\1033\PSharp\declareEvent.snippet">

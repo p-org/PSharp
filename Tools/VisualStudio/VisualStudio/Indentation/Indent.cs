@@ -50,8 +50,8 @@ namespace Microsoft.PSharp.VisualStudio
                 return 0;
             }
 
-            // Get existing indent from the preceding line.
-            var indent = precedingLineText.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => (c == '\t') ? 4 : 1).Sum();
+            // Get existing indent from the preceding line and trim any extraneous whitespace
+            var indent = (int)(precedingLineText.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => (c == '\t') ? tabSize : 1).Sum() / tabSize) * tabSize;
 
             // Increase the indent if the preceding line ended with an openBracket
             if (this.RegionParser.GetBoundaryChar(precedingLineText) != RegionParser.BoundaryChar.None)
