@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
     internal class ErrorFixSuggestedAction : ISuggestedAction
     {
         private ITrackingSpan trackingSpan;
@@ -74,5 +75,5 @@ namespace Microsoft.PSharp.VisualStudio
             return false;
         }
     }
-
+#endif
 }

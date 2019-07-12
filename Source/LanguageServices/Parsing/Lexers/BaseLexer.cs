@@ -45,11 +45,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             using (StringReader sr = new StringReader(text))
             {
-                int position = 0;
                 int line = 1;
                 string lineText;
                 while ((lineText = sr.ReadLine()) != null)
                 {
+                    int position = 0;
                     var split = this.SplitText(lineText);
                     foreach (var token in split)
                     {
@@ -61,7 +61,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     }
 
                     this.TextUnits.Add(new TextUnit("\n", line, position));
-                    position++;
                     line++;
                 }
             }

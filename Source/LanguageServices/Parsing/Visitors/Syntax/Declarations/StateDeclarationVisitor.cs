@@ -104,6 +104,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             var tokenRange = new TokenRange(this.TokenStream);
             while (!fixpoint)
             {
+                Token badToken = null;
                 if (!this.TokenStream.Done)
                 {
                     var token = this.TokenStream.Peek();
@@ -196,13 +197,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             throw new ParsingException("State actions cannot be abstract or virtual.", this.TokenStream.Peek());
 
                         default:
-                            throw new ParsingException("Unexpected token.", this.TokenStream.Peek());
+                            badToken = token;
+                            break;
                     }
                 }
 
-                if (this.TokenStream.Done)
+                if (this.TokenStream.Done || badToken != null)
                 {
-                    throw new ParsingException("Expected \"}\".", this.TokenStream.Peek(),
+                    throw new ParsingException($"Unexpected {(this.TokenStream.Done ? "end of file" : $"token: {badToken.Text}")}.", this.TokenStream.Peek(),
                         TokenType.Entry,
                         TokenType.Exit,
                         TokenType.OnAction,

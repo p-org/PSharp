@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             var tokenRange = new TokenRange(this.TokenStream);
             if (this.TokenStream.Done)
             {
-                throw new ParsingException("Expected \"}\".", null,
+                throw new ParsingException("Expected \"}\".", this.TokenStream.Last(),
                     TokenType.Internal,
                     TokenType.Public,
                     TokenType.Partial,

@@ -32,6 +32,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public int Length => this.Text.Length;
 
         /// <summary>
+        /// Sometimes we replace text so need this value
+        /// </summary>
+        public int OriginalLength { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TextUnit"/> class.
         /// </summary>
         public TextUnit(string text, TextUnit other)
@@ -47,12 +52,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.Text = text;
             this.Line = line;
             this.Start = start;
+            this.OriginalLength = text.Length;
         }
-
-        /// <summary>
-        /// Returns a clone of the text unit.
-        /// </summary>
-        public static TextUnit Clone(TextUnit textUnit) => new TextUnit(textUnit.Text, textUnit.Line, textUnit.Start);
 
         /// <summary>
         /// Concatenates the two text units, which are assumed to be adjacent.
@@ -64,14 +65,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public static TextUnit Add(TextUnit first, TextUnit second)
         {
-            Debug.Assert(first.Start + first.Length == second.Start, "TextUnits not adjacent");
-            return new TextUnit(first.Text + second.Text, first.Line, first.Start);
+            // We call SkipWhiteSpaceAndCommentTokens() between some tokens so the first may not end right at the second.
+            Debug.Assert(first.Start + first.OriginalLength <= second.Start, "TextUnits overlap");
+            return Create(first.Text + second.Text, first.OriginalLength + second.OriginalLength, first.Line, first.Start);
         }
+
+        private static TextUnit Create(string text, int originalLength, int line, int start)
+            => new TextUnit(text, line, start)
+            {
+                OriginalLength = originalLength
+            };
 
         /// <summary>
         /// Returns a TextUnit with the same Line and Start as the current one but with rewritten text.
         /// </summary>
-        public TextUnit WithText(string text) => new TextUnit(text, this.Line, this.Start);
+        public TextUnit WithText(string text) => Create(text, this.OriginalLength, this.Line, this.Start);
 
         /// <summary>
         /// Returns a string representing the TextUnit.

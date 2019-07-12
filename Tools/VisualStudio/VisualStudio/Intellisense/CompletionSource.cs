@@ -15,7 +15,7 @@ using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: Statement completion requires NotYetImplemented ProjectionTree so we don't try to apply P# operations in C# blocks.
+#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
     /// <summary>
     /// The P# completion source.
     /// </summary>

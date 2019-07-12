@@ -113,6 +113,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public Token GetAt(int index) => (index >= this.Tokens.Count || index < 0) ? null : this.Tokens[index];
 
         /// <summary>
+        /// Returns the last token in the stream, or null if there are no tokens.
+        /// </summary>
+        public Token Last() => this.Tokens.Count == 0 ? null : this.Tokens[this.Tokens.Count - 1];
+
+        /// <summary>
         /// Skips whitespace and comment tokens.
         /// </summary>
         public List<Token> SkipWhiteSpaceAndCommentTokens()

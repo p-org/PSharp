@@ -53,16 +53,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         protected bool IsMachineField(SyntaxNode node)
             => this.TryGetParentMachine(node, out MachineDeclaration machine)
-                ? machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()))
-                : false;
+                && machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
 
         /// <summary>
         /// True if the given syntax node is a machine method.
         /// </summary>
         protected bool IsMachineMethod(SyntaxNode node)
             => this.TryGetParentMachine(node, out MachineDeclaration machine)
-                ? machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()))
-                : false;
+                && machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
 
         /// <summary>
         /// Tries to return the parent machine identifier, if any.
