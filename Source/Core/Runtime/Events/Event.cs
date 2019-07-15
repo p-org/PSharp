@@ -13,5 +13,12 @@ namespace Microsoft.PSharp
     [DataContract]
     public abstract class Event
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Event"/> class.
+        /// Because Datacontract wants
+        /// </summary>
+        public Event()
+        {
+        }
     }
 }

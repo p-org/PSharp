@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -134,12 +135,12 @@ namespace Microsoft.PSharp.TestingServices
                 string extraReport = (this.Strategy as IProgramAwareSchedulingStrategy).GetReport();
                 if (extraReport != null)
                 {
-                    sb.AppendLine($"--- Start report from {this.Strategy.GetType().Name} ---");
+                    sb.AppendLine($"--- Start report from {this.Strategy.ToString()} ---");
                     sb.Append(extraReport);
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
-                    sb.Append($"GC.GetTotalMemory=[{GC.GetTotalMemory(false)}]");
-                    sb.AppendLine($"--- End report from {this.Strategy.GetType().Name} ---");
+                    sb.AppendLine($"GC.GetTotalMemory=[{GC.GetTotalMemory(false)}]");
+                    sb.AppendLine($"--- End report from {this.Strategy.ToString()} ---");
                 }
 
                 return sb.ToString();

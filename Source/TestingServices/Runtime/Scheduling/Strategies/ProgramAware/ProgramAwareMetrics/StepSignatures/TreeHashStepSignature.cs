@@ -12,6 +12,14 @@ using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures
 {
+    /// <summary>
+    /// Defines the signature of a step as a function of the steps which 'caused' this step.
+    /// We define a tree where there is an edge from a step A to a step B if:
+    ///     1. B is the step after A in a handler.
+    ///     2. B is the start step of a create step A
+    ///     3. B is the receive step of a send step A
+    /// A step A causes a step B if there is a path from A to B in this tree.
+    /// </summary>
     internal class TreeHashStepSignature : IProgramStepSignature
     {
         internal ulong Hash;

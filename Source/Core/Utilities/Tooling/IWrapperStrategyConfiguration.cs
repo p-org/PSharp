@@ -37,6 +37,11 @@ namespace Microsoft.PSharp.Utilities
         public enum DHittingSignature
         {
             /// <summary>
+            /// EventHashSignature
+            /// </summary>
+            EventHash,
+
+            /// <summary>
             /// EventTypeIndexStepSignature
             /// </summary>
             EventTypeIndex,

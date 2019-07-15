@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 #endif
         void RecordReceiveEvent(Machine machine, EventInfo eventInfo);
 
-        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo);
+        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e);
 
         // Non-det choices
         void RecordNonDetBooleanChoice(bool boolChoice);

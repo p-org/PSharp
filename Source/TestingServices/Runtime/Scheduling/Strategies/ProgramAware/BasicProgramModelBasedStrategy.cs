@@ -5,10 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
@@ -26,6 +28,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
         // TODO: Make this class abstract?
         internal ProgramModel ProgramModel;
         private readonly ISchedulingStrategy ChildStrategy;
+
+        protected virtual bool HashEvents
+        {
+            get { return false; }
+        }
 
         internal BasicProgramModelBasedStrategy(ISchedulingStrategy childStrategy)
         {
@@ -116,11 +123,45 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
         }
 #endif
-        public virtual void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo)
+        public virtual void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e)
         {
+            if (this.HashEvents)
+            {
+                eventInfo.HashedState = this.HashEvent(e);
+            }
+
             ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachineId.Value, eventInfo);
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
         }
+
+#if USE_DATACONTRACT_SERIALIZER_WHICH_DOESNT_WORK_ANYWAY
+        private static Dictionary<Type, DataContractSerializer> Serializers = new Dictionary<Type, DataContractSerializer>();
+
+        private int HashEvent(Event e)
+        {
+            DataContractSerializer serializer;
+            Type eventType = e.GetType();
+            if (!Serializers.ContainsKey(eventType))
+            {
+                serializer = new DataContractSerializer(eventType);
+                Serializers.Add(eventType, serializer);
+            }
+            else
+            {
+                serializer = Serializers[eventType];
+            }
+
+            System.IO.MemoryStream ms = new System.IO.MemoryStream();
+            serializer.WriteObject(ms, e);
+            string str = Encoding.ASCII.GetString(ms.ToArray());
+            return str.GetHashCode(); // Requires strings to map to unique hashcode
+        }
+#else
+        private int HashEvent(Event e)
+        {
+            return ReflectionBasedHasher.HashObject(e);
+        }
+#endif
 
         public virtual void RecordNonDetBooleanChoice(bool boolChoice)
         {
@@ -147,6 +188,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
         public virtual string GetReport()
         {
             return null;
+        }
+
+        public override string ToString()
+        {
+            return this.GetType().Name;
         }
     }
 }

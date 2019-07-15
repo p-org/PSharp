@@ -32,6 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Statistics
             while (idx <= this.ValueList.Count )
             {
                 yield return Tuple.Create<int, T>(idx, this.ValueList[idx - 1]);
+#if NOT_DEFINED_NO
                 switch ( i % 10 )
                 {
                     case 1:
@@ -44,6 +45,15 @@ namespace Microsoft.PSharp.TestingServices.Statistics
                         i = 1;
                         multiplier *= 10;
                         break;
+                }
+
+                idx = i * multiplier;
+#endif
+                i++;
+                if (i == 10)
+                {
+                    i = 1;
+                    multiplier *= 10;
                 }
 
                 idx = i * multiplier;

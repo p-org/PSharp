@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 standardizedEventInfo = eventInfo;
             }
 
-            this.ProgramAwareStrategy.RecordSendEvent(sender, target, standardizedEventInfo);
+            this.ProgramAwareStrategy.RecordSendEvent(sender, target, standardizedEventInfo, e);
 
             return enqueueStatus;
         }

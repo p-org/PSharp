@@ -54,5 +54,13 @@ namespace Microsoft.PSharp
     internal sealed class TestRuntimeCreateAttribute : Attribute
     {
     }
+
+    /// <summary>
+    /// Attribute to mark that this field should be skipped while computing the hash for this object.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+    public sealed class ExcludeFromFingerprintAttribute : Attribute
+    {
+    }
 #pragma warning restore SA1402 // FileMayOnlyContainASingleType
 }

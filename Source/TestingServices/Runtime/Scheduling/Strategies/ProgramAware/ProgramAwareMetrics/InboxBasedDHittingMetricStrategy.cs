@@ -18,6 +18,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 {
      internal class InboxBasedDHittingMetricStrategy : BasicProgramModelBasedStrategy
     {
+        protected override bool HashEvents
+        {
+            get
+            {
+                return this.shouldHashEvents;
+            }
+        }
+
+        private readonly bool shouldHashEvents;
+
         private readonly int MaxDToCount;
         private readonly WrapperStrategyConfiguration.DHittingSignature StepSignatureType;
         private readonly Dictionary<ulong, Type> SrcIdToMachineType;
@@ -41,10 +51,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.DTupleTreeRoot = new DTupleTreeNode(DTupleTreeNode.CreateRootNodeSignature());
             this.DTupleTree = new DTupleTree(this.MaxDToCount);
 
-            this.UniqueSigs = new HashSet<ulong>();
             this.StatLogger = new TimelyStatisticLogger<ulong[]>();
 
             this.ResetLocalVariables();
+
+            this.UniqueSigs = new HashSet<ulong>();
+            this.StopWatch = new System.Diagnostics.Stopwatch();
+            this.AddOrUpdateChildCalls = 0;
+
+            this.shouldHashEvents = wrapperStrategyConfiguration.SignatureType == WrapperStrategyConfiguration.DHittingSignature.EventHash;
         }
 
         public override void RecordCreateMachine(Machine createdMachine, Machine creatorMachine)
@@ -93,23 +108,31 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         private void ComputeStepSignatures()
         {
-            if (this.StepSignatureType == WrapperStrategyConfiguration.DHittingSignature.TreeHash)
+            switch (this.StepSignatureType)
             {
-                this.ComputeTreeHashStepSignatures();
-            }
-            else if ( this.StepSignatureType == WrapperStrategyConfiguration.DHittingSignature.EventTypeIndex)
-            {
-                this.ComputeEventTypeIndexStepSignatures();
+                case WrapperStrategyConfiguration.DHittingSignature.TreeHash:
+                    this.ComputeTreeHashStepSignatures();
+                    break;
+                case WrapperStrategyConfiguration.DHittingSignature.EventTypeIndex:
+                    this.ComputeEventTypeIndexStepSignatures();
+                    break;
+                case WrapperStrategyConfiguration.DHittingSignature.EventHash:
+                    this.ComputeEventHashStepSignatures();
+                    break;
             }
         }
 
+        internal System.Diagnostics.Stopwatch StopWatch;
+
         private void EnumerateDTuples()
         {
+            this.StopWatch.Start();
 #if USE_DETUPLETREENODE
             this.EnumerateDTuplesDTupleTreeNode();
 #else
             this.EnumerateDTuplesDTupleTree();
 #endif
+            this.StopWatch.Stop();
         }
 
         private void EnumerateDTuplesDTupleTree()
@@ -133,6 +156,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             }
         }
 
+        private int AddOrUpdateChildCalls;
+
         private void GenerateDTuples(IProgramStep currentStep, List<int> nodesToAddTo)
         {
             List<int> newAdditions = new List<int>();
@@ -143,6 +168,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 {
                     newAdditions.Add(childIdx);
                 }
+
+                this.AddOrUpdateChildCalls++;
             }
 
             nodesToAddTo.AddRange(newAdditions);
@@ -209,11 +236,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             }
         }
 
+        private void ComputeEventHashStepSignatures()
+        {
+            foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
+            {
+                progStep.Signature = new EventHashStepSignature(progStep);
+                this.UniqueSigs.Add((ulong)(progStep.Signature as EventHashStepSignature).Hash);
+            }
+        }
+
         // Note : This does Send events.
         private void ComputeEventTypeIndexStepSignatures()
         {
             Dictionary<Tuple<ulong, string>, int> inboxEventIndexCounter = new Dictionary<Tuple<ulong, string>, int>();
-
             foreach (IProgramStep progStep in this.ProgramModel.OrderedSteps)
             {
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == TestingServices.Scheduling.AsyncOperationType.Send)
@@ -254,7 +289,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             string s2 = string.Join("\t", finalStat.Item2);
             sb.AppendLine($"{finalStat.Item1}\t:\t{s2}");
 
+            long msElapsed = this.StopWatch.ElapsedMilliseconds;
+
+            sb.AppendLine($"SW.TimeToEnumerateMs={msElapsed} ; AddUpdateCalls={this.AddOrUpdateChildCalls}; perAddUpdateCallMicros={msElapsed / ((float)this.AddOrUpdateChildCalls / 1000)}");
+
             return sb.ToString();
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name}[{this.StepSignatureType}]";
         }
     }
 }

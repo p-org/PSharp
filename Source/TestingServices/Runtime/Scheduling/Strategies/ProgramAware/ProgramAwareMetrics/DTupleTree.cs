@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public int MaxDToCount { get; }
 
         private readonly int[] AutoInc;
-        private readonly Dictionary<EdgeKey, int> Edges;
+        internal /*private*/ readonly Dictionary<EdgeKey, int> Edges;
         private readonly EdgeKey QueryEdge;
 
         internal DTupleTree(int maxDToCount)

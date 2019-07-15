@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo)
+        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e)
         {
         }
 
