@@ -16,10 +16,10 @@ using Microsoft.VisualStudio.Text.Operations;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.LanguageServices;
+using System.Collections;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: SuggestedActions are currently only for errors and requires NotYetImplemented ProjectionTree for performance
     internal class SuggestedActionsSource : ISuggestedActionsSource
     {
         private readonly SuggestedActionsSourceProvider sourceProvider;
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.VisualStudio
             return Task.Factory.StartNew(() =>
             {
                 return (!this.TryGetWordUnderCaret(out TextExtent extent)
-                        || IsExtentTokenExpected(range, extent, out _, out _))
+                        || !ExtentTokenHasSuggestedReplacements(range, ref extent, out _, out _))
                     ? false
                     : extent.IsSignificant;
             });
@@ -55,12 +55,12 @@ namespace Microsoft.PSharp.VisualStudio
             SnapshotSpan range, CancellationToken cancellationToken)
         {
             return !this.TryGetWordUnderCaret(out TextExtent textExtent) || !textExtent.IsSignificant
-                    || IsExtentTokenExpected(range, textExtent, out ITrackingSpan trackingSpan, out PSharpParser parser)
+                    || !ExtentTokenHasSuggestedReplacements(range, ref textExtent, out ITrackingSpan trackingSpan, out PSharpParser parser)
                 ? Enumerable.Empty<SuggestedActionSet>()
                 : GetSuggestedActions(textExtent, trackingSpan, parser);
         }
 
-        private bool IsExtentTokenExpected(SnapshotSpan range, TextExtent extent, out ITrackingSpan trackSpan, out PSharpParser parser)
+        private bool ExtentTokenHasSuggestedReplacements(SnapshotSpan range, ref TextExtent extent, out ITrackingSpan trackSpan, out PSharpParser parser)
         {
             string extentText = extent.Span.GetText();
             var extentToken = string.IsNullOrWhiteSpace(extentText) ? null : new PSharpLexer().Tokenize(extentText).FirstOrDefault();
@@ -71,11 +71,11 @@ namespace Microsoft.PSharp.VisualStudio
                 return false;
             }
 
-            // TODO: Minimize the re-parse span for speed.
+            // Parse the file up to and including trackSpan. TODO: Minimize the re-parse span for speed.
             var snapshot = extent.Span.Snapshot;
-            trackSpan = range.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
+            trackSpan = snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
             var preSpan = new SnapshotSpan(snapshot, new Span(snapshot.GetLineFromLineNumber(0).Start,
-                                           trackSpan.GetStartPoint(snapshot).Position));
+                                           trackSpan.GetEndPoint(snapshot).Position));
 
             var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
             parser = new PSharpParser(ParsingOptions.CreateForVsLanguageService());
@@ -83,12 +83,35 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 parser.ParseTokens(tokens);
             }
-            catch (ParsingException)
+            catch (ParsingException ex)
             {
-                // Parsing exception is expected
+                // Parsing exception is expected. If FailingToken is null, then the parser's TokenStream is Done,
+                // which means there was no exception before the stream ended early. If we're not currently on the
+                // FailingToken's (1-based) line, then we don't want to suggest its actions for the current IDE (0-based) line.
+                if (ex.FailingToken == null || ex.FailingToken.TextUnit.Line - 1 != extent.Span.Start.GetContainingLine().LineNumber)
+                {
+                    return false;
+                }
+
+                // Make sure the extent token we return is the failing token, because that's what we're making suggestions for.
+                if (extent.Span.Start.Position != ex.FailingToken.TextUnit.Start)
+                {
+                    var line = snapshot.GetLineFromLineNumber(ex.FailingToken.TextUnit.Line - 1);
+                    var span = new SnapshotSpan(line.Start + ex.FailingToken.TextUnit.Start /* 0-based */, ex.FailingToken.TextUnit.Length);
+                    extent = new TextExtent(span, true);
+
+                    // Later code assumes the token resulted from parsing only the text of the token.
+                    extentToken = new Token(new TextUnit(ex.FailingToken.Text, ex.FailingToken.TextUnit.Line, 0), ex.FailingToken.Type);
+                    trackSpan = snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
+                }
             }
-            return this.IsExpectedTokenType(extentToken, parser.GetExpectedTokenTypes());
+
+            return !this.IsExpectedTokenType(extentToken, parser.GetExpectedTokenTypes())
+                   && GetSuggestions(parser, extentToken.Text).Any();
         }
+
+        private static IEnumerable<KeyValuePair<string, string>> GetSuggestions(PSharpParser parser, string word)
+            => CompletionSource.RefineAvailableKeywords(parser.GetExpectedTokenTypes(), word, usePrefix: false);
 
         private IEnumerable<SuggestedActionSet> GetSuggestedActions(TextExtent textExtent, ITrackingSpan trackingSpan, PSharpParser parser)
         {
@@ -96,7 +119,7 @@ namespace Microsoft.PSharp.VisualStudio
             var word = span.Snapshot.TextBuffer.CurrentSnapshot.GetText().Substring(span.Start.Position, span.End.Position - span.Start.Position);
 
             // Start with prefix search
-            var suggestions = CompletionSource.RefineAvailableKeywords(parser.GetExpectedTokenTypes(), word, usePrefix: false).ToList();
+            var suggestions = GetSuggestions(parser, word).ToList();
             foreach (var suggestion in suggestions)
             {
                 yield return new SuggestedActionSet(new ISuggestedAction[] { new ErrorFixSuggestedAction(word, suggestion, trackingSpan) });
@@ -147,5 +170,4 @@ namespace Microsoft.PSharp.VisualStudio
             }
         }
     }
-#endif
 }

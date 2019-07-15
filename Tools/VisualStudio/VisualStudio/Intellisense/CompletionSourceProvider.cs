@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
     /// <summary>
     /// The P# completion source provider.
     /// </summary>
@@ -27,5 +26,4 @@ namespace Microsoft.PSharp.VisualStudio
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
             => new CompletionSource(this, textBuffer);
     }
-#endif
 }

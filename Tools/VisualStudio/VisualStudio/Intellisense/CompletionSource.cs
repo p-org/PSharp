@@ -15,7 +15,6 @@ using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
     /// <summary>
     /// The P# completion source.
     /// </summary>
@@ -239,5 +238,4 @@ namespace Microsoft.PSharp.VisualStudio
             }
         }
     }
-#endif
 }

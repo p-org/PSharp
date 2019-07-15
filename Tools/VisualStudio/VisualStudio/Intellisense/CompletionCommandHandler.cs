@@ -114,8 +114,6 @@ namespace Microsoft.PSharp.VisualStudio
                 ? (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn)
                 : char.MinValue;
 
-#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
-
             // Check for a commit character.
             if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
                 || char.IsWhiteSpace(typedChar) || char.IsPunctuation(typedChar))
@@ -152,7 +150,7 @@ namespace Microsoft.PSharp.VisualStudio
                 this.Session.Filter();
                 return VSConstants.S_OK;
             }
-            
+
             if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE || nCmdID == (uint)VSConstants.VSStd2KCmdID.DELETE)
             {
                 // There is a deletion so redo the filter if we have an active session.
@@ -162,7 +160,6 @@ namespace Microsoft.PSharp.VisualStudio
                 }
                 return VSConstants.S_OK;
             }
-#endif
 
             if (pguidCmdGroup == VSConstants.VSStd2K)
             {
@@ -236,11 +233,6 @@ namespace Microsoft.PSharp.VisualStudio
                     return ToggleSelectionComments(false);
                 }
             }
-
-#if true    // TODO: NotYetImplemented ProjectionTree will remove this in favor of calling it above (in the #ifdef'd part)
-            // Pass along the command so the char is added to the buffer.
-            int nextCommandRetVal = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-#endif
 
             // Indenting is not triggered on typing '}' so do it ourselves
             if (nextCommandRetVal == VSConstants.S_OK && typedChar == '}')
@@ -456,8 +448,6 @@ namespace Microsoft.PSharp.VisualStudio
             return hr;
         }
 
-#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
-
         private bool TriggerCompletion()
         {
             // The caret must be in a non-projection location.
@@ -485,6 +475,5 @@ namespace Microsoft.PSharp.VisualStudio
             this.Session.Dismissed -= this.OnSessionDismissed;
             this.Session = null;
         }
-#endif
     }
 }

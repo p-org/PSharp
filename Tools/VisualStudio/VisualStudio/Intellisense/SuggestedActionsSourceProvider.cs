@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-#if false // TODO: SuggestedActions are currently only for errors and requires NotYetImplemented ProjectionTree for performance
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Name("P# suggested actions")]
     [ContentType("psharp")]
@@ -25,5 +24,4 @@ namespace Microsoft.PSharp.VisualStudio
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
             => textBuffer == null && textView == null ? null : new SuggestedActionsSource(this, textView, textBuffer);
     }
-#endif
 }

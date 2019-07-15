@@ -18,8 +18,8 @@ namespace Microsoft.PSharp.VisualStudio
     [Export(typeof(ITaggerProvider))]
     [ContentType("psharp")]
     [TagType(typeof(PSharpTokenTag))]
-    // NotYetImplemented ProjectionTree [TagType(typeof(IErrorTag))]
-    internal sealed class PSharpTokenTagProvider : ITaggerProvider
+    [TagType(typeof(IErrorTag))]
+    internal sealed class PSharpTagProvider : ITaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
@@ -27,12 +27,10 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 return buffer.Properties.GetOrCreateSingletonProperty(() => new PSharpTokenTagger(buffer) as ITagger<T>);
             }
-#if false // NotYetImplemented ProjectionTree 
             if (typeof(T) == typeof(IErrorTag))
             {
                 return buffer.Properties.GetOrCreateSingletonProperty(() => new PSharpErrorTagger(buffer) as ITagger<T>);
             }
-#endif
             throw new InvalidOperationException("Unknown TagType: {typeof(T).FullName}");
         }
     }

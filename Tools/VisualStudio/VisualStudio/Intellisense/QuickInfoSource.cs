@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.VisualStudio
         public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> qiContent, out ITrackingSpan applicableToSpan)
         {
             applicableToSpan = null;
-#if false // TODO
+#if false // TODO ProjectionBuffer
             if (!ProjectionBufferGraph.GetFromProperties(session.TextView.BufferGraph.TopBuffer, out ProjectionBufferGraph projectionBufferGraph))
             {
                 return;
@@ -110,13 +110,13 @@ namespace Microsoft.PSharp.VisualStudio
             {
                 return;
             }
-#if false // TODO
+#if false // TODO ProjectionBuffer
             var isEmbeddedPSharp = projectionBufferGraph.IsEmbeddedPSharpPoint(subjectTriggerPoint.Value);
 #endif
 
             TokenType preprocessTokenType(TokenType tokenType)
             {
-#if false // TODO
+#if false // TODO ProjectionBuffer
                 if (isEmbeddedPSharp)
                 {
                     switch (tokenType)
