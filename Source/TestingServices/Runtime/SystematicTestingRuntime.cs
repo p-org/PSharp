@@ -682,7 +682,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="isFresh">If true, then this is a new machine.</param>
         /// <param name="syncCaller">Caller machine that is blocked for quiscence.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
+        protected virtual void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
         {
             AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
 
@@ -698,6 +698,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (isFresh)
                     {
+                        this.NotifyMachineStart(machine, initialEvent);
                         await machine.GotoStartState(initialEvent);
                     }
 
@@ -748,6 +749,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             task.Start(this.TaskScheduler);
 
             this.Scheduler.WaitForOperationToStart(op);
+        }
+
+        /// <summary>
+        /// Created for ProgramAware to record Machine Start.
+        /// </summary>
+        /// <param name="machine">The machine being started</param>
+        /// <param name="initialEvent">The event it is being initialized with</param>
+        protected virtual void NotifyMachineStart(Machine machine, Event initialEvent)
+        {
+            // Do nothing here.
         }
 
         /// <summary>

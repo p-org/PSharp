@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
@@ -15,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private const bool ConnectSuccessiveHandlers = false;
 
         internal ProgramStep Rootstep;
-        internal ProgramStep ActiveStep;
+        internal IProgramStep ActiveStep;
         internal List<IProgramStep> OrderedSteps;
 
         private readonly Dictionary<ulong, IProgramStep> MachineIdToCreateStep;
@@ -23,12 +24,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private readonly Dictionary<int, IProgramStep> SendIndexToSendStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
 
+        private readonly Dictionary<Type, IProgramStep> MonitorTypeToLatestSendTo;
+
         internal ProgramModel()
         {
             this.MachineIdToCreateStep = new Dictionary<ulong, IProgramStep>();
             this.MachineIdToLastStep = new Dictionary<ulong, IProgramStep>();
             this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, IProgramStep>();
+            this.MonitorTypeToLatestSendTo = new Dictionary<Type, IProgramStep>();
 
             this.OrderedSteps = new List<IProgramStep>();
 
@@ -71,6 +75,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         IProgramStep sendStep = this.SendIndexToSendStep[programStep.EventInfo.SendStep];
                         SetCreatedRelation(sendStep, programStep);
                         break;
+
+                    case AsyncOperationType.Start:
+                        IProgramStep creatorStep = this.MachineIdToCreateStep[programStep.SrcId];
+                        SetCreatedRelation(creatorStep, programStep);
+                        break;
                 }
             }
             else if (programStep.ProgramStepType == ProgramStepType.NonDetBoolStep
@@ -79,28 +88,38 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 // Do nothing special
             }
 
-            // Process the machine thread relation
-            IProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
-
-            if (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers)
+            if (programStep.OpType != AsyncOperationType.Start &&
+                (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers) )
             {
+                // Process the machine thread relation
+                IProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
+
                 SetMachineThreadRelation(previousMachineStep, programStep);
             }
 
             this.MachineIdToLastStep[programStep.SrcId] = programStep;
-
             this.AppendStepToTotalOrdering(programStep);
 
-            if (programStep.OpType == AsyncOperationType.Create )
-            {
-                ProgramStep startStep = new ProgramStep(AsyncOperationType.Start, programStep.TargetId, programStep.TargetId, null);
-                this.MachineIdToLastStep.Add(programStep.TargetId, startStep);
-                SetCreatedRelation(programStep, startStep);
-                this.AppendStepToTotalOrdering(startStep);
-            }
+            this.ActiveStep = programStep;
 
             // This line is only so we don't get an unused parameter error
             stepIndex++;
+        }
+
+        internal void RecordMonitorEvent(Type monitorType, AsyncMachine sender)
+        {
+            // Pray that this is right :p
+            if (sender.Id.Value != this.ActiveStep.SrcId)
+            {
+               throw new NotImplementedException("This is wrongly implemented");
+            }
+
+            if (this.MonitorTypeToLatestSendTo.ContainsKey(monitorType))
+            {
+                SetMonitorCommunicationRelation(this.MonitorTypeToLatestSendTo[monitorType], this.ActiveStep);
+            }
+
+            this.MonitorTypeToLatestSendTo[monitorType] = this.ActiveStep;
         }
 
         private void AppendStepToTotalOrdering(IProgramStep programStep)
@@ -125,6 +144,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             parent.NextEnqueuedStep = child;
             child.PrevEnqueuedStep = parent;
+        }
+
+        private static void SetMonitorCommunicationRelation(IProgramStep prevStep, IProgramStep currentStep)
+        {
+            prevStep.NextMonitorStep = currentStep;
+            currentStep.PrevMonitorStep = prevStep;
         }
 
         internal string SerializeProgramTrace()
@@ -166,6 +191,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             {
                 HAXSerializeStepProgramTree(sb, atNode.CreatedStep, depth + 1);
             }
+        }
+
+        internal void RecordStartMachine(Machine machine, Event initialEvent)
+        {
+            Console.WriteLine("Record Start for machine" + machine.Id.Value + " | " + initialEvent);
         }
     }
 }

@@ -175,6 +175,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
             this.ProgramModel.RecordStep(ndIntStep, this.GetScheduledSteps());
         }
 
+        public virtual void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
+        {
+            // Do Nothing
+            this.ProgramModel.RecordMonitorEvent(monitorType, sender);
+        }
+
         public virtual void NotifySchedulingEnded(bool bugFound)
         {
             // Do nothing
@@ -193,6 +199,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
         public override string ToString()
         {
             return this.GetType().Name;
+        }
+
+        public void RecordStartMachine(Machine machine, EventInfo initialEvent)
+        {
+            ProgramStep startStep = new ProgramStep(AsyncOperationType.Start, machine.Id.Value, machine.Id.Value, initialEvent);
+            this.ProgramModel.RecordStep(startStep, this.GetScheduledSteps());
         }
     }
 }

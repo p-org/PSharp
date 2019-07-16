@@ -38,5 +38,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         string GetProgramTrace();
 
         string GetReport();
+
+        void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e);
+
+        void RecordStartMachine(Machine machine, EventInfo initialEvent);
     }
 }

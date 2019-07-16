@@ -28,6 +28,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             return createdMachine;
         }
 
+        protected override void NotifyMachineStart(Machine machine, Event initialEvent)
+        {
+            this.ProgramAwareStrategy.RecordStartMachine(machine, (initialEvent == null) ? null : CreateStandardizedEventInfo(null, initialEvent));
+        }
+
         protected override EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
         {
@@ -38,12 +43,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             EventInfo standardizedEventInfo = null;
             if (eventInfo == null)
             {
-                // EventInfo standardizedEventInfo = CreateStandardizedEventInfo(sender, e);
-                EventOriginInfo originInfo = (sender is Machine) ?
-                    new EventOriginInfo(sender.Id, (sender as Machine).GetType().FullName, "programaware__null") :
-                    originInfo = new EventOriginInfo(null, "Env", "Env"); // Message comes from outside P#.
-
-                standardizedEventInfo = new EventInfo(e, originInfo);
+                standardizedEventInfo = CreateStandardizedEventInfo(sender, e);
             }
             else
             {
@@ -53,6 +53,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.ProgramAwareStrategy.RecordSendEvent(sender, target, standardizedEventInfo, e);
 
             return enqueueStatus;
+        }
+
+        private static EventInfo CreateStandardizedEventInfo(AsyncMachine sender, Event e)
+        {
+            EventOriginInfo originInfo = (sender is Machine) ?
+                new EventOriginInfo(sender.Id, (sender as Machine).GetType().FullName, "programaware__null") :
+                originInfo = new EventOriginInfo(null, "Env", "Env"); // Message comes from outside P#.
+
+            return new EventInfo(e, originInfo);
+        }
+
+        internal override void Monitor(Type type, AsyncMachine sender, Event e)
+        {
+            base.Monitor(type, sender, e);
+            // Now do your thing.
+            this.ProgramAwareStrategy.RecordMonitorEvent(type, sender, e);
         }
 
         internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)

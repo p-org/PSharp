@@ -48,12 +48,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep NextEnqueuedStep { get; set; } // TODO: Is this needed?
 
+        IProgramStep NextMonitorStep { get; set; }
+
         // Parents
         IProgramStep PrevMachineStep { get; set; }
 
         IProgramStep CreatorParent { get; set; }
 
         IProgramStep PrevEnqueuedStep { get; set; } // TODO: Is this needed?
+
+        IProgramStep PrevMonitorStep { get; set; }
 
         // Step signature
         IProgramStepSignature Signature { get; set; }

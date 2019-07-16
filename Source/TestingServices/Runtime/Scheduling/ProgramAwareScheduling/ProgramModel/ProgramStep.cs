@@ -30,10 +30,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private ProgramStep NextMachineStep;
         private ProgramStep CreatedStep;
         private ProgramStep NextEnqeuedStep; // Only set for receive steps
+        private ProgramStep NextMonitorStep;
 
         private ProgramStep CreatorStep;
         private ProgramStep PrevMachineStep;
         private ProgramStep PrevEnqueuedStep; // Only set for receive steps
+        private ProgramStep PrevMonitorStep;
 
         // Extra info
         internal readonly ProgramStepType ProgramStepType;
@@ -61,11 +63,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.NextEnqueuedStep { get => this.NextEnqeuedStep; set => this.NextEnqeuedStep = value as ProgramStep; }
 
+        IProgramStep IProgramStep.NextMonitorStep { get => this.NextMonitorStep; set => this.NextMonitorStep = value as ProgramStep; }
+
         IProgramStep IProgramStep.PrevMachineStep { get => this.PrevMachineStep; set => this.PrevMachineStep = value as ProgramStep; }
 
         IProgramStep IProgramStep.CreatorParent { get => this.CreatorStep; set => this.CreatorStep = value as ProgramStep; }
 
         IProgramStep IProgramStep.PrevEnqueuedStep { get => this.PrevEnqueuedStep; set => this.PrevEnqueuedStep = value as ProgramStep; }
+
+        IProgramStep IProgramStep.PrevMonitorStep { get => this.PrevMonitorStep; set => this.PrevMonitorStep = value as ProgramStep; }
 
         IProgramStepSignature IProgramStep.Signature { get => this.Signature; set => this.Signature = value; }
 

@@ -113,6 +113,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             return null;
         }
+
+        public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
+        {
+            // Do Nothing
+        }
+
+        public void RecordStartMachine(Machine machine, EventInfo initialEvent)
+        {
+            // Do nothing
+        }
 #if false
         public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo)
         {
