@@ -104,6 +104,13 @@ namespace Microsoft.PSharp.Utilities
         /// Wraps the scheduler in InboxBasedDHittingMetricStrategy
         /// </summary>
         [EnumMember(Value = "InboxDhittingMetric")]
-        InboxDHittingMetric
+        InboxDHittingMetric,
+
+        /// <summary>
+        /// A wrapper strategy which interacts with an IStrategyController
+        /// This allows program aware apps to do funny things without having go in to P# code.
+        /// </summary>
+        [EnumMember(Value = "ControlUnit")]
+        ControlUnit
     }
 }

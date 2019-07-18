@@ -1,0 +1,25 @@
+<Project>
+  <Import Project="..\..\..\Common\build.props" />
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>net46</TargetFrameworks>
+    <!-- netcoreapp2.1; -->
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <!--- <ItemGroup>
+	<Reference Include="Microsoft.PSharp.TestingServices">
+      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.TestingServices.dll</HintPath>
+    </Reference>
+	<Reference Include="Microsoft.PSharp.TestingClientInterface">
+      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
+    </Reference>
+	<Reference Include="Microsoft.PSharp">
+      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup> --->
+</Project>

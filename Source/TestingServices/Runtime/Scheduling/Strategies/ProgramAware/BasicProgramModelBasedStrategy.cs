@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
 
         public string GetDescription()
         {
-            return "Wrapper strategy to count d-tuples hit by the (set of) schedules";
+            return "Wrapper strategy which constructs a model of the program while it runs according to the specified child-strategy:" + this.ChildStrategy.GetType().Name;
         }
 
         public bool IsFair()
