@@ -11,15 +11,15 @@
     <OutputType>Exe</OutputType>
     <OutputPath>.\bin\</OutputPath>
   </PropertyGroup>
-  <!--- <ItemGroup>
+<ItemGroup>
 	<Reference Include="Microsoft.PSharp.TestingServices">
-      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.TestingServices.dll</HintPath>
+      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp.TestingClientInterface">
-      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
+      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp">
-      <HintPath>$(PSharpBinaries)\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
     </Reference>
-  </ItemGroup> --->
+  </ItemGroup>
 </Project>
