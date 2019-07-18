@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Cache storing machine constructors.
         /// </summary>
-        private static Dictionary<Type, Func<Machine>> MachineConstructorCache =
+        private static readonly Dictionary<Type, Func<Machine>> MachineConstructorCache =
             new Dictionary<Type, Func<Machine>>();
 
         /// <summary>
@@ -37,19 +37,6 @@ namespace Microsoft.PSharp.Runtime
                 }
 
                 return constructor();
-            }
-        }
-
-        /// <summary>
-        /// Checks if the constructor of the specified machine type exists in the cache.
-        /// </summary>
-        /// <param name="type">Type of the machine.</param>
-        /// <returns>True if the constructor exists, else false.</returns>
-        internal static bool IsCached(Type type)
-        {
-            lock (MachineConstructorCache)
-            {
-                return MachineConstructorCache.ContainsKey(type);
             }
         }
     }

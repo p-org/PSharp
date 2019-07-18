@@ -220,5 +220,71 @@ Machine event coverage: 100.0%
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
             Assert.Equal(expected, result);
         }
+
+        internal class M4 : Machine
+        {
+            [Start]
+            [OnEventGotoState(typeof(E), typeof(Done))]
+            internal class Init : MachineState
+            {
+            }
+
+            internal class Done : MachineState
+            {
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestCoverageOnMultipleTests()
+        {
+            var configuration = Configuration.Create().WithVerbosityEnabled();
+            configuration.ReportActivityCoverage = true;
+
+            ITestingEngine testingEngine1 = this.Test(r =>
+            {
+                var m = r.CreateMachine(typeof(M4));
+                r.SendEvent(m, new E());
+            },
+            configuration);
+
+            // Assert that the coverage is as expected.
+            var coverage1 = testingEngine1.TestReport.CoverageInfo;
+            Assert.Contains(typeof(M4).FullName, coverage1.MachinesToStates.Keys);
+            Assert.Contains(typeof(M4.Init).Name, coverage1.MachinesToStates[typeof(M4).FullName]);
+            Assert.Contains(typeof(M4.Done).Name, coverage1.MachinesToStates[typeof(M4).FullName]);
+            Assert.Contains(coverage1.RegisteredEvents, tup => tup.Item3 == typeof(E).FullName);
+
+            ITestingEngine testingEngine2 = this.Test(r =>
+            {
+                var m = r.CreateMachine(typeof(M4));
+                r.SendEvent(m, new E());
+            },
+            configuration);
+
+            // Assert that the coverage is the same as before.
+            var coverage2 = testingEngine2.TestReport.CoverageInfo;
+            Assert.Contains(typeof(M4).FullName, coverage2.MachinesToStates.Keys);
+            Assert.Contains(typeof(M4.Init).Name, coverage2.MachinesToStates[typeof(M4).FullName]);
+            Assert.Contains(typeof(M4.Done).Name, coverage2.MachinesToStates[typeof(M4).FullName]);
+            Assert.Contains(coverage2.RegisteredEvents, tup => tup.Item3 == typeof(E).FullName);
+
+            string coverageReport1, coverageReport2;
+
+            var activityCoverageReporter = new ActivityCoverageReporter(coverage1);
+            using (var writer = new StringWriter())
+            {
+                activityCoverageReporter.WriteCoverageText(writer);
+                coverageReport1 = writer.ToString();
+            }
+
+            activityCoverageReporter = new ActivityCoverageReporter(coverage2);
+            using (var writer = new StringWriter())
+            {
+                activityCoverageReporter.WriteCoverageText(writer);
+                coverageReport2 = writer.ToString();
+            }
+
+            Assert.Equal(coverageReport1, coverageReport2);
+        }
     }
 }
