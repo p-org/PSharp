@@ -495,7 +495,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 opGroupId = creator.OperationGroupId;
             }
 
-            var isMachineTypeCached = MachineFactory.IsCached(type);
             Machine machine = MachineFactory.Create(type);
             this.MachineOperations.GetOrAdd(mid.Value, new AsyncOperation(mid));
             IMachineStateManager stateManager = new SerializedMachineStateManager(this, machine, opGroupId);
@@ -504,7 +503,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             machine.Initialize(this, mid, stateManager, eventQueue);
             machine.InitializeStateInformation();
 
-            if (this.Configuration.ReportActivityCoverage && !isMachineTypeCached)
+            if (this.Configuration.ReportActivityCoverage)
             {
                 this.ReportActivityCoverageOfMachine(machine);
             }
@@ -1474,10 +1473,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private void ReportActivityCoverageOfMachine(Machine machine)
         {
             var machineName = machine.GetType().FullName;
+            if (this.CoverageInfo.IsMachineDeclared(machineName))
+            {
+                return;
+            }
 
             // Fetch states.
             var states = machine.GetAllStates();
-
             foreach (var state in states)
             {
                 this.CoverageInfo.DeclareMachineState(machineName, state);
@@ -1485,7 +1487,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             // Fetch registered events.
             var pairs = machine.GetAllStateEventPairs();
-
             foreach (var tup in pairs)
             {
                 this.CoverageInfo.DeclareStateEvent(machineName, tup.Item1, tup.Item2);

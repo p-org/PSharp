@@ -45,13 +45,13 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         }
 
         /// <summary>
+        /// Checks if the machine type has already been registered for coverage.
+        /// </summary>
+        public bool IsMachineDeclared(string machineName) => this.MachinesToStates.ContainsKey(machineName);
+
+        /// <summary>
         /// Adds a new transition.
         /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
         public void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
             string machineTarget, string stateTarget)
         {
@@ -64,19 +64,11 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Declares a state.
         /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        public void DeclareMachineState(string machine, string state)
-        {
-            this.AddState(machine, state);
-        }
+        public void DeclareMachineState(string machine, string state) => this.AddState(machine, state);
 
         /// <summary>
         /// Declares a registered state, event pair.
         /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">state name</param>
-        /// <param name="eventName">Event name that the state is prepared to handle</param>
         public void DeclareStateEvent(string machine, string state, string eventName)
         {
             this.AddState(machine, state);
@@ -87,7 +79,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// Merges the information from the specified
         /// coverage info. This is not thread-safe.
         /// </summary>
-        /// <param name="coverageInfo">CoverageInfo</param>
         public void Merge(CoverageInfo coverageInfo)
         {
             foreach (var machine in coverageInfo.MachinesToStates)
@@ -113,8 +104,6 @@ namespace Microsoft.PSharp.TestingServices.Coverage
         /// <summary>
         /// Adds a new state.
         /// </summary>
-        /// <param name="machineName">Machine name</param>
-        /// <param name="stateName">State name</param>
         private void AddState(string machineName, string stateName)
         {
             if (!this.MachinesToStates.ContainsKey(machineName))
