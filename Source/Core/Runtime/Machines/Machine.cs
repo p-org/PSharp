@@ -590,7 +590,7 @@ namespace Microsoft.PSharp
                 {
                     // Inform the user of a successful dequeue once ReceivedEvent is set.
                     lastDequeuedEvent = e;
-                    await this.OnEventDequeueAsync(lastDequeuedEvent);
+                    await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventDequeued, lastDequeuedEvent);
                 }
 
                 if (e is TimerElapsedEvent timeoutEvent &&
@@ -601,13 +601,16 @@ namespace Microsoft.PSharp
                 }
 
                 // Handles next event.
-                await this.HandleEvent(e);
+                if (!this.IsHalted)
+                {
+                    await this.HandleEvent(e);
+                }
 
                 if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.IsHalted)
                 {
                     // Inform the user that the machine is done handling the current event.
                     // The machine will either go idle or dequeue its next event.
-                    await this.OnEventHandledAsync(lastDequeuedEvent);
+                    await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventHandled, lastDequeuedEvent);
                     lastDequeuedEvent = null;
                 }
             }
@@ -633,7 +636,7 @@ namespace Microsoft.PSharp
                     }
 
                     var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
-                    if (this.OnUnhandledEventExceptionHandler("HandleEvent", unhandledEx))
+                    if (this.OnUnhandledEventExceptionHandler(nameof(this.HandleEvent), unhandledEx))
                     {
                         this.HaltMachine();
                         return;
@@ -821,7 +824,7 @@ namespace Microsoft.PSharp
                     }
                     catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
-                        // user handled the exception, return normally
+                        // User handled the exception, return normally.
                     }
                 }
                 else
@@ -833,7 +836,7 @@ namespace Microsoft.PSharp
                     }
                     catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
                     {
-                        // user handled the exception, return normally
+                        // User handled the exception, return normally.
                     }
                     catch (Exception ex) when (!this.OnExceptionRequestedGracefulHalt && this.InvokeOnFailureExceptionFilter(cachedAction, ex))
                     {
@@ -874,6 +877,79 @@ namespace Microsoft.PSharp
                 {
                     // Reports the unhandled exception.
                     this.ReportUnhandledException(innerException, cachedAction.MethodInfo.Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified event handler user callback.
+        /// </summary>
+        private async Task ExecuteUserCallbackAsync(EventHandlerStatus eventHandlerStatus, Event lastDequeuedEvent)
+        {
+            try
+            {
+                if (eventHandlerStatus is EventHandlerStatus.EventDequeued)
+                {
+                    try
+                    {
+                        await this.OnEventDequeueAsync(lastDequeuedEvent);
+                    }
+                    catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventDequeueAsync), ex))
+                    {
+                        // User handled the exception, return normally.
+                    }
+                }
+                else if (eventHandlerStatus is EventHandlerStatus.EventHandled)
+                {
+                    try
+                    {
+                        await this.OnEventHandledAsync(lastDequeuedEvent);
+                    }
+                    catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventHandledAsync), ex))
+                    {
+                        // User handled the exception, return normally.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Exception innerException = ex;
+                while (innerException is TargetInvocationException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is ExecutionCanceledException)
+                {
+                    this.IsHalted = true;
+                    Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from Machine '{this.Id}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    this.IsHalted = true;
+                    Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from Machine '{this.Id}'.");
+                }
+                else if (this.OnExceptionRequestedGracefulHalt)
+                {
+                    // Gracefully halt.
+                    this.HaltMachine();
+                }
+                else
+                {
+                    // Reports the unhandled exception.
+                    if (eventHandlerStatus is EventHandlerStatus.EventDequeued)
+                    {
+                        this.ReportUnhandledException(innerException, nameof(this.OnEventDequeueAsync));
+                    }
+                    else if (eventHandlerStatus is EventHandlerStatus.EventHandled)
+                    {
+                        this.ReportUnhandledException(innerException, nameof(this.OnEventHandledAsync));
+                    }
                 }
             }
         }
@@ -1504,7 +1580,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes user callback when a machine receives an event it cannot handle
+        /// Invokes user callback when a machine receives an event that it cannot handle.
         /// </summary>
         /// <param name="methodName">The handler (outermost) that threw the exception.</param>
         /// <param name="ex">The exception thrown by the machine.</param>

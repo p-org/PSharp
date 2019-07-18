@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.PSharp.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -334,6 +335,252 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(m, new E1());
                 r.SendEvent(m, new E2()); // Dropped silently.
             });
+        }
+
+        private class M5 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventDequeueAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HaltMachine;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventDequeueWithHaltMachineOutcome()
+        {
+            this.Test(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M5));
+                r.SendEvent(m, new E1());
+                r.SendEvent(m, new E2()); // Dropped silently.
+            });
+        }
+
+        private class M6 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventDequeueAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HandledException;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventDequeueWithHandledExceptionOutcome()
+        {
+            this.TestWithError(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M6));
+                r.SendEvent(m, new E1());
+            },
+            configuration: GetConfiguration().WithNumberOfIterations(100),
+            expectedError: "Monitor 'Spec4' detected liveness bug in hot state 'S1' at the end of program execution.",
+            replay: true);
+        }
+
+        private class M7 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventDequeueAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.ThrowException;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventDequeueWithThrowExceptionOutcome()
+        {
+            this.TestWithException<InvalidOperationException>(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M7));
+                r.SendEvent(m, new E1());
+            },
+            configuration: GetConfiguration().WithNumberOfIterations(100),
+            replay: true);
+        }
+
+        private class M8 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventHandledAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HaltMachine;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventHandledWithHaltMachineOutcome()
+        {
+            this.Test(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M8));
+                r.SendEvent(m, new E1());
+                r.SendEvent(m, new E2()); // Dropped silently.
+            });
+        }
+
+        private class M9 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventHandledAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.HandledException;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventHandledWithHandledExceptionOutcome()
+        {
+            this.TestWithError(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M9));
+                r.SendEvent(m, new E1());
+            },
+            configuration: GetConfiguration().WithNumberOfIterations(100),
+            expectedError: "Monitor 'Spec4' detected liveness bug in hot state 'S1' at the end of program execution.",
+            replay: true);
+        }
+
+        private class M10 : Machine
+        {
+            [Start]
+            [OnEventDoAction(typeof(E1), nameof(Process))]
+            private class S1 : MachineState
+            {
+            }
+
+            private void Process()
+            {
+            }
+
+            protected override Task OnEventHandledAsync(Event e)
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            {
+                return OnExceptionOutcome.ThrowException;
+            }
+
+            protected override void OnHalt()
+            {
+                this.Monitor<Spec4>(new Done());
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestExceptionOnEventHandledWithThrowExceptionOutcome()
+        {
+            this.TestWithException<InvalidOperationException>(r =>
+            {
+                r.RegisterMonitor(typeof(Spec4));
+                var m = r.CreateMachine(typeof(M10));
+                r.SendEvent(m, new E1());
+            },
+            configuration: GetConfiguration().WithNumberOfIterations(100),
+            replay: true);
         }
     }
 }
