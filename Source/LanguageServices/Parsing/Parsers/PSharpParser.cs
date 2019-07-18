@@ -79,10 +79,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     case TokenType.Partial:
                     case TokenType.Abstract:
                     case TokenType.Virtual:
-                    case TokenType.EventDecl:
                     case TokenType.MachineDecl:
                         throw new ParsingException("Must be declared inside a namespace.", token);
 
+                    case TokenType.EventDecl:
                     case TokenType.ExternDecl:
                         throw new ParsingException("Must be declared inside a namespace or machine.", token);
 

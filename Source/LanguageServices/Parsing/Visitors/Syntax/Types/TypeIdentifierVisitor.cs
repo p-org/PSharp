@@ -109,10 +109,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
 
                 var peekTextUnit = this.TokenStream.Peek().TextUnit;
-                var initialText = (textUnit == null) ? string.Empty : textUnit.Text;
-                textUnit = (textUnit == null)
-                    ? new TextUnit(peekTextUnit.Text, line, peekTextUnit.Start)
-                    : textUnit + peekTextUnit;
+                textUnit = textUnit is null ? peekTextUnit : textUnit + peekTextUnit;
 
                 this.TokenStream.Index++;
                 this.TokenStream.SkipWhiteSpaceAndCommentTokens();
