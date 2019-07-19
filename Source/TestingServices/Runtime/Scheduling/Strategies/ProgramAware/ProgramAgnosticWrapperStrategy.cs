@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordReceiveEvent(Machine machine, EventInfo eventInfo)
+        public void RecordReceiveEvent(Machine machine, Event evt, EventInfo eventInfo)
         {
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             // Do Nothing
         }
 
-        public void RecordStartMachine(Machine machine, EventInfo initialEvent)
+        public void RecordStartMachine(Machine machine, Event evt, EventInfo initialEvent)
         {
             // Do nothing
         }

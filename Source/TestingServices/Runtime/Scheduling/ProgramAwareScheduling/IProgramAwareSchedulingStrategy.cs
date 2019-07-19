@@ -18,7 +18,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         [Obsolete("targetMachine/EventInfo is not set if the target is halted. Use the MachineId/Event version.")]
         void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo);
 #endif
-        void RecordReceiveEvent(Machine machine, EventInfo eventInfo);
+        void RecordReceiveEvent(Machine machine, Event e, EventInfo eventInfo);
 
         void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e);
 
@@ -41,6 +41,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
         void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e);
 
-        void RecordStartMachine(Machine machine, EventInfo initialEvent);
+        void RecordStartMachine(Machine machine, Event initialEvent1, EventInfo initialEvent);
     }
 }

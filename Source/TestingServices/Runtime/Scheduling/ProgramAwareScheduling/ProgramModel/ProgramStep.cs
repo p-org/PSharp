@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal AsyncOperationType OpType;
         internal ulong SrcId;       // TODO: Should this be Machine instead? For more info
         internal ulong TargetId;    // TODO: Should this be Machine instead? For more info
-        internal EventInfo EventInfo;
+        internal ProgramStepEventInfo EventInfo;
 
         internal IProgramStepSignature Signature;
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         ulong IProgramStep.TargetId => this.TargetId;
 
-        EventInfo IProgramStep.EventInfo => this.EventInfo;
+        ProgramStepEventInfo IProgramStep.EventInfo => this.EventInfo;
 
         bool? IProgramStep.BooleanChoice => this.BooleanChoice;
 
@@ -83,8 +83,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <param name="opType">Operation type</param>
         /// <param name="srcId">SourceId</param>
         /// <param name="targetId">targetId</param>
-        /// <param name="eventInfo">EventInfo in case this is a send or receive</param>
-        internal ProgramStep(AsyncOperationType opType, ulong srcId, ulong targetId, EventInfo eventInfo)
+        /// <param name="programEventInfo">EventSignature in case this is a send, receive or create, start</param>
+        internal ProgramStep(AsyncOperationType opType, ulong srcId, ulong targetId, ProgramStepEventInfo programEventInfo)
         {
             this.ProgramStepType = ProgramStepType.SchedulableStep;
             // this.Operation = op;
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.OpType = opType;
             this.SrcId = srcId;
             this.TargetId = targetId;
-            this.EventInfo = eventInfo; // Just incase
+            this.EventInfo = programEventInfo; // Just incase
         }
 
         /// <summary>

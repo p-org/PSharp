@@ -9,7 +9,14 @@ using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
 {
-    internal interface IProgramStepSignature
+#pragma warning disable CA1040 // Avoid empty interfaces
+    /// <summary>
+    /// A representation of a step in the program.
+    /// Used to identify corresponding steps across runs.
+    /// Two corresponding steps must have equal StepSignature ( according to the Equals method )
+    /// </summary>
+    public interface IProgramStepSignature
+#pragma warning restore CA1040 // Avoid empty interfaces
     {
         // The Equals method is to compare steps across runs
     }

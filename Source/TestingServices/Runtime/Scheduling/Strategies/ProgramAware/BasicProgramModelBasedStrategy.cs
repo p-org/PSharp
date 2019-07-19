@@ -105,9 +105,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
             this.ProgramModel.RecordStep(createStep, this.GetScheduledSteps()); // TODO: Should i do -1?
         }
 
-        public virtual void RecordReceiveEvent(Machine machine, EventInfo eventInfo)
+        public virtual void RecordReceiveEvent(Machine machine, Event evt, EventInfo eventInfo)
         {
-            ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, eventInfo);
+            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, eventInfo.OriginInfo.SenderMachineId?.Value ?? 0, eventInfo.SendStep);
+            ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
             this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
         }
 
@@ -125,12 +126,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
 #endif
         public virtual void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e)
         {
+            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(e, eventInfo.OriginInfo.SenderMachineId?.Value ?? 0, eventInfo.SendStep);
             if (this.HashEvents)
             {
-                eventInfo.HashedState = this.HashEvent(e);
+                pEventInfo.HashedState = this.HashEvent(e);
             }
 
-            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachineId.Value, eventInfo);
+            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachineId.Value, pEventInfo);
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
         }
 
@@ -201,9 +203,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies
             return this.GetType().Name;
         }
 
-        public void RecordStartMachine(Machine machine, EventInfo initialEvent)
+        public void RecordStartMachine(Machine machine, Event initialEvent, EventInfo initialEventInfo)
         {
-            ProgramStep startStep = new ProgramStep(AsyncOperationType.Start, machine.Id.Value, machine.Id.Value, initialEvent);
+            ProgramStepEventInfo pEventInfo = null;
+            if (initialEvent != null)
+            {
+                pEventInfo = new ProgramStepEventInfo(initialEvent, initialEventInfo.OriginInfo.SenderMachineId?.Value ?? 0, 0);
+            }
+            else
+            {
+                pEventInfo = null;
+            }
+
+            ProgramStep startStep = new ProgramStep(AsyncOperationType.Start, machine.Id.Value, machine.Id.Value, pEventInfo);
             this.ProgramModel.RecordStep(startStep, this.GetScheduledSteps());
         }
     }

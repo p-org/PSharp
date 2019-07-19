@@ -10,7 +10,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 {
     internal class EventTypeIndexStepSignature : IProgramStepSignature
     {
-        internal readonly EventInfo EventInfo;
+        internal readonly ProgramStepEventInfo EventInfo;
         internal readonly int EventIndex;
 
         internal readonly IProgramStep HAXstep;
@@ -28,9 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         public override int GetHashCode()
         {
-            // https://docs.microsoft.com/en-us/dotnet/api/system.string.gethashcode?view=netframework-4.8
-            // If two string objects are equal, the GetHashCode method returns identical values...
-            return this.EventInfo.EventName.GetHashCode() * (this.EventIndex + 1);
+            return this.EventInfo.Event.GetType().GetHashCode() * (this.EventIndex + 1);
         }
 
         public override bool Equals(object other)
@@ -40,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 EventTypeIndexStepSignature otherSig = other as EventTypeIndexStepSignature;
                 return
                     otherSig.MachineType.Equals(this.MachineType) &&
-                    otherSig.EventInfo.EventName.Equals(this.EventInfo.EventName) &&
+                    otherSig.EventInfo.Event.GetType().Equals(this.EventInfo.Event.GetType()) &&
                     otherSig.EventIndex == this.EventIndex;
             }
             else

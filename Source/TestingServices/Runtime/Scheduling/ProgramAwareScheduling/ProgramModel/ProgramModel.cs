@@ -192,10 +192,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 HAXSerializeStepProgramTree(sb, atNode.CreatedStep, depth + 1);
             }
         }
-
-        internal void RecordStartMachine(Machine machine, Event initialEvent)
-        {
-            Console.WriteLine("Record Start for machine" + machine.Id.Value + " | " + initialEvent);
-        }
     }
 }

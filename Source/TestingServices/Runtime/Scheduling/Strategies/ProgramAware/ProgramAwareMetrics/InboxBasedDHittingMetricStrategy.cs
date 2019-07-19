@@ -254,7 +254,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == TestingServices.Scheduling.AsyncOperationType.Send)
                 {
                     // Tuple<ulong, string> ieicKey = new Tuple<ulong, string>(progStep.SrcId, progStep.EventInfo?.EventName ?? "NullEventInfo");
-                    Tuple<ulong, string> ieicKey = Tuple.Create<ulong, string>(progStep.TargetId, progStep.EventInfo?.EventName ?? "NullEventInfo");
+                    Tuple<ulong, string> ieicKey = Tuple.Create<ulong, string>(progStep.TargetId, progStep.EventInfo?.GetType().FullName ?? "NullEventInfo");
 
                     if (!inboxEventIndexCounter.ContainsKey(ieicKey))
                     {
