@@ -40,12 +40,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
+        /// Creates a new instance of the <see cref="Token"/> class with updated type
         /// </summary>
-        public Token(Token original, TokenType updatedType)
-            : this(original.TextUnit, updatedType)
-        {
-        }
+        public Token WithType(TokenType updatedType) => new Token(this.TextUnit, updatedType);
 
         /// <summary>
         /// Returns a string representing the Token.

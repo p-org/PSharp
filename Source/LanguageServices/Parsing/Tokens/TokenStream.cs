@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             if (!this.Done)
             {
-                this.Tokens[this.Index] = new Token(this.Peek(), updatedType);
+                this.Tokens[this.Index] = this.Peek().WithType(updatedType);
             }
         }
 

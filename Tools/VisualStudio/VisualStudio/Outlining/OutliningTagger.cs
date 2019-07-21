@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.VisualStudio.Outlining
             SnapshotSpan entire = new SnapshotSpan(spans[0].Start, spans[spans.Count - 1].End)
                                       .TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
             int startLineNumber = entire.Start.GetContainingLine().LineNumber;
-            int endLineNumber = entire.End.GetContainingLine().LineNumber;
+            int endLineNumber = entire.End.GetContainingLine().LineNumber + 1;  // Add 1 to include the line immediately before the brace (that's where the "+" is)
             foreach (var region in this.RegionParser.CurlyBraceRegions)
             {
                 if (region.StartLineNumber <= endLineNumber && region.EndLineNumber >= startLineNumber)

@@ -55,6 +55,8 @@ namespace Microsoft.PSharp.VisualStudio
         private CompletionHandlerProvider Provider;
         private ICompletionSession Session;
 
+        private bool outliningIsStopped; // Whether the "Stop Outlining" Edit->Outlining option has been selected
+
         // For Snippet expansion
         IVsTextView VsTextView;
         IVsExpansionManager ExpansionManager;
@@ -92,10 +94,21 @@ namespace Microsoft.PSharp.VisualStudio
                         || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.COMMENTBLOCK
                         || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.COMMENT_BLOCK
                         || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENTBLOCK
-                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK)
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_TOGGLE_ALL
+                        || (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_TOGGLE_CURRENT
+                        // "HIDING" means start/stop outlining for these two
+                        || (!this.outliningIsStopped && (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_STOP_HIDING_ALL)
+                        || (this.outliningIsStopped && (uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_START_AUTOHIDING)
+                        )
                     {
                         prgCmds[0].cmdf = (int)Constants.MSOCMDF_ENABLED | (int)Constants.MSOCMDF_SUPPORTED;
                         return VSConstants.S_OK;
+                    }
+
+                    if ((uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_STOP_HIDING_CURRENT)
+                    {
+                        return (int)Constants.MSOCMDERR_E_DISABLED;
                     }
                 }
             }
@@ -107,6 +120,17 @@ namespace Microsoft.PSharp.VisualStudio
             if (VsShellUtilities.IsInAutomationFunction(this.Provider.ServiceProvider))
             {
                 return this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            }
+
+            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_STOP_HIDING_ALL
+                || nCmdID == (uint)VSConstants.VSStd2KCmdID.OUTLN_START_AUTOHIDING)
+            {
+                var hr = this.NextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                if (hr == VSConstants.S_OK)
+                {
+                    this.outliningIsStopped = !this.outliningIsStopped;
+                }
+                return hr;
             }
 
             // Make sure the input is a char before getting it.
