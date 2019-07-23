@@ -20,10 +20,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         public ulong SrcId;
 
-        /// <summary>
-        /// The step this was sent at
-        /// </summary>
-        public int SendStep;
+        // /// <summary>
+        // /// The step this was sent at
+        // /// </summary>
+        // private int SendStep; // public
 
         /// <summary>
         /// A hash representing the EventInfo.
@@ -35,12 +35,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         /// <param name="evt">The event</param>
         /// <param name="srcId">The Id of the sender</param>
-        /// <param name="sendStep">The stepIndex</param>
-        public ProgramStepEventInfo(Event evt, ulong srcId, int sendStep)
+        public ProgramStepEventInfo(Event evt, ulong srcId) // , int sendStep)
         {
             this.Event = evt;
             this.SrcId = srcId;
-            this.SendStep = sendStep;
+            // this.SendStep = sendStep;
         }
     }
 }

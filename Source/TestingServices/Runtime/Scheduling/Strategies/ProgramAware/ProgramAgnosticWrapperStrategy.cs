@@ -83,12 +83,21 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, EventInfo eventInfo, Event e)
+        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e)
         {
         }
 
-        public void RecordReceiveEvent(Machine machine, Event evt, EventInfo eventInfo)
+        public void RecordStartMachine(Machine machine, Event initialEvent)
         {
+        }
+
+        public void RecordReceiveEvent(Machine machine, Event e)
+        {
+        }
+
+        public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
+        {
+            // Do Nothing
         }
 
         public void RecordNonDetBooleanChoice(bool boolChoice)
@@ -114,15 +123,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             return null;
         }
 
-        public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
-        {
-            // Do Nothing
-        }
-
-        public void RecordStartMachine(Machine machine, Event evt, EventInfo initialEvent)
-        {
-            // Do nothing
-        }
 #if false
         public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo)
         {

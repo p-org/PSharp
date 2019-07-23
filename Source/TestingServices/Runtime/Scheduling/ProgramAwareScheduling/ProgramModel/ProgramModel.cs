@@ -18,10 +18,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal ProgramStep Rootstep;
         internal IProgramStep ActiveStep;
         internal List<IProgramStep> OrderedSteps;
-
+        private readonly Dictionary<Event, IProgramStep> PendingEventToSendStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToCreateStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLastStep;
-        private readonly Dictionary<int, IProgramStep> SendIndexToSendStep;
+        // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
 
         private readonly Dictionary<Type, IProgramStep> MonitorTypeToLatestSendTo;
@@ -30,7 +30,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             this.MachineIdToCreateStep = new Dictionary<ulong, IProgramStep>();
             this.MachineIdToLastStep = new Dictionary<ulong, IProgramStep>();
-            this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
+            // this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
+            this.PendingEventToSendStep = new Dictionary<Event, IProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, IProgramStep>();
             this.MonitorTypeToLatestSendTo = new Dictionary<Type, IProgramStep>();
 
@@ -62,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         break;
 
                     case AsyncOperationType.Send:
-                        this.SendIndexToSendStep[programStep.EventInfo.SendStep] = programStep;
+                        this.PendingEventToSendStep[programStep.EventInfo.Event] = programStep;
                         if (this.MachineIdToLatestSendTo.ContainsKey(programStep.TargetId))
                         {
                             SetInboxOrderingRelation( this.MachineIdToLatestSendTo[programStep.TargetId], programStep);
@@ -72,8 +73,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         break;
 
                     case AsyncOperationType.Receive:
-                        IProgramStep sendStep = this.SendIndexToSendStep[programStep.EventInfo.SendStep];
+                        IProgramStep sendStep = this.FindSendStep(programStep);
                         SetCreatedRelation(sendStep, programStep);
+                        this.PendingEventToSendStep.Remove(sendStep.EventInfo.Event);
                         break;
 
                     case AsyncOperationType.Start:
@@ -85,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             else if (programStep.ProgramStepType == ProgramStepType.NonDetBoolStep
                 || programStep.ProgramStepType == ProgramStepType.NonDetIntStep)
             {
-                // Do nothing special
+                SetMachineThreadRelation(this.MachineIdToLastStep[programStep.SrcId], programStep);
             }
 
             if (programStep.OpType != AsyncOperationType.Start &&
@@ -122,6 +124,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.MonitorTypeToLatestSendTo[monitorType] = this.ActiveStep;
         }
 
+        private IProgramStep FindSendStep(IProgramStep receiveStep)
+        {
+            if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo.Event, out IProgramStep sendStep))
+            {
+                throw new ArgumentException("The specified event was not found in the pending set");
+            }
+
+            return sendStep;
+        }
+
         private void AppendStepToTotalOrdering(IProgramStep programStep)
         {
             programStep.TotalOrderingIndex = this.OrderedSteps.Count;
@@ -148,8 +160,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private static void SetMonitorCommunicationRelation(IProgramStep prevStep, IProgramStep currentStep)
         {
-            prevStep.NextMonitorStep = currentStep;
-            currentStep.PrevMonitorStep = prevStep;
+            if (prevStep == currentStep)
+            {
+                return;
+            }
+
+            if (prevStep.NextMonitorSteps == null)
+            {
+                prevStep.NextMonitorSteps = new List<IProgramStep>();
+            }
+
+            prevStep.NextMonitorSteps.Add(currentStep);
+
+            if (currentStep.PrevMonitorSteps == null)
+            {
+                currentStep.PrevMonitorSteps = new List<IProgramStep>();
+            }
+
+            currentStep.PrevMonitorSteps.Add(prevStep);
         }
 
         internal string SerializeProgramTrace()

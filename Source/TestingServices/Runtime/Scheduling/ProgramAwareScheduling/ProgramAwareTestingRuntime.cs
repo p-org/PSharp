@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
         protected override void NotifyMachineStart(Machine machine, Event initialEvent)
         {
-            this.ProgramAwareStrategy.RecordStartMachine(machine, initialEvent, (initialEvent == null) ? null : CreateStandardizedEventInfo(null, initialEvent));
+            this.ProgramAwareStrategy.RecordStartMachine(machine, initialEvent);
         }
 
         protected override EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             EnqueueStatus enqueueStatus = base.EnqueueEvent(target, e, sender, opGroupId, options, out targetMachine, out eventInfo);
 
             // Record the Send.
-
+#if DO_WE_USE_STANDARDIZED_EVENT_INFO_NO_WE_DONT
             EventInfo standardizedEventInfo = null;
             if (eventInfo == null)
             {
@@ -49,8 +49,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 standardizedEventInfo = eventInfo;
             }
-
-            this.ProgramAwareStrategy.RecordSendEvent(sender, target, standardizedEventInfo, e);
+#endif
+            this.ProgramAwareStrategy.RecordSendEvent(sender, target, e);
 
             return enqueueStatus;
         }
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
             base.NotifyDequeuedEvent(machine, e, eventInfo);
-            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo);
+            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e);
         }
 
         // Non-det choices

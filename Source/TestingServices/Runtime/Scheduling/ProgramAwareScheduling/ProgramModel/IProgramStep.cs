@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
-
+using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
@@ -79,13 +79,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         int? IntChoice { get; }
 
-        // // Methods to create steps
-        // IProgramStep CreateSchedulableStep(IAsyncOperation op);
-
-        // IProgramStep CreateNonDetBoolChoice(bool boolChoice);
-
-        // IProgramStep CreateNonDetIntChoice(int intChoice);
-
         // Children
 
         /// <summary>
@@ -107,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// For a step which invoked a monitor, the next (in the totally-ordered schedule) step which invoked the same monitor.
         /// </summary>
-        IProgramStep NextMonitorStep { get; set; }
+        List<IProgramStep> NextMonitorSteps { get; set; }
 
         // Parents
 
@@ -127,9 +120,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         IProgramStep PrevEnqueuedStep { get; set; } // TODO: Is this needed?
 
         /// <summary>
-        /// The reverse of <see cref="NextMonitorStep"/>
+        /// The reverse of <see cref="NextMonitorSteps"/>
         /// </summary>
-        IProgramStep PrevMonitorStep { get; set; }
+        List<IProgramStep> PrevMonitorSteps { get; set; }
 
         /// <summary>
         /// A Signature which can be compared to other Signatures.
@@ -141,5 +134,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// The step-index in the totally-ordered actual execution of the program.
         /// </summary>
         int TotalOrderingIndex { get; set; }
+
+        /// <summary>
+        /// Creates a copy of this step, but with no edges, signature or totalOrderingIndex set.
+        /// </summary>
+        /// <returns>A copy of this step</returns>
+        IProgramStep Clone();
     }
 }

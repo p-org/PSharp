@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.TestingClientInterface
 {
     public abstract class AbstractStrategyController : IStrategyController
     {
-        internal ISchedulingStrategy ActiveStrategy;
+        protected internal ISchedulingStrategy ActiveStrategy;
         protected internal readonly Configuration Configuration;
 
         public AbstractStrategyController(Configuration config)
@@ -37,11 +37,13 @@ namespace Microsoft.PSharp.TestingClientInterface
             // Noooope. Let's not give a Configuration object to the programmer.
             if (this.StrategyPrepareForNextIteration(out nextStrategy, out int maxSteps))
             {
+                this.ActiveStrategy = nextStrategy;
                 this.Configuration.MaxSchedulingSteps = maxSteps;
                 return true;
             }
             else
             {
+                this.ActiveStrategy = null;
                 return false;
             }
         }

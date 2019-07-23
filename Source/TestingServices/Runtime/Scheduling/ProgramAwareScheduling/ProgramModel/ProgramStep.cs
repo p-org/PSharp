@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
@@ -16,9 +17,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
     public class ProgramStep : IProgramStep
     {
         // Main info
-        internal AsyncOperationType OpType;
-        internal ulong SrcId;       // TODO: Should this be Machine instead? For more info
-        internal ulong TargetId;    // TODO: Should this be Machine instead? For more info
+        internal readonly AsyncOperationType OpType;
+        internal readonly ulong SrcId;       // TODO: Should this be Machine instead? For more info
+        internal readonly ulong TargetId;    // TODO: Should this be Machine instead? For more info
         internal ProgramStepEventInfo EventInfo;
 
         internal IProgramStepSignature Signature;
@@ -26,16 +27,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private readonly bool? BooleanChoice;
         private readonly int? IntChoice;
 
+        // No need to complicate the edge types
         // Children
-        private ProgramStep NextMachineStep;
-        private ProgramStep CreatedStep;
-        private ProgramStep NextEnqeuedStep; // Only set for receive steps
-        private ProgramStep NextMonitorStep;
+        private IProgramStep NextMachineStep;
+        private IProgramStep CreatedStep;
+        private IProgramStep NextEnqeuedStep; // Only set for receive steps
+        private List<IProgramStep> NextMonitorSteps;
 
-        private ProgramStep CreatorStep;
-        private ProgramStep PrevMachineStep;
-        private ProgramStep PrevEnqueuedStep; // Only set for receive steps
-        private ProgramStep PrevMonitorStep;
+        private IProgramStep CreatorStep;
+        private IProgramStep PrevMachineStep;
+        private IProgramStep PrevEnqueuedStep; // Only set for receive steps
+        private List<IProgramStep> PrevMonitorSteps;
 
         // Extra info
         internal readonly ProgramStepType ProgramStepType;
@@ -63,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.NextEnqueuedStep { get => this.NextEnqeuedStep; set => this.NextEnqeuedStep = value as ProgramStep; }
 
-        IProgramStep IProgramStep.NextMonitorStep { get => this.NextMonitorStep; set => this.NextMonitorStep = value as ProgramStep; }
+        List<IProgramStep> IProgramStep.NextMonitorSteps { get => this.NextMonitorSteps; set => this.NextMonitorSteps = value as List<IProgramStep>; }
 
         IProgramStep IProgramStep.PrevMachineStep { get => this.PrevMachineStep; set => this.PrevMachineStep = value as ProgramStep; }
 
@@ -71,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.PrevEnqueuedStep { get => this.PrevEnqueuedStep; set => this.PrevEnqueuedStep = value as ProgramStep; }
 
-        IProgramStep IProgramStep.PrevMonitorStep { get => this.PrevMonitorStep; set => this.PrevMonitorStep = value as ProgramStep; }
+        List<IProgramStep> IProgramStep.PrevMonitorSteps { get => this.PrevMonitorSteps; set => this.PrevMonitorSteps = value as List<IProgramStep>; }
 
         IProgramStepSignature IProgramStep.Signature { get => this.Signature; set => this.Signature = value; }
 
@@ -131,17 +133,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Initializes a new instance of the <see cref="ProgramStep"/> class.
         /// For those special steps
         /// </summary>
-        private ProgramStep()
+        private ProgramStep(ulong srcId, bool? boolChoice, int? intChoice)
         {
             this.ProgramStepType = ProgramStepType.SpecialProgramStepType;
             // this.Operation = null;
-            this.BooleanChoice = null;
-            this.BooleanChoice = null;
+            this.SrcId = srcId;
+            this.BooleanChoice = boolChoice;
+            this.IntChoice = intChoice;
         }
 
         internal static ProgramStep CreateSpecialProgramStep()
         {
-            return new ProgramStep();
+            return new ProgramStep(0, null, null);
+        }
+
+        internal static ProgramStep CreateSpecialProgramStep(ulong srcId, bool? boolChoice, int? intChoice )
+        {
+            ProgramStep step = new ProgramStep(srcId, boolChoice, intChoice);
+            return step;
         }
 
         /// <inheritdoc/>
@@ -158,6 +167,36 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 default:
                     return $"[{this.TotalOrderingIndex}:{this.ProgramStepType}:{base.ToString()}]";
             }
+        }
+
+        /// <summary>
+        /// Creates a copy of this step, but with no edges set.
+        /// </summary>
+        /// <returns>A copy of this step</returns>
+        public IProgramStep Clone()
+        {
+            ProgramStep newStep = null;
+            switch (this.ProgramStepType)
+            {
+                case ProgramStepType.SchedulableStep:
+                    newStep = new ProgramStep(this.OpType, this.SrcId, this.TargetId, this.EventInfo);
+                    break;
+                case ProgramStepType.NonDetBoolStep:
+                    newStep = new ProgramStep(this.SrcId, (bool)this.BooleanChoice);
+                    break;
+                case ProgramStepType.NonDetIntStep:
+                    newStep = new ProgramStep(this.SrcId, (int)this.IntChoice);
+                    break;
+                case ProgramStepType.SpecialProgramStepType:
+                    newStep = CreateSpecialProgramStep(this.SrcId, this.BooleanChoice, this.IntChoice);
+                    break;
+            }
+
+            // Fields that may be more complicated
+            newStep.Signature = null;
+            newStep.TotalOrderingIndex = 0;
+
+            return newStep;
         }
     }
 }

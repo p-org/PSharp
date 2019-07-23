@@ -36,23 +36,5 @@ namespace Microsoft.PSharp.TestingClientInterface
 
             // k
         }
-
-        ///// <summary>
-        ///// Handler for unhandled exceptions.
-        ///// </summary>
-        // private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
-        // {
-        //    var ex = (Exception)args.ExceptionObject;
-        //    IO.Error.Report("[PSharpTester] internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
-        //    IO.Output.WriteLine(ex.StackTrace);
-        //    Environment.Exit(1);
-        // }
-
-        public class InitialConfigurationOptions
-        {
-            public int SchedulingIterations;
-            public bool EnableLivenessChecking;
-            // More will be added as we support them
-        }
     }
 }
