@@ -32,12 +32,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private IProgramStep NextMachineStep;
         private IProgramStep CreatedStep;
         private IProgramStep NextEnqeuedStep; // Only set for receive steps
-        private List<IProgramStep> NextMonitorSteps;
+        private Dictionary<Type, IProgramStep> NextMonitorSteps;
 
         private IProgramStep CreatorStep;
         private IProgramStep PrevMachineStep;
         private IProgramStep PrevEnqueuedStep; // Only set for receive steps
-        private List<IProgramStep> PrevMonitorSteps;
+        private Dictionary<Type, IProgramStep> PrevMonitorSteps;
 
         // Extra info
         internal readonly ProgramStepType ProgramStepType;
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.NextEnqueuedStep { get => this.NextEnqeuedStep; set => this.NextEnqeuedStep = value as ProgramStep; }
 
-        List<IProgramStep> IProgramStep.NextMonitorSteps { get => this.NextMonitorSteps; set => this.NextMonitorSteps = value as List<IProgramStep>; }
+        Dictionary<Type, IProgramStep> IProgramStep.NextMonitorSteps { get => this.NextMonitorSteps; set => this.NextMonitorSteps = value as Dictionary<Type, IProgramStep>; }
 
         IProgramStep IProgramStep.PrevMachineStep { get => this.PrevMachineStep; set => this.PrevMachineStep = value as ProgramStep; }
 
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         IProgramStep IProgramStep.PrevEnqueuedStep { get => this.PrevEnqueuedStep; set => this.PrevEnqueuedStep = value as ProgramStep; }
 
-        List<IProgramStep> IProgramStep.PrevMonitorSteps { get => this.PrevMonitorSteps; set => this.PrevMonitorSteps = value as List<IProgramStep>; }
+        Dictionary<Type, IProgramStep> IProgramStep.PrevMonitorSteps { get => this.PrevMonitorSteps; set => this.PrevMonitorSteps = value as Dictionary<Type, IProgramStep>; }
 
         IProgramStepSignature IProgramStep.Signature { get => this.Signature; set => this.Signature = value; }
 

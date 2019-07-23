@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
@@ -100,7 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// For a step which invoked a monitor, the next (in the totally-ordered schedule) step which invoked the same monitor.
         /// </summary>
-        List<IProgramStep> NextMonitorSteps { get; set; }
+        Dictionary<Type, IProgramStep> NextMonitorSteps { get; set; }
 
         // Parents
 
@@ -122,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// The reverse of <see cref="NextMonitorSteps"/>
         /// </summary>
-        List<IProgramStep> PrevMonitorSteps { get; set; }
+        Dictionary<Type, IProgramStep> PrevMonitorSteps { get; set; }
 
         /// <summary>
         /// A Signature which can be compared to other Signatures.

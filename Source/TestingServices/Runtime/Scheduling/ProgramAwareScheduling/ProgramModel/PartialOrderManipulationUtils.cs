@@ -53,16 +53,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
                 if (oldStep.NextMonitorSteps != null)
                 {
-                    newStep.NextMonitorSteps = new List<IProgramStep>();
-                    foreach (IProgramStep onms in oldStep.NextMonitorSteps)
+                    newStep.NextMonitorSteps = new Dictionary<Type, IProgramStep>();
+                    foreach (KeyValuePair<Type, IProgramStep> kp in oldStep.NextMonitorSteps)
                     {
-                        newStep.NextMonitorSteps.Add(oldToNew[onms]);
-                        if (oldToNew[onms].PrevMonitorSteps == null)
+                        newStep.NextMonitorSteps.Add(kp.Key, oldToNew[kp.Value]);
+                        if (oldToNew[kp.Value].PrevMonitorSteps == null)
                         {
-                            oldToNew[onms].PrevMonitorSteps = new List<IProgramStep>();
+                            oldToNew[kp.Value].PrevMonitorSteps = new Dictionary<Type, IProgramStep>();
                         }
 
-                        oldToNew[onms].PrevMonitorSteps.Add(newStep);
+                        oldToNew[kp.Value].PrevMonitorSteps.Add(kp.Key, newStep);
                     }
                 }
             }
@@ -129,6 +129,32 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             return cnt;
+        }
+
+        /// <summary>
+        /// Returns a set of nodes in the subtree
+        /// </summary>
+        /// <param name="root">The root of the subtree</param>
+        /// <returns>A hashset containing all nodes in the subtree</returns>
+        public static HashSet<IProgramStep> GetStepsInSubtree(IProgramStep root)
+        {
+            HashSet<IProgramStep> stepsInSubtree = new HashSet<IProgramStep>();
+            GetStepsInSubtree(root, stepsInSubtree);
+            return stepsInSubtree;
+        }
+
+        private static void GetStepsInSubtree(IProgramStep at, HashSet<IProgramStep> stepsInSubtree)
+        {
+            stepsInSubtree.Add(at);
+            if (at.CreatedStep != null)
+            {
+                GetStepsInSubtree(at.CreatedStep, stepsInSubtree);
+            }
+
+            if (at.NextMachineStep != null)
+            {
+                GetStepsInSubtree(at.NextMachineStep, stepsInSubtree);
+            }
         }
     }
 }

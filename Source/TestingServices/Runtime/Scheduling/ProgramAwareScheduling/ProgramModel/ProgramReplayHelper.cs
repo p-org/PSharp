@@ -150,9 +150,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return step == null || this.SeenSteps.Contains(step);
         }
 
-        private bool NullOrSeenAll(List<IProgramStep> steps)
+        private bool NullOrSeenAll(Dictionary<Type, IProgramStep> steps)
         {
-            return steps == null || steps.All( s => this.SeenSteps.Contains(s));
+            return steps == null || steps.All( s => this.SeenSteps.Contains(s.Value));
         }
 
         /// <summary>

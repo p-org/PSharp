@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (this.MonitorTypeToLatestSendTo.ContainsKey(monitorType))
             {
-                SetMonitorCommunicationRelation(this.MonitorTypeToLatestSendTo[monitorType], this.ActiveStep);
+                SetMonitorCommunicationRelation(this.MonitorTypeToLatestSendTo[monitorType], this.ActiveStep, monitorType);
             }
 
             this.MonitorTypeToLatestSendTo[monitorType] = this.ActiveStep;
@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             child.PrevEnqueuedStep = parent;
         }
 
-        private static void SetMonitorCommunicationRelation(IProgramStep prevStep, IProgramStep currentStep)
+        private static void SetMonitorCommunicationRelation(IProgramStep prevStep, IProgramStep currentStep, Type monitorType)
         {
             if (prevStep == currentStep)
             {
@@ -167,17 +167,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (prevStep.NextMonitorSteps == null)
             {
-                prevStep.NextMonitorSteps = new List<IProgramStep>();
+                prevStep.NextMonitorSteps = new Dictionary<Type, IProgramStep>();
             }
 
-            prevStep.NextMonitorSteps.Add(currentStep);
+            prevStep.NextMonitorSteps.Add(monitorType, currentStep);
 
             if (currentStep.PrevMonitorSteps == null)
             {
-                currentStep.PrevMonitorSteps = new List<IProgramStep>();
+                currentStep.PrevMonitorSteps = new Dictionary<Type, IProgramStep>();
             }
 
-            currentStep.PrevMonitorSteps.Add(prevStep);
+            currentStep.PrevMonitorSteps.Add(monitorType, prevStep);
         }
 
         internal string SerializeProgramTrace()

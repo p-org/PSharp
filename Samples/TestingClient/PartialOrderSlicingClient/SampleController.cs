@@ -21,7 +21,9 @@ namespace PartialOrderSlicingClient
 
             Initial,
             ReplayingTrace,
+            ReplayingPartialOrder,
             ReplayingSliced,
+
             Success
         }
 
@@ -44,23 +46,31 @@ namespace PartialOrderSlicingClient
             return "Ended up in state: " + this.CurrentState;
         }
 
-        private static AbstractBaseProgramModelStrategy HAX_OLDSTRATEGY;
         public override void NotifySchedulingEnded(bool bugFound)
         {
             switch (this.CurrentState)
             {
                 case ControllerState.ReplayingTrace:
                     if (bugFound)
-                    {
-                        HAX_OLDSTRATEGY = (AbstractBaseProgramModelStrategy)this.ActiveStrategy;
-                        
-                        this.PartialOrderRoot = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetRootStep(); // PartialOrderManipulationUtils.ClonePartialOrderFromProgramModelBasedStrategy(this.ActiveStrategy);
-                        Console.WriteLine("PO SIZE: " + PartialOrderManipulationUtils.CountTreeSize(this.PartialOrderRoot));
-                        this.CurrentState = ControllerState.ReplayingSliced;
+                    {   
+                        this.PartialOrderRoot = PartialOrderManipulationUtils.ClonePartialOrderFromProgramModelBasedStrategy(this.ActiveStrategy);
+                        this.CurrentState = ControllerState.ReplayingPartialOrder;
                     }
                     else
                     {
                         Microsoft.PSharp.IO.Error.Report("Could not reproduce bug from trace");
+                        this.CurrentState = ControllerState.Failed;
+                    }
+                    break;
+
+                case ControllerState.ReplayingPartialOrder:
+                    if (bugFound)
+                    {
+                        this.CurrentState = ControllerState.ReplayingSliced;
+                    }
+                    else
+                    {
+                        Microsoft.PSharp.IO.Error.Report("Could not reproduce bug from partial order");
                         this.CurrentState = ControllerState.Failed;
                     }
                     break;
@@ -72,10 +82,11 @@ namespace PartialOrderSlicingClient
                     }
                     else
                     {
-                        Microsoft.PSharp.IO.Error.Report("Could not reproduce bug from trace");
+                        Microsoft.PSharp.IO.Error.Report("Could not reproduce bug from partial order");
                         this.CurrentState = ControllerState.Failed;
                     }
                     break;
+
                 default:
                     Microsoft.PSharp.IO.Error.Report("Controller reached unexpected state");
                     this.CurrentState = ControllerState.Failed;
@@ -101,8 +112,13 @@ namespace PartialOrderSlicingClient
                     nextStrategy = TestingClientUtils.CreateBasicProgramModelBasedStrategy(TestingClientUtils.CreateReplayStrategy(this.Configuration, this.ScheduleIsFair, this.ScheduleDump));
                     break;
 
-                case ControllerState.ReplayingSliced:
+                case ControllerState.ReplayingPartialOrder:
                     nextStrategy = new ProgramGraphReplayStrategy(this.PartialOrderRoot, this.ScheduleIsFair);
+                    break;
+
+                case ControllerState.ReplayingSliced:
+                    IProgramStep SlicedPartialOrderRoot = SlicePartialOrder(this.PartialOrderRoot);
+                    nextStrategy = new ProgramGraphReplayStrategy(SlicedPartialOrderRoot, this.ScheduleIsFair);
                     break;
 
                 case ControllerState.Failed:
@@ -121,6 +137,12 @@ namespace PartialOrderSlicingClient
             {
                 return true;
             }
+        }
+
+        private static IProgramStep SlicePartialOrder(IProgramStep partialOrderRoot)
+        {
+            // TODO: The slicing
+            return PartialOrderManipulationUtils.ClonePartialOrder(partialOrderRoot);
         }
 
         public override void StrategyReset()
