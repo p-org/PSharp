@@ -3,7 +3,7 @@ using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingClientInterface;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware;
-using Microsoft.PSharp.TestingServices.Scheduling.ClientInterface;
+using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using System;
 using System.Collections.Generic;
@@ -31,8 +31,9 @@ namespace PartialOrderSlicingClient
 
         private string[] ScheduleDump;
         private bool ScheduleIsFair;
-
+        private IProgramStep OriginalReplayPartialOrder;
         private IProgramStep PartialOrderRoot;
+        private IProgramStep BugTriggeringStep;
 
         public PartialOrderSliceController(Configuration configuration, string replayTraceFile)
             : base(configuration)
@@ -52,8 +53,15 @@ namespace PartialOrderSlicingClient
             {
                 case ControllerState.ReplayingTrace:
                     if (bugFound)
-                    {   
-                        this.PartialOrderRoot = PartialOrderManipulationUtils.ClonePartialOrderFromProgramModelBasedStrategy(this.ActiveStrategy);
+                    {
+                        this.OriginalReplayPartialOrder = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetRootStep();
+                        IProgramStep bugTriggeringStep = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetBugTriggeringStep();
+
+                        this.PartialOrderRoot = PartialOrderManipulationUtils.ClonePartialOrder(this.OriginalReplayPartialOrder,
+                            new List<IProgramStep> { bugTriggeringStep },
+                            out Dictionary<IProgramStep, IProgramStep> stepMap);
+                        this.BugTriggeringStep = stepMap[bugTriggeringStep];
+
                         this.CurrentState = ControllerState.ReplayingPartialOrder;
                     }
                     else
@@ -117,7 +125,7 @@ namespace PartialOrderSlicingClient
                     break;
 
                 case ControllerState.ReplayingSliced:
-                    IProgramStep SlicedPartialOrderRoot = SlicePartialOrder(this.PartialOrderRoot);
+                    IProgramStep SlicedPartialOrderRoot = SlicePartialOrder(this.PartialOrderRoot, this.BugTriggeringStep);
                     nextStrategy = new ProgramGraphReplayStrategy(SlicedPartialOrderRoot, this.ScheduleIsFair);
                     break;
 
@@ -139,15 +147,98 @@ namespace PartialOrderSlicingClient
             }
         }
 
-        private static IProgramStep SlicePartialOrder(IProgramStep partialOrderRoot)
+        private static IProgramStep SlicePartialOrder(IProgramStep partialOrderRoot, IProgramStep bugTriggeringStep)
         {
             // TODO: The slicing
-            return PartialOrderManipulationUtils.ClonePartialOrder(partialOrderRoot);
+            IProgramStep newRoot = PartialOrderManipulationUtils.ClonePartialOrder(partialOrderRoot, new List<IProgramStep> { bugTriggeringStep }, out Dictionary<IProgramStep, IProgramStep> stepsMap);
+            IProgramStep newBugTriggeringStep = stepsMap[bugTriggeringStep];
+
+            List<IProgramStep> slicableSteps = FindNonSourceSteps(newRoot, newBugTriggeringStep);
+
+            foreach (IProgramStep slicableStep in slicableSteps)
+            {
+                PartialOrderManipulationUtils.SliceStep(slicableStep);
+                // PartialOrderManipulationUtils.SliceSubtree(slicableStep);
+            }
+
+            return newRoot;
         }
 
         public override void StrategyReset()
         {
             this.ActiveStrategy.Reset();
+        }
+
+        private static List<IProgramStep> FindNonSourceSteps(IProgramStep at, IProgramStep sink)
+        {
+            List<IProgramStep> slicableSteps = new List<IProgramStep>();
+            FindNonSourceStepsImpl(at, sink, slicableSteps, new Dictionary<IProgramStep, bool>());
+            return slicableSteps;
+        }
+
+        // Returns true if reachable
+        private static bool FindNonSourceStepsImpl(IProgramStep at, IProgramStep sink, /*out*/ List<IProgramStep> slicableSteps, Dictionary<IProgramStep, bool> cache)
+        {
+            // base case
+            if (at == sink)
+            {
+                return true;
+            }
+
+            if (cache.ContainsKey(at))
+            {
+                return cache[at];
+            }
+
+            HashSet<IProgramStep> nonReaching = new HashSet<IProgramStep>();
+            HashSet<IProgramStep> children = new HashSet<IProgramStep> { at.NextMachineStep, at.CreatedStep };
+            if (at.NextMonitorSteps != null)
+            {
+                at.NextMonitorSteps.Select(s => children.Add(s.Value));
+            }
+
+            if (at.NextMachineStep == null)
+            {
+                children.Add(GetNextHandlerStart(at));
+            }
+
+            children.Remove(null);
+
+            foreach (IProgramStep child in children)
+            {
+                if (!FindNonSourceStepsImpl(child, sink, slicableSteps, cache)){
+                    nonReaching.Add(child);
+                }
+            }
+
+
+            bool anythingReaches = children.Count > nonReaching.Count;
+            if (anythingReaches && nonReaching.Count > 0)
+            {
+                // Everything in non-reaching are the highest points which can be sliced.
+                slicableSteps.AddRange(nonReaching);
+            }
+
+            cache.Add(at, anythingReaches);
+            return anythingReaches;
+        }
+
+        private static IProgramStep GetNextHandlerStart(IProgramStep step)
+        {
+            while (step.PrevMachineStep != null)
+            {
+                step = step.PrevMachineStep;
+            }
+
+            // Avoid those nasty SpecialProgramStep pit-falls
+            if (step.ProgramStepType == ProgramStepType.SchedulableStep)
+            {
+                return step.CreatorParent.NextEnqueuedStep?.CreatedStep ?? null;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

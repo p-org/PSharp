@@ -70,6 +70,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         public override void NotifySchedulingEnded(bool bugFound)
         {
+            base.NotifySchedulingEnded(bugFound);
             this.ComputeStepSignatures();
             this.EnumerateDTuples();
 

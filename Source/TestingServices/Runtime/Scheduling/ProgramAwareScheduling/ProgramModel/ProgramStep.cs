@@ -194,7 +194,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             // Fields that may be more complicated
             newStep.Signature = null;
-            newStep.TotalOrderingIndex = 0;
+
+            // HAX: Easy debugging
+            newStep.TotalOrderingIndex = this.TotalOrderingIndex; // = 0;
 
             return newStep;
         }

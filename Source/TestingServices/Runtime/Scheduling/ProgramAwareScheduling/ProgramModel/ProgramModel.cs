@@ -18,13 +18,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal ProgramStep Rootstep;
         internal IProgramStep ActiveStep;
         internal List<IProgramStep> OrderedSteps;
+
         private readonly Dictionary<Event, IProgramStep> PendingEventToSendStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToCreateStep;
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLastStep;
         // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
-
         private readonly Dictionary<Type, IProgramStep> MonitorTypeToLatestSendTo;
+
+        internal IProgramStep BugTriggeringStep;
 
         internal ProgramModel()
         {
@@ -60,6 +62,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 {
                     case AsyncOperationType.Create:
                         this.MachineIdToCreateStep.Add(programStep.TargetId, programStep);
+
+                        // A harmless hack
+                        this.MachineIdToLatestSendTo[programStep.TargetId] = programStep;
                         break;
 
                     case AsyncOperationType.Send:
@@ -122,6 +127,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             this.MonitorTypeToLatestSendTo[monitorType] = this.ActiveStep;
+        }
+
+        internal void RecordSchedulingEnded(bool bugFound, bool isLivenessBug)
+        {
+            // TODO: This is just to use the argument
+            isLivenessBug = false;
+            if (bugFound)
+            {
+                this.BugTriggeringStep = this.OrderedSteps[this.OrderedSteps.Count - 1];
+            }
         }
 
         private IProgramStep FindSendStep(IProgramStep receiveStep)

@@ -89,10 +89,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             return this.ChildStrategy.GetNextIntegerChoice(maxValue, out next);
         }
-
-        public override void NotifySchedulingEnded(bool bugFound)
-        {
-            // Do nothing
-        }
     }
 }

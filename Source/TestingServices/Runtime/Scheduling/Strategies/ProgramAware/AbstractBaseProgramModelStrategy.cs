@@ -100,6 +100,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             return this.ProgramModel.Rootstep;
         }
 
+        /// <summary>
+        /// Not sure whether this should work.
+        /// </summary>
+        /// <returns>The program model</returns>
+        public IProgramStep GetBugTriggeringStep()
+        {
+            return this.ProgramModel.BugTriggeringStep;
+        }
+
         /// <inheritdoc/>
         public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
 
@@ -179,8 +188,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.ProgramModel.RecordMonitorEvent(monitorType, sender);
         }
 
-        /// <inheritdoc/>
-        public abstract void NotifySchedulingEnded(bool bugFound);
+        /// <summary>
+        /// Called at the end of a scheduling iteration.
+        /// Please explicitly call base.NotifySchedulingEnded if you override.
+        /// </summary>
+        /// <param name="bugFound">Was bug found in this run</param>
+        public virtual void NotifySchedulingEnded(bool bugFound)
+        {
+            // TODO: Liveness bugs.
+            this.ProgramModel.RecordSchedulingEnded(bugFound, false);
+        }
 
         /// <inheritdoc/>
         public string GetProgramTrace()

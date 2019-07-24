@@ -95,6 +95,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         /// <summary>
         /// For send steps, the Step which enqueues the message right after the message this step enqueued ( in the same inbox )
+        /// For a create step, this is the step which first enqueues into the created machine.
         /// </summary>
         IProgramStep NextEnqueuedStep { get; set; } // TODO: Is this needed?
 
