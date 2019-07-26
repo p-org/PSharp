@@ -9,16 +9,4 @@
     <OldToolsVersion>15.0</OldToolsVersion>
     <ProjectGuid>{8BB04FFD-4271-4745-886B-2385209B2F55}</ProjectGuid>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>net46</TargetFrameworks>
-	<!-- netcoreapp2.1; -->
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <RestoreSources>$(RestoreSources);../../../bin/nuget</RestoreSources>
-    <OutputType>Exe</OutputType>
-    <OutputPath>.\bin\</OutputPath>
-  </PropertyGroup>
 </Project>

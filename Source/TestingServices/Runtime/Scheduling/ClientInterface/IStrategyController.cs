@@ -32,6 +32,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.ClientInterface
         string GetReport();
 
         /// <summary>
+        /// Called when the ControlUnitStrategy is being intiialized
+        /// </summary>
+        /// <param name="configuration">The configuration passed to the ControlUnitStrategy</param>
+        /// <param name="nextStrategy">The strategy to be used</param>
+        void Initialize(Configuration configuration, out ISchedulingStrategy nextStrategy);
+
+        /// <summary>
         /// Called when the iteration is done.
         /// </summary>
         /// <param name="bugFound">Was the bug found in this iteration</param>

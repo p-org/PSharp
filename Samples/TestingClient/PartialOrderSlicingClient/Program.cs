@@ -23,6 +23,7 @@ namespace PartialOrderSlicingClient
                 PartialOrderSliceController controller = new PartialOrderSliceController(config, ScheduleFileToReplay);
                 TestingClient testInterface = new TestingClient(controller);
                 testInterface.Run();
+                Microsoft.PSharp.IO.Output.WriteLine(controller.GetReport());
              }
             catch (Exception e)
             {
@@ -36,6 +37,7 @@ namespace PartialOrderSlicingClient
             Configuration config = AbstractStrategyController.CreateDefaultConfiguration();
 
             config.WithVerbosityEnabled(true);
+            config.EnableDebugging = true;
             config.AssemblyToBeAnalyzed = args[0];
             ScheduleFileToReplay = args[1];
 

@@ -13,17 +13,42 @@ namespace Microsoft.PSharp.TestingClientInterface
     public class TestingClient
     {
         private ITestingEngine TestingEngine;
+        private readonly Action<IMachineRuntime> TestAction;
 
         internal AbstractStrategyController Controller;
 
-        public TestingClient(AbstractStrategyController controller)
+        public int NumBugsFound => this.TestingEngine?.TestReport?.NumOfFoundBugs ?? -1;
+
+        public TestingClient(AbstractStrategyController controller, Action<IMachineRuntime> testAction = null)
         {
             this.Controller = controller;
+            this.TestAction = testAction;
+
+            int cnt = 0;
+            cnt += (this.TestAction != null) ? 1 : 0;
+            cnt += (this.Controller.Configuration.AssemblyToBeAnalyzed.Length > 0) ? 1 : 0;
+
+            if ( cnt != 1)
+            {
+                throw new ArgumentException("Exactly one of Configuration.AssemblyToBeAnalyzed or TestAction must be set");
+            }
         }
 
         public void Initialize()
         {
-            this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(this.Controller.Configuration);
+            if (this.TestAction != null)
+            {
+                this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(this.Controller.Configuration, this.TestAction);
+            }
+            else if (this.Controller.Configuration.AssemblyToBeAnalyzed.Length > 0 )
+            {
+                this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(this.Controller.Configuration);
+            }
+            else
+            {
+                throw new ArgumentException("Exactly one of Configuration.AssemblyToBeAnalyzed or TestAction must be set");
+            }
+
             ((this.TestingEngine as BugFindingEngine).Strategy as ControlUnitStrategy).Initialize(this.Controller);
         }
 
@@ -32,9 +57,6 @@ namespace Microsoft.PSharp.TestingClientInterface
             this.Initialize();
             // Parses the command line options to get the configuration.
             this.TestingEngine.Run();
-            IO.Output.WriteLine(this.Controller.GetReport());
-
-            // k
         }
     }
 }

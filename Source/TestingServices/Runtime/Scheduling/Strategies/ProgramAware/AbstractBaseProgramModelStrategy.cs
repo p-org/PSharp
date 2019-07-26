@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public abstract bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
 
         /// <summary>
-        /// Should be internal
+        /// Returns the root of the partial order
         /// </summary>
         /// <returns>RootStep</returns>
         public IProgramStep GetRootStep()
@@ -101,7 +101,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <summary>
-        /// Not sure whether this should work.
+        /// Returns the steps in order of execution
+        /// </summary>
+        /// <returns>RootStep</returns>
+        public List<IProgramStep> GetSchedule()
+        {
+            return this.ProgramModel.OrderedSteps;
+        }
+
+        /// <summary>
+        /// Returns a mapping of MachineId to Type
+        /// </summary>
+        /// <returns>a mapping of MachineId to Type</returns>
+        public virtual Dictionary<ulong, Type> GetMachineIdToTypeMap()
+        {
+            return this.ProgramModel.MachineIdToType;
+        }
+
+        /// <summary>
+        /// Tells which bug triggered the assertion violation OR caused the monitor to go into hot state
+        /// Hack for now, Only does assertion violation.
         /// </summary>
         /// <returns>The program model</returns>
         public IProgramStep GetBugTriggeringStep()
@@ -122,6 +141,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             ProgramStep createStep = new ProgramStep(AsyncOperationType.Create, creatorMachine?.Id.Value ?? 0, createdMachine.Id.Value, null);
             this.ProgramModel.RecordStep(createStep, this.GetScheduledSteps()); // TODO: Should i do -1?
+            this.ProgramModel.RecordMachineType(createdMachine.Id.Value, createdMachine.GetType());
         }
 
         /// <inheritdoc/>
@@ -199,8 +219,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.ProgramModel.RecordSchedulingEnded(bugFound, false);
         }
 
-        /// <inheritdoc/>
-        public string GetProgramTrace()
+        /// <summary>
+        /// Returns a trace of the program
+        /// </summary>
+        /// <returns>A trace of the program</returns>
+        public virtual string GetProgramTrace()
         {
             return this.ProgramModel.SerializeProgramTrace();
         }
@@ -208,7 +231,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public virtual string GetReport()
         {
-            return null;
+            return string.Empty;
         }
 
         /// <inheritdoc/>

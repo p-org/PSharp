@@ -25,6 +25,15 @@ namespace Microsoft.PSharp.TestingClientInterface
             this.ValidateConfiguration();
         }
 
+        public abstract void Initialize(out ISchedulingStrategy strategy);
+
+        public virtual void Initialize(Configuration configuration, out ISchedulingStrategy nextStrategy)
+        {
+            // Ignore the configuraiton
+            this.Initialize(out nextStrategy);
+            this.ActiveStrategy = nextStrategy;
+        }
+
         public abstract string GetReport();
 
         public abstract void NotifySchedulingEnded(bool bugFound);
@@ -38,7 +47,8 @@ namespace Microsoft.PSharp.TestingClientInterface
             if (this.StrategyPrepareForNextIteration(out nextStrategy, out int maxSteps))
             {
                 this.ActiveStrategy = nextStrategy;
-                this.Configuration.MaxSchedulingSteps = maxSteps;
+                this.Configuration.MaxUnfairSchedulingSteps = maxSteps;
+                this.Configuration.MaxFairSchedulingSteps = 10 * maxSteps;
                 return true;
             }
             else
@@ -80,11 +90,6 @@ namespace Microsoft.PSharp.TestingClientInterface
 
         internal void ValidateConfiguration()
         {
-            if (string.IsNullOrEmpty(this.Configuration.AssemblyToBeAnalyzed))
-            {
-                Error.ReportAndExit("Invalid Configuration: AssemblyToBeAnalyzed is empty.");
-            }
-
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.ControlUnit)
             {
                 Error.ReportAndExit("Invalid Configuration: SchedulingStrategy has to be ControlUnit");

@@ -23,11 +23,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void RecordCreateMachine(Machine createdMachine, Machine creatorMachine);
 
         /// <summary>
-        /// Records a executing a Send operation
+        /// Records a monitor event
         /// </summary>
-        /// <param name="machine">The machine receiving the event</param>
-        /// <param name="e">The event</param>
-        void RecordReceiveEvent(Machine machine, Event e);
+        /// <param name="monitorType">The type of monitor invoked</param>
+        /// <param name="sender">The machine which invoked the monitor</param>
+        /// <param name="e">The event used to invoke</param>
+        void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e);
+
+        /// <summary>
+        /// Records the start of a machine.
+        /// </summary>
+        /// <param name="machine">The starting machine</param>
+        /// <param name="initialEvent">The event it was initialized with</param>
+        void RecordStartMachine(Machine machine, Event initialEvent);
 
         /// <summary>
         /// Records a executing a Send operation
@@ -36,6 +44,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <param name="targetMachineId">The recipient machine</param>
         /// <param name="e">The event being sent</param>
         void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e);
+
+        /// <summary>
+        /// Records a executing a Send operation
+        /// </summary>
+        /// <param name="machine">The machine receiving the event</param>
+        /// <param name="e">The event</param>
+        void RecordReceiveEvent(Machine machine, Event e);
 
         // Non-det choices
 
@@ -60,30 +75,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void NotifySchedulingEnded(bool bugFound);
 
         /// <summary>
-        /// Returns a trace of the program
-        /// </summary>
-        /// <returns>A trace of the program</returns>
-        string GetProgramTrace();
-
-        /// <summary>
         /// Return a report of the schedule - use for statistics etc.s
         /// </summary>
         /// <returns>An informative string</returns>
         string GetReport();
-
-        /// <summary>
-        /// Records a monitor event
-        /// </summary>
-        /// <param name="monitorType">The type of monitor invoked</param>
-        /// <param name="sender">The machine which invoked the monitor</param>
-        /// <param name="e">The event used to invoke</param>
-        void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e);
-
-        /// <summary>
-        /// Records the start of a machine.
-        /// </summary>
-        /// <param name="machine">The starting machine</param>
-        /// <param name="initialEvent">The event it was initialized with</param>
-        void RecordStartMachine(Machine machine, Event initialEvent);
     }
 }

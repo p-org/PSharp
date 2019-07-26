@@ -21,6 +21,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     {
         private IStrategyController Controller;
         private ISchedulingStrategy CurrentStrategy;
+        private readonly Configuration Configuration;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ControlUnitStrategy"/> class.
+        /// </summary>
+        public ControlUnitStrategy(Configuration configuration)
+        {
+            this.Configuration = configuration;
+        }
 
         /// <summary>
         /// Sets the Controller to be used when the is eventually createds
@@ -29,17 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         internal void Initialize(IStrategyController controller)
         {
             this.Controller = controller;
-            this.Controller.StrategyPrepareForNextIteration(out this.CurrentStrategy, this.Configuration);
-        }
-
-        public Configuration Configuration { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ControlUnitStrategy"/> class.
-        /// </summary>
-        public ControlUnitStrategy(Configuration configuration)
-        {
-            this.Configuration = configuration;
+            this.Controller.Initialize(this.Configuration, out this.CurrentStrategy);
         }
 
         /// <inheritdoc/>
@@ -109,9 +108,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.NotifySchedulingEnded(bugFound);
             this.Controller.NotifySchedulingEnded(bugFound);
         }
-
-        /// <inheritdoc/>
-        public string GetProgramTrace() => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.GetProgramTrace() ?? null;
 
         /// <inheritdoc/>
         public string GetReport() => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.GetReport() ?? null;

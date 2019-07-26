@@ -25,6 +25,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
         private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
         private readonly Dictionary<Type, IProgramStep> MonitorTypeToLatestSendTo;
+        internal readonly Dictionary<ulong, Type> MachineIdToType;
 
         internal IProgramStep BugTriggeringStep;
 
@@ -36,6 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.PendingEventToSendStep = new Dictionary<Event, IProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, IProgramStep>();
             this.MonitorTypeToLatestSendTo = new Dictionary<Type, IProgramStep>();
+            this.MachineIdToType = new Dictionary<ulong, Type>();
 
             this.OrderedSteps = new List<IProgramStep>();
 
@@ -50,6 +52,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.Rootstep = firstStep;
             this.ActiveStep = this.Rootstep;
             this.MachineIdToLastStep[testHarnessMachineId] = this.Rootstep;
+            this.MachineIdToType[testHarnessMachineId] = typeof(TestHarnessMachine);
 
             this.OrderedSteps.Add(this.Rootstep);
         }
@@ -111,6 +114,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             // This line is only so we don't get an unused parameter error
             stepIndex++;
+        }
+
+        internal void RecordMachineType(ulong machineId, Type type)
+        {
+            this.MachineIdToType.Add(machineId, type);
         }
 
         internal void RecordMonitorEvent(Type monitorType, AsyncMachine sender)

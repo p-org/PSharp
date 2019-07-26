@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="..\..\..\Tools\Testing\TestingClientInterface\TestingClient.build.props" />
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks>netcoreapp2.1;netstandard2.0;net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='UNIX'">
+    <TargetFrameworks>netcoreapp2.1;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>DHitting Testing Client</Description>
+    <AssemblyName>DHittingTestingClient</AssemblyName>
+    <RootNamespace>DHittingTestingClient</RootNamespace>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>15.0</OldToolsVersion>
+    <ProjectGuid>{8BB04FFD-4271-4745-886B-2385209B2F56}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);../../../bin/nuget</RestoreSources>
+    <OutputType>Exe</OutputType>
+    <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net46|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+</Project>

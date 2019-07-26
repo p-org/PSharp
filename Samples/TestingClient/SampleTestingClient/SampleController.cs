@@ -12,7 +12,6 @@ namespace SampleTestingClient
 {
     public class SampleController : AbstractStrategyController
     {
-        internal ISchedulingStrategy ActiveStrategy;
         private int BugCount;
         private int nBugstoStopAt;
         public SampleController(Configuration configuration, int nBugsToStopAt)
@@ -23,7 +22,7 @@ namespace SampleTestingClient
 
             this.nBugstoStopAt = nBugsToStopAt;
         }
-
+        
         public override string GetReport()
         {
             return "SampleController found " + this.BugCount + " bugs";
@@ -39,21 +38,14 @@ namespace SampleTestingClient
             // Does nothing, but you should.
         }
 
-        // public void SetControlUnitStrategy(ControlUnitStrategy controlUnitStrategy)
-        // {
-        //    this.ControlStrategy = controlUnitStrategy;
-        // }
+        public override void Initialize(out ISchedulingStrategy strategy)
+        {
+            strategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps);
+        }
 
         public override bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, out int maxSteps)
         {
-            if (this.ActiveStrategy == null)
-            {
-                this.ActiveStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps);
-            }
-            else
-            {
-                this.ActiveStrategy.PrepareForNextIteration();
-            }
+            this.ActiveStrategy.PrepareForNextIteration();
 
             maxSteps = this.Configuration.MaxFairSchedulingSteps;
 

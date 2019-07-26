@@ -5,11 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware;
-using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 
-namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
+namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling
 {
     /// <summary>
     /// Util functions for partial-order manipulation

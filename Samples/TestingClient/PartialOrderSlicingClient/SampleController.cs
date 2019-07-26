@@ -1,9 +1,9 @@
 ﻿using Microsoft.PSharp;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingClientInterface;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware;
-using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,11 @@ namespace PartialOrderSlicingClient
         {
             this.CurrentState = ControllerState.Initial;
             TestingClientUtils.ReadScheduleFileForReplay(replayTraceFile, out this.ScheduleDump, configuration, out this.ScheduleIsFair);
+        }
+
+        public override void Initialize(out ISchedulingStrategy strategy)
+        {
+            this.StrategyPrepareForNextIteration(out strategy, out int maxStepsIgnored);
         }
 
         public override string GetReport()
