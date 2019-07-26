@@ -63,6 +63,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Launcher", "Tests\Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataFlowAnalysis", "Source\DataFlowAnalysis\DataFlowAnalysis.csproj", "{B69C2D33-D467-4B33-881C-8DDF6F4A9DFE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingClientInterface", "Tools\Testing\TestingClientInterface\TestingClientInterface.csproj", "{409888B6-2241-4657-B055-934B0F2AAC4C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,10 @@ Global
 		{B69C2D33-D467-4B33-881C-8DDF6F4A9DFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B69C2D33-D467-4B33-881C-8DDF6F4A9DFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B69C2D33-D467-4B33-881C-8DDF6F4A9DFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{409888B6-2241-4657-B055-934B0F2AAC4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{409888B6-2241-4657-B055-934B0F2AAC4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{409888B6-2241-4657-B055-934B0F2AAC4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{409888B6-2241-4657-B055-934B0F2AAC4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,6 +183,7 @@ Global
 		{B27EFAA7-9166-4CC6-94AF-214A69DC5794} = {80164985-D9AE-495B-9D01-BA86AE137739}
 		{F747B11D-F9E8-4FC1-8655-F40B59BCED75} = {2012300C-6E5D-47A0-9D57-B3F0A73AA1D4}
 		{B69C2D33-D467-4B33-881C-8DDF6F4A9DFE} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
+		{409888B6-2241-4657-B055-934B0F2AAC4C} = {DF864130-1926-4B4E-92AF-B5D5C3AB152D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B9407046-CB24-4B07-8031-2749696EC7D8}

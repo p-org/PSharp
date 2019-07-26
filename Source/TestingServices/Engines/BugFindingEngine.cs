@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Runtime;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -323,10 +324,22 @@ namespace Microsoft.PSharp.TestingServices
                     runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
                         null,
                         new object[] { this.Configuration, this.Strategy, this.Reporter });
+
+                    if (this.Strategy is IProgramAwareSchedulingStrategy && !(runtime is ProgramAwareTestingRuntime) )
+                    {
+                        throw new NotImplementedException("TestRuntimeFactoryMethod returned a runtime which was not a ProgramAwareTestingRuntime. This runtime cannot be used with an IProgramAwareSchedulingStrategy");
+                    }
                 }
                 else
                 {
-                    runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                    if (this.Strategy is IProgramAwareSchedulingStrategy)
+                    {
+                        runtime = new ProgramAwareTestingRuntime(this.Configuration, this.Strategy as IProgramAwareSchedulingStrategy, this.Reporter);
+                    }
+                    else
+                    {
+                        runtime = new SystematicTestingRuntime(this.Configuration, this.Strategy, this.Reporter);
+                    }
                 }
 
                 if (this.Configuration.EnableDataRaceDetection)
@@ -371,6 +384,9 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     callback(iteration);
                 }
+
+                // If this is a program aware strategy, NotifySchedulingEnded.
+                (this.Strategy as IProgramAwareSchedulingStrategy)?.NotifySchedulingEnded(runtime.Scheduler.BugFound);
 
                 if (this.Configuration.RaceFound)
                 {

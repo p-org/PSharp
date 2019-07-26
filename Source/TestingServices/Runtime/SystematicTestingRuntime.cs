@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     /// <summary>
     /// Runtime for systematically testing machines by controlling the scheduler.
     /// </summary>
-    internal sealed class SystematicTestingRuntime : MachineRuntime
+    internal class SystematicTestingRuntime : MachineRuntime
     {
         /// <summary>
         /// Stores the machine id of each machine executing in a given asynchronous context.
@@ -399,7 +399,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
         /// can only be used to access its payload, and cannot be handled.
         /// </summary>
-        internal MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid opGroupId = default)
+        internal virtual MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid opGroupId = default)
         {
             Machine creator = this.GetExecutingMachine<Machine>();
             return this.CreateMachine(mid, type, machineName, e, creator, opGroupId);
@@ -465,7 +465,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        private Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
+        protected virtual Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.FullName);
 
@@ -586,7 +586,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Enqueues an event to the machine with the specified id.
         /// </summary>
-        private EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
+        protected virtual EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
         {
             this.Assert(this.CreatedMachineIds.Contains(target),
@@ -682,7 +682,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="isFresh">If true, then this is a new machine.</param>
         /// <param name="syncCaller">Caller machine that is blocked for quiscence.</param>
         /// <param name="enablingEvent">If non-null, the event info of the sent event that caused the event handler to be restarted.</param>
-        private void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
+        protected virtual void RunMachineEventHandler(Machine machine, Event initialEvent, bool isFresh, Machine syncCaller, EventInfo enablingEvent)
         {
             AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
 
@@ -698,6 +698,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (isFresh)
                     {
+                        this.NotifyMachineStart(machine, initialEvent);
                         await machine.GotoStartState(initialEvent);
                     }
 
@@ -748,6 +749,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             task.Start(this.TaskScheduler);
 
             this.Scheduler.WaitForOperationToStart(op);
+        }
+
+        /// <summary>
+        /// Created for ProgramAware to record Machine Start.
+        /// </summary>
+        /// <param name="machine">The machine being started</param>
+        /// <param name="initialEvent">The event it is being initialized with</param>
+        protected virtual void NotifyMachineStart(Machine machine, Event initialEvent)
+        {
+            // Do nothing here.
         }
 
         /// <summary>

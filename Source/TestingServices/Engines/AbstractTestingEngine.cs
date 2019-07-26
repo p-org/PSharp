@@ -420,6 +420,10 @@ namespace Microsoft.PSharp.TestingServices
                 Error.ReportAndExit("Portfolio testing strategy is only " +
                     "available in parallel testing.");
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ControlUnit)
+            {
+                this.Strategy = new ControlUnitStrategy(this, this.Configuration);
+            }
 
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&
                 this.Configuration.ScheduleFile.Length > 0)
