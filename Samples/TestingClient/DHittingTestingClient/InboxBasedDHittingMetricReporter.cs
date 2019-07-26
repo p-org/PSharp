@@ -31,13 +31,13 @@ namespace DHittingTestingClient
             // Nothing to do
         }
 
-        protected override void EnumerateDTuples(List<IProgramStep> schedule)
+        protected override void EnumerateDTuples(List<ProgramStep> schedule)
         {
             this.DebugStatStopWatch.Start();
 
             HashSet<ulong> doneMachines = new HashSet<ulong>();
 
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep &&
                     progStep.OpType == Microsoft.PSharp.TestingServices.Scheduling.AsyncOperationType.Send)
@@ -56,7 +56,7 @@ namespace DHittingTestingClient
             this.DebugStatStopWatch.Stop();
         }
 
-        private void GenerateDTuples(IProgramStep currentStep, List<int> nodesToAddTo)
+        private void GenerateDTuples(ProgramStep currentStep, List<int> nodesToAddTo)
         {
             List<int> newAdditions = new List<int>();
             foreach (int tn in nodesToAddTo)

@@ -13,10 +13,10 @@ namespace DHittingTestingClient
         internal readonly ProgramStepEventInfo EventInfo;
         internal readonly int EventIndex;
 
-        internal readonly IProgramStep HAXstep;
+        internal readonly ProgramStep HAXstep;
         private Type MachineType;
 
-        internal EventTypeIndexStepSignature(IProgramStep step, Type machineType, int eventIndex)
+        internal EventTypeIndexStepSignature(ProgramStep step, Type machineType, int eventIndex)
         {
             this.EventInfo = step.EventInfo;
             this.EventIndex = eventIndex;

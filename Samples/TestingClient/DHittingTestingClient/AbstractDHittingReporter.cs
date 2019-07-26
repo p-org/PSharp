@@ -48,13 +48,13 @@ namespace DHittingTestingClient
 
         protected abstract void ResetLocalVariables();
 
-        protected abstract void EnumerateDTuples(List<IProgramStep> schedule);
+        protected abstract void EnumerateDTuples(List<ProgramStep> schedule);
 
         public void RecordIteration(ISchedulingStrategy strategy, bool bugFound)
         {
             this.RecordingStrategy = strategy as AbstractBaseProgramModelStrategy;
 
-            List<IProgramStep> schedule = this.RecordingStrategy.GetSchedule();
+            List<ProgramStep> schedule = this.RecordingStrategy.GetSchedule();
             this.ComputeStepSignatures(schedule);
             this.EnumerateDTuples(schedule);
 
@@ -80,7 +80,7 @@ namespace DHittingTestingClient
 
         
 
-        private void ComputeStepSignatures(List<IProgramStep> schedule)
+        private void ComputeStepSignatures(List<ProgramStep> schedule)
         {
             switch (this.StepSignatureType)
             {
@@ -96,11 +96,11 @@ namespace DHittingTestingClient
             }
         }
         // Specific StepSignature implementations
-        private void ComputeTreeHashStepSignatures(List<IProgramStep> schedule)
+        private void ComputeTreeHashStepSignatures(List<ProgramStep> schedule)
         {
             Dictionary<ulong, ulong> machineIdRemap = new Dictionary<ulong, ulong>();
             machineIdRemap[DHittingUtils.TESTHARNESSMACHINEID] = DHittingUtils.TESTHARNESSMACHINEHASH;
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 progStep.Signature = new TreeHashStepSignature(progStep, machineIdRemap);
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == Microsoft.PSharp.TestingServices.Scheduling.AsyncOperationType.Create)
@@ -112,9 +112,9 @@ namespace DHittingTestingClient
             }
         }
 
-        private void ComputeEventHashStepSignatures(List<IProgramStep> schedule)
+        private void ComputeEventHashStepSignatures(List<ProgramStep> schedule)
         {
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 progStep.Signature = new EventHashStepSignature(progStep);
                 this.DebugStatUniqueSigs.Add((ulong)(progStep.Signature as EventHashStepSignature).Hash);
@@ -122,12 +122,12 @@ namespace DHittingTestingClient
         }
 
         // Note : This does Send events.
-        private void ComputeEventTypeIndexStepSignatures(List<IProgramStep> schedule)
+        private void ComputeEventTypeIndexStepSignatures(List<ProgramStep> schedule)
         {
             Dictionary<ulong, Type> srcIdToMachineType = this.RecordingStrategy.GetMachineIdToTypeMap();
 
             Dictionary<Tuple<ulong, string>, int> inboxEventIndexCounter = new Dictionary<Tuple<ulong, string>, int>();
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == Microsoft.PSharp.TestingServices.Scheduling.AsyncOperationType.Send)
                 {

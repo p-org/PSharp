@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <summary>
         /// The root of the partial order
         /// </summary>
-        private readonly IProgramStep RootStep;
+        private readonly ProgramStep RootStep;
 
         // Is the schedule represented by the partial order fair. ( doesn't mean our replay will be )
         private readonly bool IsScheduleFair;
@@ -31,14 +31,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         // The regular stuff
         private int ScheduledSteps;
 
-        private IProgramStep currentlyChosenStep;
+        private ProgramStep currentlyChosenStep;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramGraphReplayStrategy"/> class.
         /// </summary>
         /// <param name="rootStep">The first (root) step of the program. All steps must be reachable from this to be replayed.</param>
         /// <param name="isScheduleFair">Is the schedule represented by the partial order fair</param>
-        public ProgramGraphReplayStrategy(IProgramStep rootStep, bool isScheduleFair)
+        public ProgramGraphReplayStrategy(ProgramStep rootStep, bool isScheduleFair)
             : base()
         {
             this.RootStep = rootStep;
@@ -79,13 +79,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             Console.WriteLine("In GetNext");
             Dictionary<ulong, IAsyncOperation> enabledOps = ops.Where(o => o.IsEnabled).ToDictionary( o => o.SourceId );
-            List<IProgramStep> candidateSteps = this.ProgramReplayHelper.GetEnabledSteps(enabledOps);
+            List<ProgramStep> candidateSteps = this.ProgramReplayHelper.GetEnabledSteps(enabledOps);
 
             if (candidateSteps.Count > 0)
             {
                 this.ScheduledSteps++;
 
-                IProgramStep chosenStep = candidateSteps.First();
+                ProgramStep chosenStep = candidateSteps.First();
                 next = enabledOps[chosenStep.SrcId];
                 this.ProgramReplayHelper.RecordChoice(chosenStep, this.ScheduledSteps);
 
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             Console.WriteLine("In GetBool");
-            IProgramStep candidateStep = this.ProgramReplayHelper.GetNextBooleanStep();
+            ProgramStep candidateStep = this.ProgramReplayHelper.GetNextBooleanStep();
             if (candidateStep != null && candidateStep.BooleanChoice != null)
             {
                 this.ScheduledSteps++;
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
             Console.WriteLine("In GetInt");
-            IProgramStep candidateStep = this.ProgramReplayHelper.GetNextIntegerStep();
+            ProgramStep candidateStep = this.ProgramReplayHelper.GetNextIntegerStep();
             if (candidateStep != null && candidateStep.BooleanChoice != null)
             {
                 this.ScheduledSteps++;
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.ScheduledSteps = 0;
         }
 
-        private void ResetProgramReplayHelper(IProgramStep rootStep)
+        private void ResetProgramReplayHelper(ProgramStep rootStep)
         {
             this.ProgramReplayHelper = new ProgramReplayHelper(rootStep);
         }

@@ -11,73 +11,131 @@ using Microsoft.PSharp.TestingServices.Scheduling;
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
 {
     /// <summary>
+    /// Tells us what sort of step an ProgramStep represents.
+    /// </summary>
+    public enum ProgramStepType
+    {
+        /// <summary>
+        /// Reserved for special steps like the start (or a skip maybe?)
+        /// </summary>
+        SpecialProgramStepType,
+
+        /// <summary>
+        /// Your typical ISchedulable step. Those decided by GetNext
+        /// </summary>
+        SchedulableStep,
+
+        /// <summary>
+        /// A non-deterministic boolean choice. Those decided by GetNextBooleanChoice
+        /// </summary>
+        NonDetBoolStep,
+
+        /// <summary>
+        /// A non-deterministic boolean choice. Those decided by GetNextIntegerChoice
+        /// </summary>
+        NonDetIntStep
+    }
+
+    /// <summary>
     /// One step in the program.
     /// Should capture all the information needed for Program-aware scheduling strategies.
     /// </summary>
-    public class ProgramStep : IProgramStep
+    public class ProgramStep
     {
+        /// <summary>
+        /// Tells what type this step is
+        /// </summary>
+        public ProgramStepType ProgramStepType { get; }
+
         // Main info
-        internal readonly AsyncOperationType OpType;
-        internal readonly ulong SrcId;       // TODO: Should this be Machine instead? For more info
-        internal readonly ulong TargetId;    // TODO: Should this be Machine instead? For more info
-        internal ProgramStepEventInfo EventInfo;
 
-        internal IProgramStepSignature Signature;
+        /// <summary>
+        /// If SchedulableStep, tells what kind of operationo was performed
+        /// </summary>
+        public AsyncOperationType OpType { get; }
 
-        private readonly bool? BooleanChoice;
-        private readonly int? IntChoice;
+        /// <summary>
+        /// The MachineId.Value of the machine performing the step
+        /// </summary>
+        public ulong SrcId { get; }
+
+        /// <summary>
+        /// For Send/Create the MachineId.Value of the machine receiving/created.
+        /// </summary>
+        public ulong TargetId { get; }
+
+        /// <summary>
+        /// For Send/Receive/Create(?) the EventInfo of the event being sent.
+        /// </summary>
+        public ProgramStepEventInfo EventInfo { get; }
+
+        /// <summary>
+        /// A Signature which can be compared to other Signatures.
+        /// Used to identify corresponding steps across runs.
+        /// </summary>
+        public IProgramStepSignature Signature;
+
+        /// <summary>
+        /// For a non-deterministic boolean choice, the choice taken
+        /// </summary>
+        public readonly bool? BooleanChoice;
+
+        /// <summary>
+        /// For a non-deterministic integer choice, the integer chosen
+        /// </summary>
+        public readonly int? IntChoice;
 
         // No need to complicate the edge types
         // Children
-        private IProgramStep NextMachineStep;
-        private IProgramStep CreatedStep;
-        private IProgramStep NextEnqeuedStep; // Only set for receive steps
-        private Dictionary<Type, IProgramStep> NextMonitorSteps;
 
-        private IProgramStep CreatorStep;
-        private IProgramStep PrevMachineStep;
-        private IProgramStep PrevEnqueuedStep; // Only set for receive steps
-        private Dictionary<Type, IProgramStep> PrevMonitorSteps;
+        /// <summary>
+        /// The next step performed by the handler.
+        /// If desired, Successive handlers are also connected by this step.
+        /// </summary>
+        public ProgramStep NextMachineStep;
 
-        // Extra info
-        internal readonly ProgramStepType ProgramStepType;
+        /// <summary>
+        /// For Send/Create, The corresponding Receive/Start step.
+        /// </summary>
+        public ProgramStep CreatedStep;
 
-        internal int TotalOrderingIndex;
-        // internal readonly IAsyncOperation Operation; // Deprecate
+        /// <summary>
+        /// For send steps, the Step which enqueues the message right after the message this step enqueued ( in the same inbox )
+        /// For a create step, this is the step which first enqueues into the created machine.
+        /// </summary>
+        public ProgramStep NextEnqueuedStep;
 
-        ProgramStepType IProgramStep.ProgramStepType => this.ProgramStepType;
+        /// <summary>
+        /// For a step which invoked a monitor, the next (in the totally-ordered schedule) step which invoked the same monitor.
+        /// </summary>
+        public Dictionary<Type, ProgramStep> NextMonitorSteps;
 
-        AsyncOperationType IProgramStep.OpType => this.OpType;
+        // Parents
 
-        ulong IProgramStep.SrcId => this.SrcId;
+        /// <summary>
+        /// The reverse of <see cref="NextMachineStep"/>
+        /// </summary>
+        public ProgramStep PrevMachineStep;
 
-        ulong IProgramStep.TargetId => this.TargetId;
+        /// <summary>
+        /// The reverse of <see cref="CreatedStep"/>
+        /// </summary>
+        public ProgramStep CreatorParent;
 
-        ProgramStepEventInfo IProgramStep.EventInfo => this.EventInfo;
+        /// <summary>
+        /// The reverse of <see cref="NextEnqueuedStep"/>
+        /// </summary>
+        public ProgramStep PrevEnqueuedStep;
 
-        bool? IProgramStep.BooleanChoice => this.BooleanChoice;
+        /// <summary>
+        /// The reverse of <see cref="NextMonitorSteps"/>
+        /// </summary>
+        public Dictionary<Type, ProgramStep> PrevMonitorSteps;
 
-        int? IProgramStep.IntChoice => this.IntChoice;
-
-        IProgramStep IProgramStep.NextMachineStep { get => this.NextMachineStep; set => this.NextMachineStep = value as ProgramStep; }
-
-        IProgramStep IProgramStep.CreatedStep { get => this.CreatedStep; set => this.CreatedStep = value as ProgramStep; }
-
-        IProgramStep IProgramStep.NextEnqueuedStep { get => this.NextEnqeuedStep; set => this.NextEnqeuedStep = value as ProgramStep; }
-
-        Dictionary<Type, IProgramStep> IProgramStep.NextMonitorSteps { get => this.NextMonitorSteps; set => this.NextMonitorSteps = value as Dictionary<Type, IProgramStep>; }
-
-        IProgramStep IProgramStep.PrevMachineStep { get => this.PrevMachineStep; set => this.PrevMachineStep = value as ProgramStep; }
-
-        IProgramStep IProgramStep.CreatorParent { get => this.CreatorStep; set => this.CreatorStep = value as ProgramStep; }
-
-        IProgramStep IProgramStep.PrevEnqueuedStep { get => this.PrevEnqueuedStep; set => this.PrevEnqueuedStep = value as ProgramStep; }
-
-        Dictionary<Type, IProgramStep> IProgramStep.PrevMonitorSteps { get => this.PrevMonitorSteps; set => this.PrevMonitorSteps = value as Dictionary<Type, IProgramStep>; }
-
-        IProgramStepSignature IProgramStep.Signature { get => this.Signature; set => this.Signature = value; }
-
-        int IProgramStep.TotalOrderingIndex { get => this.TotalOrderingIndex; set => this.TotalOrderingIndex = value; }
+        /// <summary>
+        /// The step-index in the totally-ordered actual execution of the program.
+        /// </summary>
+        public int TotalOrderingIndex { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramStep"/> class.
@@ -173,7 +231,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Creates a copy of this step, but with no edges set.
         /// </summary>
         /// <returns>A copy of this step</returns>
-        public IProgramStep Clone()
+        public ProgramStep Clone()
         {
             ProgramStep newStep = null;
             switch (this.ProgramStepType)

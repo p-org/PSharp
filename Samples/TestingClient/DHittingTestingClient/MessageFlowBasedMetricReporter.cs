@@ -17,19 +17,19 @@ namespace DHittingTestingClient
             // Nothing to do
         }
 
-        protected override void EnumerateDTuples(List<IProgramStep> schedule)
+        protected override void EnumerateDTuples(List<ProgramStep> schedule)
         {
             Dictionary<IProgramStepSignature, List<int>> stepIndexToDTNodes = new Dictionary<IProgramStepSignature, List<int>>();
             // Pre-insert an entry for each signature
             int[] latestNodeWhichCausesStep = new int[schedule.Count];
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 stepIndexToDTNodes[progStep.Signature] = new List<int>();
                 latestNodeWhichCausesStep[progStep.TotalOrderingIndex] = 0; // Hopefully, I've set it up in a way that 0 causes everything.
             }
 
             // Recursively construct tree
-            foreach (IProgramStep progStep in schedule)
+            foreach (ProgramStep progStep in schedule)
             {
                 if (progStep.ProgramStepType == ProgramStepType.SchedulableStep && progStep.OpType == AsyncOperationType.Send)
                 {
@@ -75,7 +75,7 @@ namespace DHittingTestingClient
             }
         }
 
-        private void RecursiveMarkCausal(IProgramStep progStep, IProgramStep atStep, int[] latestNodeWhichCausesStep)
+        private void RecursiveMarkCausal(ProgramStep progStep, ProgramStep atStep, int[] latestNodeWhichCausesStep)
         {
             latestNodeWhichCausesStep[atStep.TotalOrderingIndex] = progStep.TotalOrderingIndex;
 
@@ -95,7 +95,7 @@ namespace DHittingTestingClient
         // Any such step found is added as a child of ALL nodes in the dt-tree with the specified signature ( as long as depth limit is respected )
         // As these steps are added to the tree, the stepIndexToDTNodes index for the signature of the child-step is updated.
         // ( The children of these newly added steps will not be added till RecursiveAdd is called with their signatures)
-        private void RecursiveAdd(IProgramStep signatureStep, IProgramStep currentNode, Dictionary<IProgramStepSignature, List<int>> stepIndexToDTNodes, int[] latestNodeWhichCausesStep)
+        private void RecursiveAdd(ProgramStep signatureStep, ProgramStep currentNode, Dictionary<IProgramStepSignature, List<int>> stepIndexToDTNodes, int[] latestNodeWhichCausesStep)
         {
             // We do need to recurse on the events in the causal tree of events happening after signatureStep.
             // Consider next steps in this handler
@@ -111,7 +111,7 @@ namespace DHittingTestingClient
             }
 
             // And now we go about adding the ones that 'race' with signatureStep or some step caused by signatureStep
-            IProgramStep nextEnqueuedStep = currentNode.CreatorParent?.NextEnqueuedStep ?? null;
+            ProgramStep nextEnqueuedStep = currentNode.CreatorParent?.NextEnqueuedStep ?? null;
             if (currentNode.OpType == AsyncOperationType.Receive && nextEnqueuedStep != null
                 // wE should recurse past the causal one // && latestNodeWhichCausesStep[nextEnqueuedStep.TotalOrderingIndex] < signatureStep.TotalOrderingIndex // Make sure it's not causally related to signatureStep.
                 )
@@ -136,7 +136,7 @@ namespace DHittingTestingClient
         }
 
 
-        private void InsertIntoDtupleTree(IProgramStep signatureStep, IProgramStep toBeInserted, Dictionary<IProgramStepSignature, List<int>> stepIndexToDTNodes)
+        private void InsertIntoDtupleTree(ProgramStep signatureStep, ProgramStep toBeInserted, Dictionary<IProgramStepSignature, List<int>> stepIndexToDTNodes)
         {
             foreach (int dtn in stepIndexToDTNodes[signatureStep.Signature])
             {

@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// Returns the root of the partial order
         /// </summary>
         /// <returns>RootStep</returns>
-        public IProgramStep GetRootStep()
+        public ProgramStep GetRootStep()
         {
             return this.ProgramModel.Rootstep;
         }
@@ -104,7 +104,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// Returns the steps in order of execution
         /// </summary>
         /// <returns>RootStep</returns>
-        public List<IProgramStep> GetSchedule()
+        public List<ProgramStep> GetSchedule()
         {
             return this.ProgramModel.OrderedSteps;
         }
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// Hack for now, Only does assertion violation.
         /// </summary>
         /// <returns>The program model</returns>
-        public IProgramStep GetBugTriggeringStep()
+        public ProgramStep GetBugTriggeringStep()
         {
             return this.ProgramModel.BugTriggeringStep;
         }

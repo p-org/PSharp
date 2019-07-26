@@ -29,7 +29,7 @@ namespace DHittingTestingClient
             // This exists only for the RootSignature
         }
 
-        internal TreeHashStepSignature(IProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
+        internal TreeHashStepSignature(ProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
         {
             this.ComputeHash(step, machineIdRemap);
 
@@ -38,7 +38,7 @@ namespace DHittingTestingClient
 
         private const int MOD = 1000000007;
 
-        private void ComputeHash(IProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
+        private void ComputeHash(ProgramStep step, Dictionary<ulong, ulong> machineIdRemap)
         {
             // The hash is a function of the parent's hashes and the contents of this step.
             ulong parentHash = 1;
@@ -82,24 +82,6 @@ namespace DHittingTestingClient
             this.Hash %= 1000000007;
         }
 
-#if false
-        public bool Equals(IProgramStepSignature other)
-        {
-            if (other is TreeHashStepSignature)
-            {
-                TreeHashStepSignature otherSig = other as TreeHashStepSignature;
-                return
-                    otherSig.Hash == this.Hash &&
-                    // Some easy checks to save us from silly collissions
-                    otherSig.ProgramStep.OpType.Equals(step.OpType) &&
-                    otherSig.ProgramStep.SrcId.Equals(step.SrcId);
-            }
-            else
-            {
-                return false;
-            }
-        }
-#endif
         public override string ToString()
         {
             return "TreeHash:" + this.Hash;

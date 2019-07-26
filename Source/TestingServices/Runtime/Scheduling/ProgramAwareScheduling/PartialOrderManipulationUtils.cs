@@ -21,18 +21,18 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <param name="stepsToMap">The steps for which the mapping is to be returned</param>
         /// <param name="mappedSteps">Returns a dictionary of oldStep to newStep</param>
         /// <returns>The root of the new partial order</returns>
-        public static IProgramStep ClonePartialOrder(IProgramStep root, List<IProgramStep> stepsToMap, out Dictionary<IProgramStep, IProgramStep> mappedSteps)
+        public static ProgramStep ClonePartialOrder(ProgramStep root, List<ProgramStep> stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps)
         {
-            Dictionary<IProgramStep, IProgramStep> oldToNew = new Dictionary<IProgramStep, IProgramStep>();
+            Dictionary<ProgramStep, ProgramStep> oldToNew = new Dictionary<ProgramStep, ProgramStep>();
 
             int cnt = CountTreeSize(root);
-            IProgramStep newRoot = ClonePartialOrder(root, oldToNew);
+            ProgramStep newRoot = ClonePartialOrder(root, oldToNew);
 
             // Now copy the edges using the map
-            foreach (KeyValuePair<IProgramStep, IProgramStep> stepMapPair in oldToNew)
+            foreach (KeyValuePair<ProgramStep, ProgramStep> stepMapPair in oldToNew)
             {
-                IProgramStep oldStep = stepMapPair.Key;
-                IProgramStep newStep = stepMapPair.Value;
+                ProgramStep oldStep = stepMapPair.Key;
+                ProgramStep newStep = stepMapPair.Value;
 
                 if (oldStep.NextMachineStep != null)
                 {
@@ -54,13 +54,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
                 if (oldStep.NextMonitorSteps != null)
                 {
-                    newStep.NextMonitorSteps = new Dictionary<Type, IProgramStep>();
-                    foreach (KeyValuePair<Type, IProgramStep> kp in oldStep.NextMonitorSteps)
+                    newStep.NextMonitorSteps = new Dictionary<Type, ProgramStep>();
+                    foreach (KeyValuePair<Type, ProgramStep> kp in oldStep.NextMonitorSteps)
                     {
                         newStep.NextMonitorSteps.Add(kp.Key, oldToNew[kp.Value]);
                         if (oldToNew[kp.Value].PrevMonitorSteps == null)
                         {
-                            oldToNew[kp.Value].PrevMonitorSteps = new Dictionary<Type, IProgramStep>();
+                            oldToNew[kp.Value].PrevMonitorSteps = new Dictionary<Type, ProgramStep>();
                         }
 
                         oldToNew[kp.Value].PrevMonitorSteps.Add(kp.Key, newStep);
@@ -68,10 +68,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 }
             }
 
-            mappedSteps = new Dictionary<IProgramStep, IProgramStep>();
+            mappedSteps = new Dictionary<ProgramStep, ProgramStep>();
             if (stepsToMap != null)
             {
-                foreach (IProgramStep step in stepsToMap)
+                foreach (ProgramStep step in stepsToMap)
                 {
                     mappedSteps.Add(step, oldToNew[step]);
                 }
@@ -80,9 +80,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return newRoot;
         }
 
-        private static IProgramStep ClonePartialOrder(IProgramStep step, Dictionary<IProgramStep, IProgramStep> oldToNewStep)
+        private static ProgramStep ClonePartialOrder(ProgramStep step, Dictionary<ProgramStep, ProgramStep> oldToNewStep)
         {
-            if (oldToNewStep.TryGetValue(step, out IProgramStep newStep))
+            if (oldToNewStep.TryGetValue(step, out ProgramStep newStep))
             {
                 return newStep;
             }
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         /// <param name="at">The root, ideally</param>
         /// <returns>the count of nodes reachable from at ( at included )</returns>
-        public static int CountTreeSize(IProgramStep at)
+        public static int CountTreeSize(ProgramStep at)
         {
             int cnt = 1;
             if ( at.CreatedStep != null)
@@ -129,14 +129,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         /// <param name="root">The root of the subtree</param>
         /// <returns>A hashset containing all nodes in the subtree</returns>
-        public static HashSet<IProgramStep> GetStepsInSubtree(IProgramStep root)
+        public static HashSet<ProgramStep> GetStepsInSubtree(ProgramStep root)
         {
-            HashSet<IProgramStep> stepsInSubtree = new HashSet<IProgramStep>();
+            HashSet<ProgramStep> stepsInSubtree = new HashSet<ProgramStep>();
             GetStepsInSubtree(root, stepsInSubtree);
             return stepsInSubtree;
         }
 
-        private static void GetStepsInSubtree(IProgramStep at, HashSet<IProgramStep> stepsInSubtree)
+        private static void GetStepsInSubtree(ProgramStep at, HashSet<ProgramStep> stepsInSubtree)
         {
             stepsInSubtree.Add(at);
             if (at.CreatedStep != null)
@@ -155,13 +155,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// The subtree is defined as the set of nodes reachable through CreatedStep and NextMachineStep
         /// </summary>
         /// <param name="step">The root of the subtree to be removed</param>
-        public static void SliceStep(IProgramStep step)
+        public static void SliceStep(ProgramStep step)
         {
-            HashSet<IProgramStep> stepsInSubtree = GetStepsInSubtree(step);
+            HashSet<ProgramStep> stepsInSubtree = GetStepsInSubtree(step);
             SliceStep(step, stepsInSubtree);
         }
 
-        private static void SliceStep(IProgramStep step, HashSet<IProgramStep> stepsInSubtree)
+        private static void SliceStep(ProgramStep step, HashSet<ProgramStep> stepsInSubtree)
         {
             if (step.PrevMachineStep != null && !stepsInSubtree.Contains(step.PrevMachineStep))
             {
@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (step.PrevEnqueuedStep != null && !stepsInSubtree.Contains(step.PrevEnqueuedStep))
             {
-                IProgramStep firstSendOutsideSubtree = RecurseEnqueueTillOutOfSubtree(step, stepsInSubtree);
+                ProgramStep firstSendOutsideSubtree = RecurseEnqueueTillOutOfSubtree(step, stepsInSubtree);
                 step.PrevEnqueuedStep.NextEnqueuedStep = firstSendOutsideSubtree;
                 if (firstSendOutsideSubtree != null)
                 {
@@ -186,11 +186,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (step.PrevMonitorSteps != null)
             {
-                foreach (KeyValuePair<Type, IProgramStep> kp in step.PrevMonitorSteps)
+                foreach (KeyValuePair<Type, ProgramStep> kp in step.PrevMonitorSteps)
                 {
                     if (!stepsInSubtree.Contains(kp.Value))
                     {
-                        IProgramStep firstMonitorOutsideSubtree = RecurseMonitorTillOutOfSubtree(step, kp.Key, stepsInSubtree);
+                        ProgramStep firstMonitorOutsideSubtree = RecurseMonitorTillOutOfSubtree(step, kp.Key, stepsInSubtree);
                         kp.Value.NextMonitorSteps[kp.Key] = firstMonitorOutsideSubtree;
                         if (firstMonitorOutsideSubtree != null)
                         {
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
-        private static IProgramStep RecurseEnqueueTillOutOfSubtree(IProgramStep step, HashSet<IProgramStep> stepsInSubtree)
+        private static ProgramStep RecurseEnqueueTillOutOfSubtree(ProgramStep step, HashSet<ProgramStep> stepsInSubtree)
         {
             if (step.NextEnqueuedStep == null)
             {
@@ -230,7 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
-        private static IProgramStep RecurseMonitorTillOutOfSubtree(IProgramStep step, Type monitorType, HashSet<IProgramStep> stepsInSubtree)
+        private static ProgramStep RecurseMonitorTillOutOfSubtree(ProgramStep step, Type monitorType, HashSet<ProgramStep> stepsInSubtree)
         {
             if (step.NextMonitorSteps == null || !step.NextMonitorSteps.ContainsKey(monitorType))
             {

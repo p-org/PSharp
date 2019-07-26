@@ -16,7 +16,7 @@ namespace DHittingTestingClient
     {
         internal int Hash;
 
-        internal EventHashStepSignature(IProgramStep step)
+        internal EventHashStepSignature(ProgramStep step)
         {
             this.Hash = step.EventInfo?.HashedState ?? 1;
         }

@@ -16,30 +16,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
     /// </summary>
     public class ProgramReplayHelper
     {
-        private readonly IProgramStep RootStep;
+        private readonly ProgramStep RootStep;
 
         // Iteration variables
-        private readonly HashSet<IProgramStep> SeenSteps;
+        private readonly HashSet<ProgramStep> SeenSteps;
 
         // Would ideally have been a priority queue on the totalOrderingIndex field
-        private readonly HashSet<IProgramStep> EnabledSteps;
+        private readonly HashSet<ProgramStep> EnabledSteps;
 
-        private readonly Dictionary<IProgramStep, ulong> MatchingSendIndices;
+        private readonly Dictionary<ProgramStep, ulong> MatchingSendIndices;
 
         // Used to track what's being executed, for the boolean & int choices.
-        private IProgramStep CurrentStep;
+        private ProgramStep CurrentStep;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramReplayHelper"/> class.
         /// </summary>
         /// <param name="rootStep">The root of the partial order to be replayed</param>
-        public ProgramReplayHelper(IProgramStep rootStep)
+        public ProgramReplayHelper(ProgramStep rootStep)
         {
             this.RootStep = rootStep;
 
-            this.SeenSteps = new HashSet<IProgramStep>();
-            this.EnabledSteps = new HashSet<IProgramStep>();
-            this.MatchingSendIndices = new Dictionary<IProgramStep, ulong>();
+            this.SeenSteps = new HashSet<ProgramStep>();
+            this.EnabledSteps = new HashSet<ProgramStep>();
+            this.MatchingSendIndices = new Dictionary<ProgramStep, ulong>();
 
             this.ExecuteFirstStep();
         }
@@ -62,11 +62,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Writtens the list of steps which can be scheduled, while respecting the partial order.
         /// </summary>
         /// <returns>The list of candidate steps ( or the first )</returns>
-        public List<IProgramStep> GetNextSchedulableSteps()
+        public List<ProgramStep> GetNextSchedulableSteps()
         {
-            List<IProgramStep> nextSteps = new List<IProgramStep>();
+            List<ProgramStep> nextSteps = new List<ProgramStep>();
 
-            foreach (IProgramStep step in this.EnabledSteps)
+            foreach (ProgramStep step in this.EnabledSteps)
             {
                 // if (this.NullOrSeen(step.PrevMachineStep) && this.NullOrSeen(step.CreatorParent)) // Will not be in enabled unless this holds true.
                 if ( step.ProgramStepType == ProgramStepType.SchedulableStep &&
@@ -83,15 +83,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Returns the boolean choice that was taken at this point
         /// </summary>
         /// <returns>the boolean choice that was taken at this point</returns>
-        public IProgramStep GetNextBooleanStep()
+        public ProgramStep GetNextBooleanStep()
         {
             return this.EnabledSteps.First( s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetBoolStep);
         }
 
-        internal List<IProgramStep> GetEnabledSteps(Dictionary<ulong, IAsyncOperation> enabledOps)
+        internal List<ProgramStep> GetEnabledSteps(Dictionary<ulong, IAsyncOperation> enabledOps)
         {
-            IEnumerable<IProgramStep> enabled = this.GetNextSchedulableSteps().Where( s => enabledOps.ContainsKey(s.SrcId) && s.OpType == enabledOps[s.SrcId].Type).ToList();
-            IEnumerable<IProgramStep> badReceives = enabled.Where(s => s.OpType == AsyncOperationType.Receive && this.MatchingSendIndices[s.CreatorParent] != enabledOps[s.SrcId].MatchingSendIndex).ToList();
+            IEnumerable<ProgramStep> enabled = this.GetNextSchedulableSteps().Where( s => enabledOps.ContainsKey(s.SrcId) && s.OpType == enabledOps[s.SrcId].Type).ToList();
+            IEnumerable<ProgramStep> badReceives = enabled.Where(s => s.OpType == AsyncOperationType.Receive && this.MatchingSendIndices[s.CreatorParent] != enabledOps[s.SrcId].MatchingSendIndex).ToList();
             return enabled.Except(badReceives).ToList();
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Returns the integer choice that was taken at this point
         /// </summary>
         /// <returns>the integer choice that was taken at this point</returns>
-        public IProgramStep GetNextIntegerStep()
+        public ProgramStep GetNextIntegerStep()
         {
             return this.EnabledSteps.First(s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetIntStep);
         }
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         /// <param name="step">The step that was scheduled</param>
         /// <param name="scheduleIndex">The schedule step at which this step was scheduled. Used for MatchingSendIndex matching</param>
-        public void RecordChoice(IProgramStep step, int scheduleIndex)
+        public void RecordChoice(ProgramStep step, int scheduleIndex)
         {
             // Should we do a check that this was legal? Nah.
             if (!this.EnabledSteps.Contains(step))
@@ -145,12 +145,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         }
 
         // If all Prev*Step's of a step are NullOrSeen, it means it can be (or has been) scheduled.
-        private bool NullOrSeen(IProgramStep step)
+        private bool NullOrSeen(ProgramStep step)
         {
             return step == null || this.SeenSteps.Contains(step);
         }
 
-        private bool NullOrSeenAll(Dictionary<Type, IProgramStep> steps)
+        private bool NullOrSeenAll(Dictionary<Type, ProgramStep> steps)
         {
             return steps == null || steps.All( s => this.SeenSteps.Contains(s.Value));
         }

@@ -31,9 +31,9 @@ namespace PartialOrderSlicingClient
 
         private string[] ScheduleDump;
         private bool ScheduleIsFair;
-        private IProgramStep OriginalReplayPartialOrder;
-        private IProgramStep PartialOrderRoot;
-        private IProgramStep BugTriggeringStep;
+        private ProgramStep OriginalReplayPartialOrder;
+        private ProgramStep PartialOrderRoot;
+        private ProgramStep BugTriggeringStep;
 
         public PartialOrderSliceController(Configuration configuration, string replayTraceFile)
             : base(configuration)
@@ -60,11 +60,11 @@ namespace PartialOrderSlicingClient
                     if (bugFound)
                     {
                         this.OriginalReplayPartialOrder = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetRootStep();
-                        IProgramStep bugTriggeringStep = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetBugTriggeringStep();
+                        ProgramStep bugTriggeringStep = (this.ActiveStrategy as AbstractBaseProgramModelStrategy).GetBugTriggeringStep();
 
                         this.PartialOrderRoot = PartialOrderManipulationUtils.ClonePartialOrder(this.OriginalReplayPartialOrder,
-                            new List<IProgramStep> { bugTriggeringStep },
-                            out Dictionary<IProgramStep, IProgramStep> stepMap);
+                            new List<ProgramStep> { bugTriggeringStep },
+                            out Dictionary<ProgramStep, ProgramStep> stepMap);
                         this.BugTriggeringStep = stepMap[bugTriggeringStep];
 
                         this.CurrentState = ControllerState.ReplayingPartialOrder;
@@ -130,7 +130,7 @@ namespace PartialOrderSlicingClient
                     break;
 
                 case ControllerState.ReplayingSliced:
-                    IProgramStep SlicedPartialOrderRoot = SlicePartialOrder(this.PartialOrderRoot, this.BugTriggeringStep);
+                    ProgramStep SlicedPartialOrderRoot = SlicePartialOrder(this.PartialOrderRoot, this.BugTriggeringStep);
                     nextStrategy = new ProgramGraphReplayStrategy(SlicedPartialOrderRoot, this.ScheduleIsFair);
                     break;
 
@@ -152,15 +152,15 @@ namespace PartialOrderSlicingClient
             }
         }
 
-        private static IProgramStep SlicePartialOrder(IProgramStep partialOrderRoot, IProgramStep bugTriggeringStep)
+        private static ProgramStep SlicePartialOrder(ProgramStep partialOrderRoot, ProgramStep bugTriggeringStep)
         {
             // TODO: The slicing
-            IProgramStep newRoot = PartialOrderManipulationUtils.ClonePartialOrder(partialOrderRoot, new List<IProgramStep> { bugTriggeringStep }, out Dictionary<IProgramStep, IProgramStep> stepsMap);
-            IProgramStep newBugTriggeringStep = stepsMap[bugTriggeringStep];
+            ProgramStep newRoot = PartialOrderManipulationUtils.ClonePartialOrder(partialOrderRoot, new List<ProgramStep> { bugTriggeringStep }, out Dictionary<ProgramStep, ProgramStep> stepsMap);
+            ProgramStep newBugTriggeringStep = stepsMap[bugTriggeringStep];
 
-            List<IProgramStep> slicableSteps = FindNonSourceSteps(newRoot, newBugTriggeringStep);
+            List<ProgramStep> slicableSteps = FindNonSourceSteps(newRoot, newBugTriggeringStep);
 
-            foreach (IProgramStep slicableStep in slicableSteps)
+            foreach (ProgramStep slicableStep in slicableSteps)
             {
                 PartialOrderManipulationUtils.SliceStep(slicableStep);
                 // PartialOrderManipulationUtils.SliceSubtree(slicableStep);
@@ -174,15 +174,15 @@ namespace PartialOrderSlicingClient
             this.ActiveStrategy.Reset();
         }
 
-        private static List<IProgramStep> FindNonSourceSteps(IProgramStep at, IProgramStep sink)
+        private static List<ProgramStep> FindNonSourceSteps(ProgramStep at, ProgramStep sink)
         {
-            List<IProgramStep> slicableSteps = new List<IProgramStep>();
-            FindNonSourceStepsImpl(at, sink, slicableSteps, new Dictionary<IProgramStep, bool>());
+            List<ProgramStep> slicableSteps = new List<ProgramStep>();
+            FindNonSourceStepsImpl(at, sink, slicableSteps, new Dictionary<ProgramStep, bool>());
             return slicableSteps;
         }
 
         // Returns true if reachable
-        private static bool FindNonSourceStepsImpl(IProgramStep at, IProgramStep sink, /*out*/ List<IProgramStep> slicableSteps, Dictionary<IProgramStep, bool> cache)
+        private static bool FindNonSourceStepsImpl(ProgramStep at, ProgramStep sink, /*out*/ List<ProgramStep> slicableSteps, Dictionary<ProgramStep, bool> cache)
         {
             // base case
             if (at == sink)
@@ -195,8 +195,8 @@ namespace PartialOrderSlicingClient
                 return cache[at];
             }
 
-            HashSet<IProgramStep> nonReaching = new HashSet<IProgramStep>();
-            HashSet<IProgramStep> children = new HashSet<IProgramStep> { at.NextMachineStep, at.CreatedStep };
+            HashSet<ProgramStep> nonReaching = new HashSet<ProgramStep>();
+            HashSet<ProgramStep> children = new HashSet<ProgramStep> { at.NextMachineStep, at.CreatedStep };
             if (at.NextMonitorSteps != null)
             {
                 at.NextMonitorSteps.Select(s => children.Add(s.Value));
@@ -209,7 +209,7 @@ namespace PartialOrderSlicingClient
 
             children.Remove(null);
 
-            foreach (IProgramStep child in children)
+            foreach (ProgramStep child in children)
             {
                 if (!FindNonSourceStepsImpl(child, sink, slicableSteps, cache)){
                     nonReaching.Add(child);
@@ -228,7 +228,7 @@ namespace PartialOrderSlicingClient
             return anythingReaches;
         }
 
-        private static IProgramStep GetNextHandlerStart(IProgramStep step)
+        private static ProgramStep GetNextHandlerStart(ProgramStep step)
         {
             while (step.PrevMachineStep != null)
             {

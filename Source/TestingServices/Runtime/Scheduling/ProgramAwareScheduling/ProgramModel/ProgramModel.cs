@@ -16,30 +16,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private const bool ConnectSuccessiveHandlers = false;
 
         internal ProgramStep Rootstep;
-        internal IProgramStep ActiveStep;
-        internal List<IProgramStep> OrderedSteps;
+        internal ProgramStep ActiveStep;
+        internal List<ProgramStep> OrderedSteps;
 
-        private readonly Dictionary<Event, IProgramStep> PendingEventToSendStep;
-        private readonly Dictionary<ulong, IProgramStep> MachineIdToCreateStep;
-        private readonly Dictionary<ulong, IProgramStep> MachineIdToLastStep;
+        private readonly Dictionary<Event, ProgramStep> PendingEventToSendStep;
+        private readonly Dictionary<ulong, ProgramStep> MachineIdToCreateStep;
+        private readonly Dictionary<ulong, ProgramStep> MachineIdToLastStep;
         // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
-        private readonly Dictionary<ulong, IProgramStep> MachineIdToLatestSendTo;
-        private readonly Dictionary<Type, IProgramStep> MonitorTypeToLatestSendTo;
+        private readonly Dictionary<ulong, ProgramStep> MachineIdToLatestSendTo;
+        private readonly Dictionary<Type, ProgramStep> MonitorTypeToLatestSendTo;
         internal readonly Dictionary<ulong, Type> MachineIdToType;
 
-        internal IProgramStep BugTriggeringStep;
+        internal ProgramStep BugTriggeringStep;
 
         internal ProgramModel()
         {
-            this.MachineIdToCreateStep = new Dictionary<ulong, IProgramStep>();
-            this.MachineIdToLastStep = new Dictionary<ulong, IProgramStep>();
+            this.MachineIdToCreateStep = new Dictionary<ulong, ProgramStep>();
+            this.MachineIdToLastStep = new Dictionary<ulong, ProgramStep>();
             // this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
-            this.PendingEventToSendStep = new Dictionary<Event, IProgramStep>();
-            this.MachineIdToLatestSendTo = new Dictionary<ulong, IProgramStep>();
-            this.MonitorTypeToLatestSendTo = new Dictionary<Type, IProgramStep>();
+            this.PendingEventToSendStep = new Dictionary<Event, ProgramStep>();
+            this.MachineIdToLatestSendTo = new Dictionary<ulong, ProgramStep>();
+            this.MonitorTypeToLatestSendTo = new Dictionary<Type, ProgramStep>();
             this.MachineIdToType = new Dictionary<ulong, Type>();
 
-            this.OrderedSteps = new List<IProgramStep>();
+            this.OrderedSteps = new List<ProgramStep>();
 
             this.Initialize(0);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.OrderedSteps.Add(this.Rootstep);
         }
 
-        public void RecordStep(IProgramStep programStep, int stepIndex)
+        public void RecordStep(ProgramStep programStep, int stepIndex)
         {
             if (programStep.ProgramStepType == ProgramStepType.SchedulableStep)
             {
@@ -81,13 +81,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         break;
 
                     case AsyncOperationType.Receive:
-                        IProgramStep sendStep = this.FindSendStep(programStep);
+                        ProgramStep sendStep = this.FindSendStep(programStep);
                         SetCreatedRelation(sendStep, programStep);
                         this.PendingEventToSendStep.Remove(sendStep.EventInfo.Event);
                         break;
 
                     case AsyncOperationType.Start:
-                        IProgramStep creatorStep = this.MachineIdToCreateStep[programStep.SrcId];
+                        ProgramStep creatorStep = this.MachineIdToCreateStep[programStep.SrcId];
                         SetCreatedRelation(creatorStep, programStep);
                         break;
                 }
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers) )
             {
                 // Process the machine thread relation
-                IProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
+                ProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
 
                 SetMachineThreadRelation(previousMachineStep, programStep);
             }
@@ -147,9 +147,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
-        private IProgramStep FindSendStep(IProgramStep receiveStep)
+        private ProgramStep FindSendStep(ProgramStep receiveStep)
         {
-            if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo.Event, out IProgramStep sendStep))
+            if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo.Event, out ProgramStep sendStep))
             {
                 throw new ArgumentException("The specified event was not found in the pending set");
             }
@@ -157,31 +157,31 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return sendStep;
         }
 
-        private void AppendStepToTotalOrdering(IProgramStep programStep)
+        private void AppendStepToTotalOrdering(ProgramStep programStep)
         {
             programStep.TotalOrderingIndex = this.OrderedSteps.Count;
             this.OrderedSteps.Add(programStep);
         }
 
-        private static void SetCreatedRelation(IProgramStep parent, IProgramStep child)
+        private static void SetCreatedRelation(ProgramStep parent, ProgramStep child)
         {
             parent.CreatedStep = child;
             child.CreatorParent = parent;
         }
 
-        private static void SetMachineThreadRelation(IProgramStep parent, IProgramStep child)
+        private static void SetMachineThreadRelation(ProgramStep parent, ProgramStep child)
         {
             parent.NextMachineStep = child;
             child.PrevMachineStep = parent;
         }
 
-        private static void SetInboxOrderingRelation(IProgramStep parent, IProgramStep child)
+        private static void SetInboxOrderingRelation(ProgramStep parent, ProgramStep child)
         {
             parent.NextEnqueuedStep = child;
             child.PrevEnqueuedStep = parent;
         }
 
-        private static void SetMonitorCommunicationRelation(IProgramStep prevStep, IProgramStep currentStep, Type monitorType)
+        private static void SetMonitorCommunicationRelation(ProgramStep prevStep, ProgramStep currentStep, Type monitorType)
         {
             if (prevStep == currentStep)
             {
@@ -190,14 +190,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (prevStep.NextMonitorSteps == null)
             {
-                prevStep.NextMonitorSteps = new Dictionary<Type, IProgramStep>();
+                prevStep.NextMonitorSteps = new Dictionary<Type, ProgramStep>();
             }
 
             prevStep.NextMonitorSteps.Add(monitorType, currentStep);
 
             if (currentStep.PrevMonitorSteps == null)
             {
-                currentStep.PrevMonitorSteps = new Dictionary<Type, IProgramStep>();
+                currentStep.PrevMonitorSteps = new Dictionary<Type, ProgramStep>();
             }
 
             currentStep.PrevMonitorSteps.Add(monitorType, prevStep);
@@ -216,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private static string SerializeStep(ProgramStep step)
         {
-            IProgramStep s = step;
+            ProgramStep s = step;
             return $"{s.TotalOrderingIndex}:{s.ProgramStepType}:{s.SrcId}:{s.OpType}:{s.TargetId}:{s.BooleanChoice}:{s.IntChoice}:{s.NextMachineStep?.TotalOrderingIndex ?? -1}:{s.CreatedStep?.TotalOrderingIndex ?? -1}";
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return sb.ToString();
         }
 
-        private static void HAXSerializeStepProgramTree(StringBuilder sb, IProgramStep atNode, int depth)
+        private static void HAXSerializeStepProgramTree(StringBuilder sb, ProgramStep atNode, int depth)
         {
             sb.Append(new string('\t', depth) + $"*{atNode}\n");
             if (atNode.NextMachineStep != null)
