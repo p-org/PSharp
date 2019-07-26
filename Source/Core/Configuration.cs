@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -130,12 +131,6 @@ namespace Microsoft.PSharp
         /// </summary>
         [DataMember]
         public ReductionStrategy ReductionStrategy;
-
-        /// <summary>
-        /// Scheduling strategy to use with the P# tester.
-        /// </summary>
-        [DataMember]
-        public List<WrapperStrategyConfiguration> WrapperStrategies;
 
         /// <summary>
         /// Number of scheduling iterations.
@@ -437,11 +432,6 @@ namespace Microsoft.PSharp
         internal bool DisableEnvironmentExit;
 
         /// <summary>
-        /// If true, ProgramAware version of runtime and strategy will be used
-        /// </summary>
-        internal bool UseProgramAwareVersion;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="Configuration"/> class.
         /// </summary>
         protected Configuration()
@@ -473,7 +463,6 @@ namespace Microsoft.PSharp
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.ReductionStrategy = ReductionStrategy.None;
-            this.WrapperStrategies = new List<WrapperStrategyConfiguration>();
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
             this.IncrementalSchedulingSeed = false;
@@ -563,17 +552,6 @@ namespace Microsoft.PSharp
         public Configuration WithStrategy(SchedulingStrategy strategy)
         {
             this.SchedulingStrategy = strategy;
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a wrapper strategy around the this.strategy
-        /// Can be called multiple times to add multiple wrappers
-        /// </summary>
-        /// <param name="wrapperStrategyConfig">The config specifying the WrapperStrategy</param>
-        public Configuration WithWrapperStrategy(WrapperStrategyConfiguration wrapperStrategyConfig)
-        {
-            this.WrapperStrategies.Add(wrapperStrategyConfig);
             return this;
         }
 

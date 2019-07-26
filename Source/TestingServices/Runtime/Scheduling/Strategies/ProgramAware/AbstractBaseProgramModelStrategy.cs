@@ -229,12 +229,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
-        public virtual string GetReport()
-        {
-            return string.Empty;
-        }
-
-        /// <inheritdoc/>
         public override string ToString()
         {
             return this.GetType().Name;

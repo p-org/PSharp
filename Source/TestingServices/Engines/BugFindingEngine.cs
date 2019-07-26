@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection;
 using Microsoft.PSharp.TestingServices.Runtime;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -125,30 +124,6 @@ namespace Microsoft.PSharp.TestingServices
         public override string Report()
         {
             return this.TestReport.GetText(this.Configuration, "...");
-        }
-
-        public string ExtraReport()
-        {
-            if ( this.Strategy is IProgramAwareSchedulingStrategy)
-            {
-                StringBuilder sb = new StringBuilder();
-                string extraReport = (this.Strategy as IProgramAwareSchedulingStrategy).GetReport();
-                if (extraReport != null)
-                {
-                    sb.AppendLine($"--- Start report from {this.Strategy.ToString()} ---");
-                    sb.Append(extraReport);
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    sb.AppendLine($"GC.GetTotalMemory=[{GC.GetTotalMemory(false)}]");
-                    sb.AppendLine($"--- End report from {this.Strategy.ToString()} ---");
-                }
-
-                return sb.ToString();
-            }
-            else
-            {
-                return string.Empty;
-            }
         }
 
         /// <summary>
@@ -292,8 +267,6 @@ namespace Microsoft.PSharp.TestingServices
                         // Disposes the test state.
                         this.TestDisposeMethod.Invoke(null, Array.Empty<object>());
                     }
-
-                    Output.Write(this.ExtraReport());
                 }
                 catch (Exception ex)
                 {
@@ -334,7 +307,6 @@ namespace Microsoft.PSharp.TestingServices
 
             // Runtime used to serialize and test the program in this iteration.
             SystematicTestingRuntime runtime = null;
-            // ProgramAwareTestingRuntime runtime = null;
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
@@ -349,10 +321,14 @@ namespace Microsoft.PSharp.TestingServices
                 // Creates a new instance of the bug-finding runtime.
                 if (this.TestRuntimeFactoryMethod != null)
                 {
-                    throw new NotImplementedException("Krishnan is testing stuff. This shouldn't be checked in");
-                    // runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
-                    //    null,
-                    //    new object[] { this.Configuration, this.Strategy, this.Reporter });
+                    runtime = (SystematicTestingRuntime)this.TestRuntimeFactoryMethod.Invoke(
+                        null,
+                        new object[] { this.Configuration, this.Strategy, this.Reporter });
+
+                    if (this.Strategy is IProgramAwareSchedulingStrategy && !(runtime is ProgramAwareTestingRuntime) )
+                    {
+                        throw new NotImplementedException("TestRuntimeFactoryMethod returned a runtime which was not a ProgramAwareTestingRuntime. This runtime cannot be used with an IProgramAwareSchedulingStrategy");
+                    }
                 }
                 else
                 {

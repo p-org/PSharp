@@ -13,6 +13,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.ClientInterface
     public interface IStrategyController
     {
         /// <summary>
+        /// Called when the ControlUnitStrategy is being intiialized
+        /// </summary>
+        /// <param name="configuration">The configuration passed to the ControlUnitStrategy</param>
+        /// <param name="nextStrategy">The strategy to be used</param>
+        void Initialize(Configuration configuration, out ISchedulingStrategy nextStrategy);
+
+        /// <summary>
+        /// Called by ControlUnitStrategy.
+        /// </summary>
+        void StrategyReset();
+
+        /// <summary>
         /// Called by ControlUnitStrategy.
         /// </summary>
         /// <param name="nextStrategy">The ControlUnitStrategy that is being used</param>
@@ -21,34 +33,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.ClientInterface
         bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configurationForNextIter);
 
         /// <summary>
-        /// Called by ControlUnitStrategy.
+        /// Called when the iteration is done.
         /// </summary>
-        void StrategyReset();
+        /// <param name="bugFound">Was the bug found in this iteration</param>
+        void NotifySchedulingEnded(bool bugFound);
 
         /// <summary>
         /// A report which will be printed at the end.
         /// </summary>
         /// <returns>The report</returns>
         string GetReport();
-
-        /// <summary>
-        /// Called when the ControlUnitStrategy is being intiialized
-        /// </summary>
-        /// <param name="configuration">The configuration passed to the ControlUnitStrategy</param>
-        /// <param name="nextStrategy">The strategy to be used</param>
-        void Initialize(Configuration configuration, out ISchedulingStrategy nextStrategy);
-
-        /// <summary>
-        /// Called when the iteration is done.
-        /// </summary>
-        /// <param name="bugFound">Was the bug found in this iteration</param>
-        void NotifySchedulingEnded(bool bugFound);
-
-        // There is no need for this.
-        // /// <summary>
-        // ///  Called once by ControlUnitStrategy to register itself with the Controller
-        // /// </summary>
-        // /// <param name="controlUnitStrategy">The ControlUnitStrategy</param>
-        // void SetControlUnitStrategy(ControlUnitStrategy controlUnitStrategy);
     }
 }

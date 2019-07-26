@@ -26,6 +26,14 @@ namespace Microsoft.PSharp.Utilities
         Replay,
 
         /// <summary>
+        /// A wrapper strategy which interacts with an IStrategyController
+        /// This allows program aware apps to do funny things without having go in to P# code.
+        /// This can't be used through Tester because there won't be a Controller defined.
+        /// </summary>
+        [EnumMember(Value = "ControlUnit")]
+        ControlUnit,
+
+        /// <summary>
         /// Portfolio scheduling.
         /// </summary>
         [EnumMember(Value = "Portfolio")]
@@ -90,27 +98,6 @@ namespace Microsoft.PSharp.Utilities
         /// Random delay-bounding scheduling.
         /// </summary>
         [EnumMember(Value = "RandomDelayBounding")]
-        RandomDelayBounding,
-
-        // Wrapper metric strategies
-
-        /// <summary>
-        /// Wraps the scheduler in MessageFlowBasedDHittingMetricStrategy
-        /// </summary>
-        [EnumMember(Value = "MsgFlowDHittingMetric")]
-        MsgFlowDHittingMetric,
-
-        /// <summary>
-        /// Wraps the scheduler in InboxBasedDHittingMetricStrategy
-        /// </summary>
-        [EnumMember(Value = "InboxDhittingMetric")]
-        InboxDHittingMetric,
-
-        /// <summary>
-        /// A wrapper strategy which interacts with an IStrategyController
-        /// This allows program aware apps to do funny things without having go in to P# code.
-        /// </summary>
-        [EnumMember(Value = "ControlUnit")]
-        ControlUnit
+        RandomDelayBounding
     }
 }

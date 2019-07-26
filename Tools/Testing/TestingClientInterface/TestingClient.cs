@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingClientInterface
                 throw new ArgumentException("Exactly one of Configuration.AssemblyToBeAnalyzed or TestAction must be set");
             }
 
-            ((this.TestingEngine as BugFindingEngine).Strategy as ControlUnitStrategy).Initialize(this.Controller);
+            ControlUnitStrategy.InitializeInstanceThroughEngine(this.TestingEngine, this.Controller);
         }
 
         public void Run()

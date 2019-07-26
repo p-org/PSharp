@@ -347,19 +347,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.EnableUserDefinedStateHashing = true;
             }
-            else if (IsMatch(option, @"^[\/|-]wrappers:") && option.Length > 10)
-            {
-                string strategyCommandLine = option.Substring(10);
-                WrapperStrategyConfiguration wsc = new WrapperStrategyConfiguration();
-                if (wsc.TryParse(strategyCommandLine))
-                {
-                    this.Configuration.WrapperStrategies.Add(wsc);
-                }
-                else
-                {
-                    throw new ArgumentException("Could not parse wrapper strategy commandline " + option);
-                }
-            }
             else
             {
                 base.ParseOption(option);

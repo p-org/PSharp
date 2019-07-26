@@ -73,11 +73,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// ( whether it completed, hit the bound or found a bug )
         /// </summary>
         void NotifySchedulingEnded(bool bugFound);
-
-        /// <summary>
-        /// Return a report of the schedule - use for statistics etc.s
-        /// </summary>
-        /// <returns>An informative string</returns>
-        string GetReport();
     }
 }

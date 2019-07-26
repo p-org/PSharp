@@ -23,11 +23,32 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private ISchedulingStrategy CurrentStrategy;
         private readonly Configuration Configuration;
 
+        private static readonly Dictionary<ITestingEngine, ControlUnitStrategy> EngineToControlStrategyMap = new Dictionary<ITestingEngine, ControlUnitStrategy>();
+
+        /// <summary>
+        /// AbstractTestingEngine.Strategy is protected. So I can't set the controller through such an instance.
+        /// Get around this using this static Initialization method which must be called before we run the engine.
+        /// </summary>
+        /// <param name="testingEngine">The testing engine which will create an instance of ControlUnitStrategy</param>
+        /// <param name="controller">The controller the engine should use</param>
+        public static void InitializeInstanceThroughEngine(ITestingEngine testingEngine, IStrategyController controller)
+        {
+            lock (EngineToControlStrategyMap)
+            {
+                EngineToControlStrategyMap[testingEngine].Initialize(controller);
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ControlUnitStrategy"/> class.
         /// </summary>
-        public ControlUnitStrategy(Configuration configuration)
+        public ControlUnitStrategy(ITestingEngine creatorEngine, Configuration configuration)
         {
+            lock (EngineToControlStrategyMap)
+            {
+                EngineToControlStrategyMap.Add(creatorEngine, this);
+            }
+
             this.Configuration = configuration;
         }
 
@@ -107,20 +128,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         {
             (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.NotifySchedulingEnded(bugFound);
             this.Controller.NotifySchedulingEnded(bugFound);
-        }
-
-        /// <inheritdoc/>
-        public string GetReport() => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.GetReport() ?? null;
-
-        // new methods
-
-        /// <summary>
-        /// Returns the strategy currently being used
-        /// </summary>
-        /// <returns>The strategy currently being used</returns>
-        public ISchedulingStrategy GetStrategy()
-        {
-            return this.CurrentStrategy;
         }
     }
 }

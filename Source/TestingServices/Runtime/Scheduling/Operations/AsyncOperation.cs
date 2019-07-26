@@ -134,12 +134,5 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.SkipNextReceiveSchedulingPoint = true;
             this.MatchingSendIndex = 0;
         }
-
-        public override string ToString()
-        {
-            return $"[{this.SourceId}:{this.Type}" +
-                (this.Type == AsyncOperationType.Receive ? $"({this.MatchingSendIndex})" : string.Empty ) +
-                "]";
-        }
     }
 }

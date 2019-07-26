@@ -17,9 +17,6 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Runtime;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
@@ -98,7 +95,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The bug-finding scheduling strategy.
         /// </summary>
-        internal ISchedulingStrategy Strategy;
+        protected ISchedulingStrategy Strategy;
 
         /// <summary>
         /// Random number generator used by the scheduling strategies.
@@ -425,26 +422,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ControlUnit)
             {
-                this.Strategy = new ControlUnitStrategy(this.Configuration);
-            }
-
-            // TODO: Write an elegant way to turn on program-aware strategies
-            // TODO: Work in the depth and signature type
-            foreach (WrapperStrategyConfiguration wsc in this.Configuration.WrapperStrategies)
-            {
-                switch (wsc.StrategyType)
-                {
-                    case WrapperStrategyConfiguration.WrapperStrategy.InboxDHitting:
-                        this.Strategy = new InboxBasedDHittingMetricStrategy(this.Strategy, wsc);
-                        break;
-
-                    case WrapperStrategyConfiguration.WrapperStrategy.MessageFlowDHitting:
-                        this.Strategy = new MessageFlowBasedDHittingMetricStrategy(this.Strategy, wsc);
-                        break;
-                    default:
-                        Error.ReportAndExit("Unrecognized wrapper strategy" + wsc.StrategyType);
-                        break;
-                }
+                this.Strategy = new ControlUnitStrategy(this, this.Configuration);
             }
 
             if (this.Configuration.SchedulingStrategy != SchedulingStrategy.Replay &&

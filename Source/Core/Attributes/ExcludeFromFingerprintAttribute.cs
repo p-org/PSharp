@@ -3,15 +3,17 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Runtime.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing an event.
+    /// Attribute to mark that this field should be skipped while computing the hash for this object.
     /// </summary>
-    [DataContract]
-    public abstract class Event
+    [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+    public sealed class ExcludeFromFingerprintAttribute : Attribute
     {
     }
 }
