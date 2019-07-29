@@ -58,5 +58,10 @@ namespace Microsoft.PSharp.TestingClientInterface
             // Parses the command line options to get the configuration.
             this.TestingEngine.Run();
         }
+
+        public TestReport GetTestReport()
+        {
+            return this.TestingEngine.TestReport;
+        }
     }
 }

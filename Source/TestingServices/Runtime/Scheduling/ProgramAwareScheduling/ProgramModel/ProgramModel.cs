@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
@@ -14,6 +15,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
     internal class ProgramModel
     {
         private const bool ConnectSuccessiveHandlers = false;
+
+        private const bool HashMachines = true;
 
         internal ProgramStep Rootstep;
         internal ProgramStep ActiveStep;
@@ -25,9 +28,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
         private readonly Dictionary<ulong, ProgramStep> MachineIdToLatestSendTo;
         private readonly Dictionary<Type, ProgramStep> MonitorTypeToLatestSendTo;
-        internal readonly Dictionary<ulong, Type> MachineIdToType;
+        internal readonly Dictionary<ulong, Machine> MachineIdToMachine;
 
         internal ProgramStep BugTriggeringStep;
+        private static readonly HashSet<Type> IgnoredMachineHashTypes = new HashSet<Type> { typeof(AsyncMachine), typeof(Machine) };
 
         internal ProgramModel()
         {
@@ -37,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.PendingEventToSendStep = new Dictionary<Event, ProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, ProgramStep>();
             this.MonitorTypeToLatestSendTo = new Dictionary<Type, ProgramStep>();
-            this.MachineIdToType = new Dictionary<ulong, Type>();
+            this.MachineIdToMachine = new Dictionary<ulong, Machine>();
 
             this.OrderedSteps = new List<ProgramStep>();
 
@@ -52,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.Rootstep = firstStep;
             this.ActiveStep = this.Rootstep;
             this.MachineIdToLastStep[testHarnessMachineId] = this.Rootstep;
-            this.MachineIdToType[testHarnessMachineId] = typeof(TestHarnessMachine);
+            // this.MachineIdToMachine[testHarnessMachineId] = typeof(TestHarnessMachine);
 
             this.OrderedSteps.Add(this.Rootstep);
         }
@@ -74,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         this.PendingEventToSendStep[programStep.EventInfo.Event] = programStep;
                         if (this.MachineIdToLatestSendTo.ContainsKey(programStep.TargetId))
                         {
-                            SetInboxOrderingRelation( this.MachineIdToLatestSendTo[programStep.TargetId], programStep);
+                            SetInboxOrderingRelation(this.MachineIdToLatestSendTo[programStep.TargetId], programStep);
                         }
 
                         this.MachineIdToLatestSendTo[programStep.TargetId] = programStep;
@@ -99,7 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             if (programStep.OpType != AsyncOperationType.Start &&
-                (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers) )
+                (programStep.OpType != AsyncOperationType.Receive || ConnectSuccessiveHandlers))
             {
                 // Process the machine thread relation
                 ProgramStep previousMachineStep = this.MachineIdToLastStep[programStep.SrcId];
@@ -114,11 +118,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             // This line is only so we don't get an unused parameter error
             stepIndex++;
+
+            if (HashMachines && this.MachineIdToMachine.TryGetValue(programStep.SrcId, out Machine machineInstance))
+            {
+                programStep.MachineHash = HashMachine(machineInstance);
+            }
         }
 
-        internal void RecordMachineType(ulong machineId, Type type)
+        internal void RecordMachineCreation(ulong machineId, Machine machine)
         {
-            this.MachineIdToType.Add(machineId, type);
+            this.MachineIdToMachine.Add(machineId, machine);
         }
 
         internal void RecordMonitorEvent(Type monitorType, AsyncMachine sender)
@@ -126,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             // Pray that this is right :p
             if (sender.Id.Value != this.ActiveStep.SrcId)
             {
-               throw new NotImplementedException("This is wrongly implemented");
+                throw new NotImplementedException("This is wrongly implemented");
             }
 
             if (this.MonitorTypeToLatestSendTo.ContainsKey(monitorType))
@@ -201,6 +210,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             currentStep.PrevMonitorSteps.Add(monitorType, prevStep);
+        }
+
+        private static int HashMachine(Machine machineInstance)
+        {
+            int hash = ReflectionBasedHasher.HashObject(machineInstance, IgnoredMachineHashTypes);
+
+            int i = 0;
+            Type stateAtI = null;
+            do
+            {
+                stateAtI = machineInstance.GetStateTypeAtStackIndex(i);
+                hash *= stateAtI?.GetHashCode() ?? 1;
+                i++;
+            }
+            while ( stateAtI != null);
+
+            return hash;
         }
 
         internal string SerializeProgramTrace()

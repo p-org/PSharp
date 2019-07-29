@@ -27,19 +27,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         protected override bool HashEvents => this.ShouldHashEvents;
 
+        /// <inheritdoc/>
+        protected override bool HashMachines => this.ShouldHashMachines;
+
         private readonly bool ShouldHashEvents;
+        private readonly bool ShouldHashMachines;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BasicProgramModelBasedStrategy"/> class.
         /// </summary>
         /// <param name="childStrategy">The actual scheduling strategy</param>
         /// <param name="shouldHashEvents">True if the eventHash must be calculated</param>
-        public BasicProgramModelBasedStrategy(ISchedulingStrategy childStrategy, bool shouldHashEvents = false)
+        /// <param name="shouldHashMachines">True if machineHash must be recorded for each step</param>
+        public BasicProgramModelBasedStrategy(ISchedulingStrategy childStrategy, bool shouldHashEvents = false, bool shouldHashMachines = false)
+            : base()
         {
             this.ChildStrategy = childStrategy;
             this.ShouldHashEvents = shouldHashEvents;
-
-            this.ProgramModel = new ProgramModel();
+            this.ShouldHashMachines = shouldHashMachines;
         }
 
         /// <inheritdoc/>

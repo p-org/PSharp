@@ -54,12 +54,12 @@ namespace Microsoft.PSharp.TestingClientInterface
 
         // Interface for lazy people like me to call this from their apps.
 
-        public static void RunSimple(ISchedulingStrategy strategy, IMetricReporter reporter, string assemblyToBeAnalyzed, int iterations, int maxUnfairSteps, bool explore = false, int verbosity = 0)
+        public static void RunSimple(ISchedulingStrategy strategy, IMetricReporter reporter, string assemblyToBeAnalyzed, string testMethod, int iterations, int maxUnfairSteps, bool explore = false, int verbosity = 0)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            Configuration config = GetConfiguration(assemblyToBeAnalyzed, iterations, maxUnfairSteps, explore, verbosity);
+            Configuration config = GetConfiguration(assemblyToBeAnalyzed, testMethod, iterations, maxUnfairSteps, explore, verbosity);
 
             SimpleTesterController controller = new SimpleTesterController(config, strategy, reporter);
             TestingClient testInterface = new TestingClient(controller);
@@ -67,11 +67,12 @@ namespace Microsoft.PSharp.TestingClientInterface
             IO.Output.WriteLine(reporter.GetReport());
         }
 
-        private static Configuration GetConfiguration(string assemblyToBeAnalyzed, int iterations, int maxUnfairSteps, bool explore = false, int verbosity = 0)
+        private static Configuration GetConfiguration(string assemblyToBeAnalyzed, string testMethod, int iterations, int maxUnfairSteps, bool explore = false, int verbosity = 0)
         {
             Configuration config = CreateDefaultConfiguration();
 
             config.AssemblyToBeAnalyzed = assemblyToBeAnalyzed != null ? assemblyToBeAnalyzed : string.Empty;
+            config.TestMethodName = testMethod != null ? testMethod : string.Empty;
             config.SchedulingIterations = iterations;
             config.MaxUnfairSchedulingSteps = maxUnfairSteps;
             config.PerformFullExploration = explore;
@@ -89,7 +90,7 @@ namespace Microsoft.PSharp.TestingClientInterface
             try
             {
                 CaughtException = null;
-                Configuration config = GetConfiguration(null, iterations, maxUnfairSteps, explore, verbosity);
+                Configuration config = GetConfiguration(null, null, iterations, maxUnfairSteps, explore, verbosity);
 
                 SimpleTesterController controller = new SimpleTesterController(config, strategy, reporter);
                 TestingClient testInterface = new TestingClient(controller, test);
@@ -109,6 +110,21 @@ namespace Microsoft.PSharp.TestingClientInterface
             }
 
             return true;
+        }
+
+        private static readonly char[] TrimChars = new char[2] { '-', '/' };
+        private static readonly char[] SplitChars = new char[] { ':' };
+
+        public static Dictionary<string, string> ParseCommandlineArgs(string[] args)
+        {
+            Dictionary<string, string> argMap = new Dictionary<string, string>();
+            foreach (string s in args)
+            {
+                string[] kv = s.Trim(TrimChars).Split(SplitChars, 2);
+                argMap.Add(kv[0], kv.Length > 1 ? kv[1] : null);
+            }
+
+            return argMap;
         }
 
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)

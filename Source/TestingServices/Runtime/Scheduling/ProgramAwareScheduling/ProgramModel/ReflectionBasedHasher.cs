@@ -21,16 +21,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// Uses reflection to come up with a hash of the objects based on the values of members.
         /// </summary>
         /// <param name="o">The object to hash. Must not be null</param>
+        /// <param name="ignoreFieldsDeclaredByTypes">Fields declared in any of these types are not considered</param>
         /// <returns>A hash of the object</returns>
-        public static int HashObject(object o)
+        public static int HashObject(object o, HashSet<Type> ignoreFieldsDeclaredByTypes = null)
         {
+            if (ignoreFieldsDeclaredByTypes == null)
+            {
+                ignoreFieldsDeclaredByTypes = new HashSet<Type>();
+            }
+
             int objectHash = o.GetType().GetHashCode();
 
             if (o.GetType().GetMethod("GetHashCode").DeclaringType == typeof(object))
             {
                 foreach (FieldInfo fieldInfo in o.GetType().GetFields())
                 {
-                    if (fieldInfo.GetCustomAttribute(typeof(ExcludeFromFingerprintAttribute)) != null)
+                    if (fieldInfo.GetCustomAttribute(typeof(ExcludeFromFingerprintAttribute)) != null ||
+                        ignoreFieldsDeclaredByTypes.Contains(fieldInfo.DeclaringType))
                     {
                         continue;
                     }

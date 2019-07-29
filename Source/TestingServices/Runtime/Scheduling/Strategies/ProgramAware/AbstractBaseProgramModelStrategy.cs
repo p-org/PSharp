@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
@@ -36,6 +37,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// If true, The ProgramStepEventInfo.HashedState field will be set for all eventInfo
         /// </summary>
         protected abstract bool HashEvents { get; }
+
+        /// <summary>
+        /// If true, The IProgramStepSignature.MachineHash field will be set for all steps
+        /// </summary>
+        protected abstract bool HashMachines { get; }
 
         /// <inheritdoc/>
         public virtual string GetDescription()
@@ -115,7 +121,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <returns>a mapping of MachineId to Type</returns>
         public virtual Dictionary<ulong, Type> GetMachineIdToTypeMap()
         {
-            return this.ProgramModel.MachineIdToType;
+            Dictionary<ulong, Type> machineIdToType = this.ProgramModel.MachineIdToMachine.Values.ToDictionary(x => x.Id.Value, y => y.GetType());
+            machineIdToType.Add(0, typeof(TestHarnessMachine));
+            return machineIdToType;
         }
 
         /// <summary>
@@ -141,7 +149,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             ProgramStep createStep = new ProgramStep(AsyncOperationType.Create, creatorMachine?.Id.Value ?? 0, createdMachine.Id.Value, null);
             this.ProgramModel.RecordStep(createStep, this.GetScheduledSteps()); // TODO: Should i do -1?
-            this.ProgramModel.RecordMachineType(createdMachine.Id.Value, createdMachine.GetType());
+            this.ProgramModel.RecordMachineCreation(createdMachine.Id.Value, createdMachine);
         }
 
         /// <inheritdoc/>

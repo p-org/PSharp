@@ -63,6 +63,23 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
                 $"Two otherwise-equal objects of (with non-matching masked field) did not match");
         }
 
+        [Fact(Timeout = 5000)]
+        public void InheritedFieldsTest()
+        {
+            SubT1 t0 = new SubT1(0, 1, "abc", 2);
+            SubT1 t1 = new SubT1(0, 3, "xyz", 4);
+
+            Assert.False(
+                ReflectionBasedHasher.HashObject(t0) == ReflectionBasedHasher.HashObject(t1),
+                $"Two objects with differing inherited fields matched");
+
+            HashSet<Type> ignoreTypes = new HashSet<Type> { typeof(T1) };
+
+            Assert.True(
+                ReflectionBasedHasher.HashObject(t0, ignoreTypes) == ReflectionBasedHasher.HashObject(t1, ignoreTypes),
+                $"Two objects differing only in inherited fields did not match despite ignoring inherited fields");
+        }
+
         internal class T1
         {
             private readonly int X;
@@ -113,6 +130,17 @@ namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
             {
                 this.S1 = s1;
                 this.S2 = s2;
+            }
+        }
+
+        internal class SubT1 : T1
+        {
+            private readonly int SubX;
+
+            public SubT1(int subX, int x, string y, int z)
+                : base(x, y, z)
+            {
+                this.SubX = subX;
             }
         }
     }

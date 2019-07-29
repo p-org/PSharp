@@ -51,6 +51,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         protected override bool HashEvents => false;
 
         /// <inheritdoc/>
+        protected override bool HashMachines => false;
+
+        /// <inheritdoc/>
         public override void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
             throw new System.NotImplementedException("You cannot force this replay strategy");

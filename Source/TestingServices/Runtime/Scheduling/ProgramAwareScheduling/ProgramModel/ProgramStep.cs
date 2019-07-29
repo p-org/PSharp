@@ -133,6 +133,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public Dictionary<Type, ProgramStep> PrevMonitorSteps;
 
         /// <summary>
+        /// A hash of the machine state.
+        /// </summary>
+        public int MachineHash;
+
+        /// <summary>
         /// The step-index in the totally-ordered actual execution of the program.
         /// </summary>
         public int TotalOrderingIndex { get; internal set; }
@@ -249,6 +254,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     newStep = CreateSpecialProgramStep(this.SrcId, this.BooleanChoice, this.IntChoice);
                     break;
             }
+
+            // TODO: Do we want to introduce inconsistency by doing
+            // newStep.MachineHash = this.MachineHash;
+            // Or do we keep it consistent doing this:
+            newStep.MachineHash = 0;
 
             // Fields that may be more complicated
             newStep.Signature = null;
