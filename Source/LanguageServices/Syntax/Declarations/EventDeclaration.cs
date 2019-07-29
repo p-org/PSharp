@@ -64,26 +64,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token RightParenthesis;
 
         /// <summary>
-        /// The assert keyword.
-        /// </summary>
-        internal Token AssertKeyword;
-
-        /// <summary>
-        /// The assume keyword.
-        /// </summary>
-        internal Token AssumeKeyword;
-
-        /// <summary>
-        /// The assert value.
-        /// </summary>
-        internal int AssertValue;
-
-        /// <summary>
-        /// The assume value.
-        /// </summary>
-        internal int AssumeValue;
-
-        /// <summary>
         /// The semicolon token.
         /// </summary>
         internal Token SemicolonToken;
@@ -221,22 +201,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += ")\n";
             text += indent2 + ": base(";
 
-            void addAssertAssumeParams(bool forDerived)
-            {
-                if (this.AssertKeyword != null)
-                {
-                    text += this.AssertValue + ", -1";
-                }
-                else if (this.AssumeKeyword != null)
-                {
-                    text += "-1, " + this.AssumeValue;
-                }
-                else if (forDerived)
-                {
-                    text += "-1, -1";
-                }
-            }
-
             if (allDecls.Length > 1)
             {
                 // We don't pass the most-derived decl's params to the base class
@@ -250,11 +214,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     }
                 }
             }
-            else
-            {
-                // Assert/Assume are passed as params to ctor overload for classes that derive directly from Event.
-                addAssertAssumeParams(forDerived: false);
-            }
 
             text += ")\n";
             text += indent1 + "{\n";
@@ -263,15 +222,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += indent2 + "this." + this.PayloadIdentifiers[i].TextUnit.Text + " = ";
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
-            }
-
-            if (this.BaseClassDecl != null)
-            {
-                // Assert/Assume are passed as to a protected method for classes that don't derive directly from Event.
-                // Override any base-class declaration; if none are specified on the derived class then this will turn it off.
-                text += indent2 + "base.SetCardinalityConstraints(";
-                addAssertAssumeParams(forDerived: true);
-                text += ");\n";
             }
 
             text += indent1 + "}\n";

@@ -37,7 +37,6 @@ namespace Foo
         public E2()
             : base()
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -46,7 +45,6 @@ namespace Foo
         public E2x()
             : base()
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -88,7 +86,6 @@ namespace Foo
             public E2()
                 : base()
             {
-                base.SetCardinalityConstraints(-1, -1);
             }
         }
 
@@ -97,7 +94,6 @@ namespace Foo
             public E2x()
                 : base()
             {
-                base.SetCardinalityConstraints(-1, -1);
             }
         }
 
@@ -143,7 +139,6 @@ namespace Bar
         public E2()
             : base()
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -179,7 +174,6 @@ namespace Foo
         public E2()
             : base()
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -188,7 +182,6 @@ namespace Foo
         public E2x()
             : base()
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -227,7 +220,6 @@ namespace Foo
             : base()
         {
             this.b = b;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -239,7 +231,6 @@ namespace Foo
             : base()
         {
             this.b = b;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -278,7 +269,6 @@ namespace Foo
         public E2(string a)
             : base(a)
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -287,7 +277,6 @@ namespace Foo
         public E2x(string a)
             : base(a)
         {
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -329,7 +318,6 @@ namespace Foo
             : base(a)
         {
             this.b = b;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -341,7 +329,6 @@ namespace Foo
             : base(a)
         {
             this.b = b;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -389,7 +376,6 @@ namespace Foo
         {
             this.a1 = a1;
             this.b1 = b1;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -403,7 +389,6 @@ namespace Foo
         {
             this.a2 = a2;
             this.b2 = b2;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -417,7 +402,6 @@ namespace Foo
         {
             this.a2x = a2x;
             this.b2x = b2x;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -467,7 +451,6 @@ namespace Foo
         {
             this.a1 = a1;
             this.b1 = b1;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -481,7 +464,6 @@ namespace Foo
         {
             this.a2 = a2;
             this.b2 = b2;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 
@@ -495,7 +477,6 @@ namespace Foo
         {
             this.a2x = a2x;
             this.b2x = b2x;
-            base.SetCardinalityConstraints(-1, -1);
         }
     }
 }
@@ -503,86 +484,46 @@ namespace Foo
             LanguageTestUtilities.AssertRewritten(expected, test);
         }
 
-        [Fact(Timeout=5000)]
-        public void TestAssumeAssertInheritance()
+        [Fact(Timeout = 5000)]
+        public void TestAssertUnsupported()
         {
             var test = @"
 namespace Foo {
     internal event E1 assert 1;
-    internal event E2: E1 assert 2;
-    internal event E3 assume 3;
-    internal event E4: E3 assume 4;
-    internal event E5 assert 5;
-    internal event E6: E5 assume 6;
-    internal event E7: E6;
 }";
-            var expected = @"
-using Microsoft.PSharp;
-
-namespace Foo
-{
-    internal class E1 : Event
-    {
-        public E1()
-            : base(1, -1)
-        {
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \";\", \":\".", test);
         }
-    }
 
-    internal class E2 : E1
-    {
-        public E2()
-            : base()
+        [Fact(Timeout = 5000)]
+        public void TestAssumeUnsupported()
         {
-            base.SetCardinalityConstraints(2, -1);
+            var test = @"
+namespace Foo {
+    internal event E1 assume 1;
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \";\", \":\".", test);
         }
-    }
 
-    internal class E3 : Event
-    {
-        public E3()
-            : base(-1, 3)
+        [Fact(Timeout = 5000)]
+        public void TestAssertInheritanceUnsupported()
         {
+            var test = @"
+namespace Foo {
+    internal event E1;
+    internal event E2: E1 assert 1;
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
-    }
 
-    internal class E4 : E3
-    {
-        public E4()
-            : base()
+        [Fact(Timeout = 5000)]
+        public void TestAssumeInheritanceUnsupported()
         {
-            base.SetCardinalityConstraints(-1, 4);
-        }
-    }
-
-    internal class E5 : Event
-    {
-        public E5()
-            : base(5, -1)
-        {
-        }
-    }
-
-    internal class E6 : E5
-    {
-        public E6()
-            : base()
-        {
-            base.SetCardinalityConstraints(-1, 6);
-        }
-    }
-
-    internal class E7 : E6
-    {
-        public E7()
-            : base()
-        {
-            base.SetCardinalityConstraints(-1, -1);
-        }
-    }
-}
-";
-            LanguageTestUtilities.AssertRewritten(expected, test);
+            var test = @"
+namespace Foo {
+    internal event E1;
+    internal event E2: E1 assume 1;
+}";
+            LanguageTestUtilities.AssertFailedTestLog("Expected \"(\" or \";\".", test);
         }
 
         [Fact(Timeout=5000)]
@@ -639,28 +580,6 @@ namespace Foo {
     internal event E2 : E1;
 }";
             LanguageTestUtilities.AssertFailedTestLog("\"extern\" applies only to events and can have no access modifiers.", test);
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestExternWithAssert()
-        {
-            var test = @"
-namespace Foo {
-    extern event E1 assert 42;
-    internal event E2 : E1;
-}";
-            LanguageTestUtilities.AssertFailedTestLog("\"extern\" cannot have an Assert or Assume specification.", test);
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestExternWithAssume()
-        {
-            var test = @"
-namespace Foo {
-    extern event E1 assume 42;
-    internal event E2 : E1;
-}";
-            LanguageTestUtilities.AssertFailedTestLog("\"extern\" cannot have an Assert or Assume specification.", test);
         }
 
         [Fact(Timeout=5000)]

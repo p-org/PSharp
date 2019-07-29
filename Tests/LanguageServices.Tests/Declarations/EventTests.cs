@@ -342,7 +342,7 @@ private event e;
 namespace Foo {
 public event e>;
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"assert\", \"assume\", \"<\", \"(\", \";\", \":\".", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \";\", \":\".", test);
         }
 
         [Fact(Timeout=5000)]

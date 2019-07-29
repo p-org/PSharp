@@ -59,9 +59,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             if (this.TokenStream.Done ||
-                (this.TokenStream.Peek().Type != TokenType.Assert &&
-                this.TokenStream.Peek().Type != TokenType.Assume &&
-                this.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
+                (this.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
                 this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 this.TokenStream.Peek().Type != TokenType.Colon &&
                 this.TokenStream.Peek().Type != TokenType.Semicolon))
@@ -69,8 +67,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 // TODO: Create an overload of ParsingException ctor that generates the message with a predefined format enum.
                 var expectedTokenTypes = new TokenType[]
                 {
-                    TokenType.Assert,
-                    TokenType.Assume,
                     TokenType.LeftAngleBracket,
                     TokenType.LeftParenthesis,
                     TokenType.Semicolon,
@@ -85,66 +81,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             this.VisitBaseEventDeclaration(node, declarations);
 
             if (this.TokenStream.Done ||
-                (this.TokenStream.Peek().Type != TokenType.Assert &&
-                this.TokenStream.Peek().Type != TokenType.Assume &&
-                this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                (this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 this.TokenStream.Peek().Type != TokenType.Semicolon))
             {
                 throw new ParsingException(
                     "Expected \"(\" or \";\".",
-                    TokenType.Assert,
-                    TokenType.Assume,
                     TokenType.LeftParenthesis,
                     TokenType.Semicolon);
-            }
-
-            if (this.TokenStream.Peek().Type == TokenType.Assert ||
-                this.TokenStream.Peek().Type == TokenType.Assume)
-            {
-                if (isExtern)
-                {
-                    throw new ParsingException("\"extern\" cannot have an Assert or Assume specification.");
-                }
-
-                bool isAssert = true;
-                if (this.TokenStream.Peek().Type == TokenType.Assert)
-                {
-                    node.AssertKeyword = this.TokenStream.Peek();
-                }
-                else
-                {
-                    node.AssumeKeyword = this.TokenStream.Peek();
-                    isAssert = false;
-                }
-
-                this.TokenStream.Index++;
-                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (this.TokenStream.Done ||
-                    this.TokenStream.Peek().Type != TokenType.Identifier ||
-                    !int.TryParse(this.TokenStream.Peek().TextUnit.Text, out int value))
-                {
-                    throw new ParsingException("Expected integer.", TokenType.Identifier);
-                }
-
-                if (isAssert)
-                {
-                    node.AssertValue = value;
-                }
-                else
-                {
-                    node.AssumeValue = value;
-                }
-
-                this.TokenStream.Index++;
-                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (this.TokenStream.Done ||
-                    (this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
-                    this.TokenStream.Peek().Type != TokenType.Semicolon))
-                {
-                    throw new ParsingException("Expected \"(\" or \";\".", TokenType.LeftParenthesis, TokenType.Semicolon);
-                }
             }
 
             if (this.TokenStream.Peek().Type == TokenType.LeftParenthesis)
@@ -263,8 +206,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         {
             int genericCount = 0;
             while (!this.TokenStream.Done &&
-                this.TokenStream.Peek().Type != TokenType.Assert &&
-                this.TokenStream.Peek().Type != TokenType.Assume &&
                 this.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 this.TokenStream.Peek().Type != TokenType.Semicolon)
             {
