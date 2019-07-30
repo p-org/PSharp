@@ -1,35 +1,24 @@
 <Project>
-  <!-- <Import Project="..\..\..\Common\build.props" /> -->
-    <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netcoreapp2.1;net46</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <OutputPath>.\bin\</OutputPath>
-  </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
 	<Reference Include="Microsoft.PSharp.TestingServices">
-      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.TestingServices.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\net46\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp.TestingClientInterface">
-      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\net46\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.2'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netstandard2.0' ">
 	<Reference Include="Microsoft.PSharp.TestingServices">
-      <HintPath>..\..\..\bin\netstandard2.0\Microsoft.PSharp.TestingServices.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\netstandard2.0\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp.TestingClientInterface">
-      <HintPath>..\..\..\bin\netstandard2.0\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\netstandard2.0\Microsoft.PSharp.TestingClientInterface.dll</HintPath>
     </Reference>
 	<Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\bin\netstandard2.0\Microsoft.PSharp.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)\..\..\..\bin\netstandard2.0\Microsoft.PSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
