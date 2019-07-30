@@ -12,6 +12,6 @@
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.PSharp" Version="1.6.7" />
+    <PackageReference Include="Microsoft.PSharp" Version="1.6.8" />
   </ItemGroup>
 </Project>
