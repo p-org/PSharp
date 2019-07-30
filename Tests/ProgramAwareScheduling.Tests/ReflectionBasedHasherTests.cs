@@ -5,8 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Xunit;
 
 namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware

@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.TestingClientInterface
             {
                 this.ActiveStrategy = nextStrategy;
                 this.Configuration.MaxUnfairSchedulingSteps = maxSteps;
-                this.Configuration.MaxFairSchedulingSteps = 10 * maxSteps;
+                this.UpdateConfiguration();
                 return true;
             }
             else

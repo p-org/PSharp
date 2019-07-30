@@ -114,9 +114,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
         public void RecordStartMachine(Machine machine, Event initialEvent) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordStartMachine(machine, initialEvent);
 
-        public void RecordReceiveEvent(Machine machine, Event evt) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordReceiveEvent(machine, evt);
+        public void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordReceiveEvent(machine, evt, sendStepIndex);
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordSendEvent(sender, targetMachineId, e);
+        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordSendEvent(sender, targetMachineId, e, stepIndex);
 
         public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordMonitorEvent(monitorType, sender, e);
 

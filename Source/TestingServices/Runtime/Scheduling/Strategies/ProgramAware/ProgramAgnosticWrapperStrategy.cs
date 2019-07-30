@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e)
+        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex)
         {
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordReceiveEvent(Machine machine, Event e)
+        public void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex)
         {
         }
 

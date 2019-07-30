@@ -50,7 +50,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 standardizedEventInfo = eventInfo;
             }
 #endif
-            this.ProgramAwareStrategy.RecordSendEvent(sender, target, e);
+            // What do we do if eventInfo is null? Right now, Ask the ProgramAwareStrategy?
+            int sendStepIndex = eventInfo?.SendStep ?? this.ProgramAwareStrategy.GetScheduledSteps();
+            this.ProgramAwareStrategy.RecordSendEvent(sender, target, e, sendStepIndex);
 
             return enqueueStatus;
         }
@@ -74,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
             base.NotifyDequeuedEvent(machine, e, eventInfo);
-            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e);
+            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo?.SendStep ?? 0);
         }
 
         // Non-det choices

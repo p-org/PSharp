@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
@@ -15,14 +14,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
     internal class ProgramModel
     {
         private const bool ConnectSuccessiveHandlers = false;
-
+        // if true, check if the monitor was indeed invoked by the machine executing CurrentStep
+        private const bool AllowRuntimeInvokeMonitor = true;
         private const bool HashMachines = true;
+        private const bool UseReflectionToHashMachines = false;
 
         internal ProgramStep Rootstep;
         internal ProgramStep ActiveStep;
         internal List<ProgramStep> OrderedSteps;
 
-        private readonly Dictionary<Event, ProgramStep> PendingEventToSendStep;
+        private readonly Dictionary<ProgramStepEventInfo, ProgramStep> PendingEventToSendStep;
         private readonly Dictionary<ulong, ProgramStep> MachineIdToCreateStep;
         private readonly Dictionary<ulong, ProgramStep> MachineIdToLastStep;
         // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
@@ -38,7 +39,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.MachineIdToCreateStep = new Dictionary<ulong, ProgramStep>();
             this.MachineIdToLastStep = new Dictionary<ulong, ProgramStep>();
             // this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
-            this.PendingEventToSendStep = new Dictionary<Event, ProgramStep>();
+            this.PendingEventToSendStep = new Dictionary<ProgramStepEventInfo, ProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, ProgramStep>();
             this.MonitorTypeToLatestSendTo = new Dictionary<Type, ProgramStep>();
             this.MachineIdToMachine = new Dictionary<ulong, Machine>();
@@ -75,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         break;
 
                     case AsyncOperationType.Send:
-                        this.PendingEventToSendStep[programStep.EventInfo.Event] = programStep;
+                        this.PendingEventToSendStep[programStep.EventInfo] = programStep;
                         if (this.MachineIdToLatestSendTo.ContainsKey(programStep.TargetId))
                         {
                             SetInboxOrderingRelation(this.MachineIdToLatestSendTo[programStep.TargetId], programStep);
@@ -87,7 +88,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     case AsyncOperationType.Receive:
                         ProgramStep sendStep = this.FindSendStep(programStep);
                         SetCreatedRelation(sendStep, programStep);
-                        this.PendingEventToSendStep.Remove(sendStep.EventInfo.Event);
+                        this.PendingEventToSendStep.Remove(sendStep.EventInfo);
                         break;
 
                     case AsyncOperationType.Start:
@@ -133,7 +134,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal void RecordMonitorEvent(Type monitorType, AsyncMachine sender)
         {
             // Pray that this is right :p
-            if (sender.Id.Value != this.ActiveStep.SrcId)
+            if (sender == null && !AllowRuntimeInvokeMonitor)
+            {
+                throw new NotImplementedException("Runtime.InvokeMonitor is disabled in ProgramModel");
+            }
+            else if (sender.Id.Value != this.ActiveStep.SrcId)
             {
                 throw new NotImplementedException("This is wrongly implemented");
             }
@@ -158,7 +163,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private ProgramStep FindSendStep(ProgramStep receiveStep)
         {
-            if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo.Event, out ProgramStep sendStep))
+            if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo, out ProgramStep sendStep))
             {
                 throw new ArgumentException("The specified event was not found in the pending set");
             }
@@ -214,7 +219,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private static int HashMachine(Machine machineInstance)
         {
-            int hash = ReflectionBasedHasher.HashObject(machineInstance, IgnoredMachineHashTypes);
+            int hash = UseReflectionToHashMachines ? ReflectionBasedHasher.HashObject(machineInstance, IgnoredMachineHashTypes) : 1;
 
             int i = 0;
             Type stateAtI = null;

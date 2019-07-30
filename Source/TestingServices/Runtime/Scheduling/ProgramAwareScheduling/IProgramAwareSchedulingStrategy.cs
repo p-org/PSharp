@@ -43,14 +43,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <param name="sender">The sender machine</param>
         /// <param name="targetMachineId">The recipient machine</param>
         /// <param name="e">The event being sent</param>
-        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e);
+        /// <param name="stepIndex">The stepIndex of this send step - used to match to receive step</param>
+        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex);
 
         /// <summary>
         /// Records a executing a Send operation
         /// </summary>
         /// <param name="machine">The machine receiving the event</param>
         /// <param name="e">The event</param>
-        void RecordReceiveEvent(Machine machine, Event e);
+        /// <param name="sendStepIndex">The stepIndex of the send step</param>
+        void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex);
 
         // Non-det choices
 

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
-using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware.ProgramAwareMetrics.StepSignatures;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
@@ -158,7 +157,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             ProgramStepEventInfo pEventInfo = null;
             if (initialEvent != null)
             {
-                pEventInfo = new ProgramStepEventInfo(initialEvent, 0);
+                pEventInfo = new ProgramStepEventInfo(initialEvent, 0, 0);
             }
             else
             {
@@ -170,17 +169,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
-        public virtual void RecordReceiveEvent(Machine machine, Event evt)
+        public virtual void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex)
         {
-            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, 0);
+            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, 0, sendStepIndex);
             ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
             this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
         }
 
         /// <inheritdoc/>
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e)
+        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex)
         {
-            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(e, sender?.Id.Value ?? 0);
+            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(e, sender?.Id.Value ?? 0, stepIndex);
             if (this.HashEvents)
             {
                 pEventInfo.HashedState = this.HashEvent(e);

@@ -75,6 +75,7 @@ namespace Microsoft.PSharp.TestingClientInterface
             config.TestMethodName = testMethod != null ? testMethod : string.Empty;
             config.SchedulingIterations = iterations;
             config.MaxUnfairSchedulingSteps = maxUnfairSteps;
+            config.MaxFairSchedulingSteps = maxUnfairSteps * 10;
             config.PerformFullExploration = explore;
             config.IsVerbose = verbosity > 0;
 
