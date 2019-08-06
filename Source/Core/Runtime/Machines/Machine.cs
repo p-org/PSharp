@@ -178,6 +178,11 @@ namespace Microsoft.PSharp
         protected virtual int HashedState => 0;
 
         /// <summary>
+        /// Failure domain allocated to the machine.
+        /// </summary>
+        public FailureDomain MachineFailureDomain;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Machine"/> class.
         /// </summary>
         protected Machine()
@@ -209,9 +214,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional initialization event.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions">Optional configuration of a create operation.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
-            this.Runtime.CreateMachine(null, type, null, e, this, opGroupId);
+        protected MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.Runtime.CreateMachine(null, type, null, e, this, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified type and name, and with the
@@ -222,9 +228,10 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions">Optional configuration of a create operation.</param>
         /// <returns>The unique machine id.</returns>
-        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid opGroupId = default) =>
-            this.Runtime.CreateMachine(null, type, friendlyName, e, this, opGroupId);
+        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.Runtime.CreateMachine(null, type, friendlyName, e, this, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, using the specified
@@ -236,8 +243,9 @@ namespace Microsoft.PSharp
         /// <param name="friendlyName">Optional friendly machine name used for logging.</param>
         /// <param name="e">Optional initialization event.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
-        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid opGroupId = default) =>
-            this.Runtime.CreateMachine(mid, type, friendlyName, e, this, opGroupId);
+        /// <param name="createOptions">Optional configuration of a create operation.</param>
+        protected void CreateMachine(MachineId mid, Type type, string friendlyName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+             this.Runtime.CreateMachine(mid, type, friendlyName, e, this, opGroupId, createOptions);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -558,29 +566,40 @@ namespace Microsoft.PSharp
                     this.StateManager.OperationGroupId = opGroupId;
                 }
 
-                if (status is DequeueStatus.Success)
+                try
                 {
-                    // Notify the runtime for a new event to handle. This is only used
-                    // during bug-finding and operation bounding, because the runtime
-                    // has to schedule a machine when a new operation is dequeued.
-                    this.Runtime.NotifyDequeuedEvent(this, e, info);
-                }
-                else if (status is DequeueStatus.Raised)
-                {
-                    this.Runtime.NotifyHandleRaisedEvent(this, e);
-                }
-                else if (status is DequeueStatus.Default)
-                {
-                    this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
+                    if (status is DequeueStatus.Success)
+                    {
+                        // Notify the runtime for a new event to handle. This is only used
+                        // during bug-finding and operation bounding, because the runtime
+                        // has to schedule a machine when a new operation is dequeued.
+                            this.Runtime.NotifyDequeuedEvent(this, e, info);
+                    }
+                    else if (status is DequeueStatus.Raised)
+                    {
+                        this.Runtime.NotifyHandleRaisedEvent(this, e);
+                    }
+                    else if (status is DequeueStatus.Default)
+                    {
+                        this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
 
-                    // If the default event was handled, then notify the runtime.
-                    // This is only used during bug-finding, because the runtime
-                    // has to schedule a machine between default handlers.
-                    this.Runtime.NotifyDefaultHandlerFired(this);
+                        // If the default event was handled, then notify the runtime.
+                        // This is only used during bug-finding, because the runtime
+                        // has to schedule a machine between default handlers.
+                        this.Runtime.NotifyDefaultHandlerFired(this);
+                    }
+                    else if (status is DequeueStatus.NotAvailable)
+                    {
+                        break;
+                    }
                 }
-                else if (status is DequeueStatus.NotAvailable)
+                catch (Exception ex)
                 {
-                    break;
+                    Exception innerException = ex;
+                    if (innerException is FailureException)
+                    {
+                        this.HaltMachine();
+                    }
                 }
 
                 // Assigns the received event.
@@ -858,6 +877,11 @@ namespace Microsoft.PSharp
                     innerException = innerException.InnerException;
                 }
 
+                /* if (innerException is FailureException)
+                {
+                    this.HaltMachine();
+                } */
+
                 if (innerException is ExecutionCanceledException)
                 {
                     this.IsHalted = true;
@@ -871,6 +895,10 @@ namespace Microsoft.PSharp
                 else if (this.OnExceptionRequestedGracefulHalt)
                 {
                     // Gracefully halt.
+                    this.HaltMachine();
+                }
+                else if (innerException is FailureException)
+                {
                     this.HaltMachine();
                 }
                 else
@@ -1613,7 +1641,7 @@ namespace Microsoft.PSharp
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method.</returns>
         private bool OnExceptionHandler(string methodName, Exception ex)
         {
-            if (ex is ExecutionCanceledException)
+            if (ex is ExecutionCanceledException || ex is FailureException)
             {
                 // Internal exception, used during testing.
                 return false;
@@ -1705,6 +1733,23 @@ namespace Microsoft.PSharp
 
             // Invoke user callback.
             this.OnHalt();
+        }
+
+        /// <summary>
+        /// To trigger failure to the Machines belongs to a domain
+        /// </summary>
+        protected void TriggerFailureDomain()
+        {
+            this.Runtime.TriggerFailureDomain(this.MachineFailureDomain);
+        }
+
+        /// <summary>
+        /// To get FailureDomain of the machine.
+        /// </summary>
+        /// <returns>FailureDomain of a Machine</returns>
+        protected FailureDomain GetDomain()
+        {
+            return this.Runtime.GetDomain(this.Id);
         }
     }
 }
