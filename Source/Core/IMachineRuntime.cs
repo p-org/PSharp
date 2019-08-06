@@ -61,8 +61,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>The result is the machine id.</returns>
-        MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default);
+        MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
@@ -73,8 +74,9 @@ namespace Microsoft.PSharp
         /// <param name="machineName">Optional machine name used for logging.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>The result is the machine id.</returns>
-        MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
@@ -85,8 +87,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>The result is the machine id.</returns>
-        MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -97,8 +100,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
-        Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -110,8 +114,9 @@ namespace Microsoft.PSharp
         /// <param name="machineName">Optional machine name used for logging.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
-        Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -124,8 +129,9 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
-        Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -136,9 +142,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
         [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
-        Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -150,9 +157,10 @@ namespace Microsoft.PSharp
         /// <param name="machineName">Optional machine name used for logging.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
         [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
-        Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -165,9 +173,10 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine.</param>
         /// <param name="e">Optional event used during initialization.</param>
         /// <param name="opGroupId">Optional id that can be used to identify this operation.</param>
+        /// <param name="createOptions"> Optional configuration of a create operation. </param>
         /// <returns>Task that represents the asynchronous operation. The task result is the machine id.</returns>
         [Obsolete("Please use IMachineRuntime.CreateMachineAndExecuteAsync(...) instead.")]
-        Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
