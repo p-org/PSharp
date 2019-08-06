@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
+        public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
+        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachine' is not supported in this testing mode.");
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecuteAsync' is not supported in this testing mode.");
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default) =>
+        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
             throw new NotSupportedException("Invoking 'IMachineRuntime.CreateMachineAndExecute' is not supported in this testing mode.");
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId)
+            Machine creator, Guid opGroupId, CreateOptions createOptions)
         {
             mid = mid ?? new MachineId(type, null, this);
             this.Logger.OnCreateMachine(mid, creator?.Id);
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// method returns only when the created machine reaches quiescence.
         /// </summary>
         internal override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId)
+            Machine creator, Guid opGroupId, CreateOptions createOptions)
         {
             mid = mid ?? new MachineId(type, null, this);
             this.Logger.OnCreateMachine(mid, creator?.Id);
@@ -582,6 +582,38 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             base.Dispose(disposing);
+        }
+
+        public override void TriggerFailureDomain(FailureDomain failureDomain)
+        {
+            this.Assert(false, "TriggerFailureDomain is available only for P# Runtime tester.");
+        }
+
+        /// <summary>
+        /// To get FailureDomain of the machine.
+        /// </summary>
+        /// <returns>FailureDomain of a Machine</returns>
+        public override FailureDomain GetDomain(MachineId machineId)
+        {
+            if (machineId != null)
+            {
+                this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
+                if (!ReferenceEquals(machineFailureDomain, this.FailureDomains.First()))
+                {
+                    return machineFailureDomain;
+                }
+                else
+                {
+                    this.Assert(false, "Given machineId is not allocated to failure domain.");
+                }
+            }
+            else
+            {
+                // print the error message - the machine not allocated to any domain.
+                this.Assert(false, "Null machineId");
+            }
+
+            return null;
         }
     }
 }

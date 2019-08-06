@@ -121,6 +121,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.TaskScheduler = new ControlledTaskScheduler(this, this.ControlledTaskMap);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
+            this.FailureDomains = new LinkedList<FailureDomain>();
+            this.MachineFailureDomainMap = new ConcurrentDictionary<MachineId, FailureDomain>();
 
             if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
             {
@@ -151,6 +153,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.Scheduler = new BugFindingScheduler(this, strategy);
             }
+
+            // The "NONE" failure domain.
+            this.FailureDomains.AddLast(new FailureDomain());
         }
 
         /// <summary>
@@ -172,26 +177,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachine(null, type, null, e, opGroupId);
+        public override MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachine(null, type, null, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachine(null, type, machineName, e, opGroupId);
+        public override MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachine(null, type, machineName, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
+        public override MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachine(mid, type, null, e, opGroupId);
+            return this.CreateMachine(mid, type, null, e, opGroupId, createOptions);
         }
 
         /// <summary>
@@ -200,8 +205,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId);
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -209,8 +214,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId);
+        public override Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -219,10 +224,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
+        public override Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId, createOptions);
         }
 
         /// <summary>
@@ -231,8 +236,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId);
+        public override Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, null, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -240,8 +245,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default) =>
-            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId);
+        public override Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default) =>
+            this.CreateMachineAndExecuteAsync(null, type, machineName, e, opGroupId, createOptions);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -250,10 +255,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default)
+        public override Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default)
         {
             this.Assert(mid != null, "Cannot create a machine using a null machine id.");
-            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, null, e, opGroupId, createOptions);
         }
 
         /// <summary>
@@ -399,17 +404,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// unbound machine id, and passes the specified optional <see cref="Event"/>. This event
         /// can only be used to access its payload, and cannot be handled.
         /// </summary>
-        internal MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid opGroupId = default)
+        internal MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default)
         {
             Machine creator = this.GetExecutingMachine<Machine>();
-            return this.CreateMachine(mid, type, machineName, e, creator, opGroupId);
+            return this.CreateMachine(mid, type, machineName, e, creator, opGroupId, createOptions);
         }
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
         internal override MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId)
+            Machine creator, Guid opGroupId, CreateOptions createOptions)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachine");
             if (creator != null)
@@ -417,7 +422,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.AssertNoPendingTransitionStatement(creator, "create a machine");
             }
 
-            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId);
+            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId, createOptions);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, null, null);
@@ -432,10 +437,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// when the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
         internal Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e = null,
-            Guid opGroupId = default)
+            Guid opGroupId = default, CreateOptions createOptions = default)
         {
             Machine creator = this.GetExecutingMachine<Machine>();
-            return this.CreateMachineAndExecuteAsync(mid, type, machineName, e, creator, opGroupId);
+            return this.CreateMachineAndExecuteAsync(mid, type, machineName, e, creator, opGroupId, createOptions);
         }
 
         /// <summary>
@@ -444,14 +449,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// (if any) is handled.
         /// </summary>
         internal override async Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId)
+            Machine creator, Guid opGroupId, CreateOptions createOptions)
         {
             this.AssertCorrectCallerMachine(creator, "CreateMachineAndExecute");
             this.Assert(creator != null,
                 "Only a machine can call 'CreateMachineAndExecute': avoid calling it directly from the 'Test' method; instead call it through a 'harness' machine.");
             this.AssertNoPendingTransitionStatement(creator, "create a machine");
 
-            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId);
+            Machine machine = this.CreateMachine(mid, type, machineName, creator, opGroupId, createOptions);
 
             this.BugTrace.AddCreateMachineStep(creator, machine.Id, e is null ? null : new EventInfo(e));
             this.RunMachineEventHandler(machine, e, true, creator, null);
@@ -465,13 +470,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>.
         /// </summary>
-        private Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
+        private Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId, CreateOptions createOptions)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.FullName);
 
             // Using ulong.MaxValue because a 'Create' operation cannot specify
             // the id of its target, because the id does not exist yet.
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Create, AsyncOperationTarget.Task, ulong.MaxValue);
+
+            if (creator != null && this.CheckDomainFailure(creator.Id))
+            {
+                throw new FailureException();
+            }
+
             ResetProgramCounter(creator);
 
             if (mid is null)
@@ -521,6 +532,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.RegisterCreateMachine(creator?.Id, mid);
+            }
+
+            if (createOptions != null && createOptions.MachineFailureDomain != null)
+            {
+                if (!this.FailureDomains.Contains(createOptions.MachineFailureDomain))
+                {
+                    this.FailureDomains.AddLast(createOptions.MachineFailureDomain);
+                }
+
+                machine.MachineFailureDomain = createOptions.MachineFailureDomain;
+                this.MachineFailureDomainMap.TryAdd(machine.Id, createOptions.MachineFailureDomain);
+            }
+            else if (creator != null && creator.MachineFailureDomain != null)
+            {
+                machine.MachineFailureDomain = creator.MachineFailureDomain;
+                this.MachineFailureDomainMap.TryAdd(machine.Id, creator.MachineFailureDomain);
+            }
+            else
+            {
+                machine.MachineFailureDomain = this.FailureDomains.First();
+                this.MachineFailureDomainMap.TryAdd(machine.Id, this.FailureDomains.First());
             }
 
             return machine;
@@ -593,6 +625,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 e.GetType().FullName, target.Value, target.Type);
 
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
+
+            if (sender != null && this.CheckDomainFailure(sender.Id))
+            {
+                throw new FailureException();
+            }
+
             ResetProgramCounter(sender as Machine);
 
             // The operation group id of this operation is set using the following precedence:
@@ -1265,6 +1303,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 op.MatchingSendIndex = (ulong)eventInfo.SendStep;
                 this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+
+                if (machine != null && this.CheckDomainFailure(machine.Id))
+                {
+                    throw new FailureException();
+                }
+
                 ResetProgramCounter(machine);
             }
 
@@ -1696,6 +1740,61 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Method to check the failure domain status
+        /// </summary>
+        /// <returns> Returns the failure status of a domain</returns>
+        private bool CheckDomainFailure (MachineId machineId)
+        {
+            this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
+            return machineFailureDomain.DomainFailure;
+        }
+
+        /// <summary>
+        /// To trigger failure domain from runtime.
+        /// </summary>
+        /// <param name="failureDomain"> Failure Domain Name </param>
+        public override void TriggerFailureDomain(FailureDomain failureDomain)
+        {
+            if (failureDomain != null && !ReferenceEquals(failureDomain, this.FailureDomains.First()))
+            {
+                failureDomain.TriggerDomainFailure();
+            }
+            else
+            {
+                // print the errror message - machine with no domain name allocated.
+                // this.Assert(false, "No domain alloacated to {0} (or) failure can't be triggered for the domain allocated to {0}", this.Id.ToString());
+                this.Assert(false, "Machine not allocated to failure domain or Null failure domain or failure cannot be triggered.");
+            }
+        }
+
+        /// <summary>
+        /// To get FailureDomain of the machine.
+        /// </summary>
+        /// <returns>FailureDomain of a Machine</returns>
+        public override FailureDomain GetDomain(MachineId machineId)
+        {
+            if (machineId != null )
+            {
+                this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
+                if (!ReferenceEquals(machineFailureDomain, this.FailureDomains.First()))
+                {
+                    return machineFailureDomain;
+                }
+                else
+                {
+                    this.Assert(false, "Given machineId is not allocated to failure domain.");
+                }
+            }
+            else
+            {
+                // print the error message - the machine not allocated to any domain.
+                this.Assert(false, "Null machineId");
+            }
+
+            return null;
         }
     }
 }

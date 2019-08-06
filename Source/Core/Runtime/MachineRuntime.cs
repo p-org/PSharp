@@ -57,6 +57,16 @@ namespace Microsoft.PSharp.Runtime
         public event OnEventDroppedHandler OnEventDropped;
 
         /// <summary>
+        /// Contains all failure domain's during runtime.
+        /// </summary>
+        internal LinkedList<FailureDomain> FailureDomains;
+
+        /// <summary>
+        /// Map from unique MachineId's to it's respective failure domain
+        /// </summary>
+        internal ConcurrentDictionary<MachineId, FailureDomain> MachineFailureDomainMap;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MachineRuntime"/> class.
         /// </summary>
         protected MachineRuntime(Configuration configuration)
@@ -87,21 +97,21 @@ namespace Microsoft.PSharp.Runtime
         /// the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default);
+        public abstract MachineId CreateMachine(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and
         /// with the specified optional <see cref="Event"/>. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        public abstract MachineId CreateMachine(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified type, using the specified <see cref="MachineId"/>.
         /// This method optionally passes an <see cref="Event"/> to the new machine, which can only
         /// be used to access its payload, and cannot be handled.
         /// </summary>
-        public abstract MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        public abstract MachineId CreateMachine(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -109,7 +119,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -117,7 +127,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -126,7 +136,7 @@ namespace Microsoft.PSharp.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and with the
@@ -134,7 +144,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when
         /// the machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/> and name, and with
@@ -142,7 +152,7 @@ namespace Microsoft.PSharp.Runtime
         /// access its payload, and cannot be handled. The method returns only when the
         /// machine is initialized and the <see cref="Event"/> (if any) is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(Type type, string machineName, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Creates a new machine of the specified <see cref="Type"/>, using the specified
@@ -151,7 +161,7 @@ namespace Microsoft.PSharp.Runtime
         /// returns only when the machine is initialized and the <see cref="Event"/> (if any)
         /// is handled.
         /// </summary>
-        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default);
+        public abstract Task<MachineId> CreateMachineAndExecute(MachineId mid, Type type, Event e = null, Guid opGroupId = default, CreateOptions createOptions = default);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -258,7 +268,7 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <returns>MachineId</returns>
         internal abstract MachineId CreateMachine(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId);
+            Machine creator, Guid opGroupId, CreateOptions createOptions);
 
         /// <summary>
         /// Creates a new <see cref="Machine"/> of the specified <see cref="Type"/>. The
@@ -266,7 +276,7 @@ namespace Microsoft.PSharp.Runtime
         /// (if any) is handled.
         /// </summary>
         internal abstract Task<MachineId> CreateMachineAndExecuteAsync(MachineId mid, Type type, string machineName, Event e,
-            Machine creator, Guid opGroupId);
+            Machine creator, Guid opGroupId, CreateOptions createOptions);
 
         /// <summary>
         /// Sends an asynchronous <see cref="Event"/> to a machine.
@@ -649,5 +659,17 @@ namespace Microsoft.PSharp.Runtime
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// To trigger failure domain from runtime.
+        /// </summary>
+        /// <param name="failureDomain"> Failure Domain Name </param>
+        public abstract void TriggerFailureDomain(FailureDomain failureDomain);
+
+        /// <summary>
+        /// To get FailureDomain of the machine.
+        /// </summary>
+        /// <returns>FailureDomain of a Machine</returns>
+        public abstract FailureDomain GetDomain(MachineId machineId);
     }
 }
