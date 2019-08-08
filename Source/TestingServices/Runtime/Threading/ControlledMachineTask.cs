@@ -77,6 +77,44 @@ namespace Microsoft.PSharp.TestingServices.Threading
             this.DispatchWork(continuation);
 
         /// <summary>
+        /// Configures an awaiter used to await this task.
+        /// </summary>
+        /// <param name="continueOnCapturedContext">
+        /// True to attempt to marshal the continuation back to the original context captured; otherwise, false.
+        /// </param>
+        public override ConfiguredMachineTaskAwaitable ConfigureAwait(bool continueOnCapturedContext)
+        {
+            IO.Debug.WriteLine("<MachineTask> Awaiting task '{0}' from task '{1}'.", this.AwaiterTask.Id, Task.CurrentId);
+            return new ConfiguredMachineTaskAwaitable(this, this.AwaiterTask, continueOnCapturedContext);
+        }
+
+        /// <summary>
+        /// Ends the wait for the completion of the task.
+        /// </summary>
+        internal override void GetResult(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter)
+        {
+            AsyncMachine caller = this.Runtime.GetExecutingMachine<AsyncMachine>();
+            IO.Debug.WriteLine("<MachineTask> Machine '{0}' is waiting task '{1}' to complete from task '{2}'.",
+                caller.Id, this.Id, Task.CurrentId);
+            MachineOperation callerOp = this.Runtime.GetAsynchronousOperation(caller.Id.Value);
+            callerOp.OnWaitTask(this.AwaiterTask);
+            this.Runtime.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            awaiter.GetResult();
+        }
+
+        /// <summary>
+        /// Sets the action to perform when the task completes.
+        /// </summary>
+        internal override void OnCompleted(Action continuation, ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter) =>
+            this.DispatchWork(continuation);
+
+        /// <summary>
+        /// Schedules the continuation action that is invoked when the task completes.
+        /// </summary>
+        internal override void UnsafeOnCompleted(Action continuation, ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter) =>
+            this.DispatchWork(continuation);
+
+        /// <summary>
         /// Dispatches the work.
         /// </summary>
         private void DispatchWork(Action continuation)
@@ -157,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <summary>
         /// Ends the wait for the completion of the task.
         /// </summary>
-        internal override void GetResult(TaskAwaiter awaiter)
+        internal override TResult GetResult(TaskAwaiter<TResult> awaiter)
         {
             AsyncMachine caller = this.Runtime.GetExecutingMachine<AsyncMachine>();
             IO.Debug.WriteLine("<MachineTask> Machine '{0}' is waiting task '{1}' with result type '{2}' to complete from task '{3}'.",
@@ -165,19 +203,61 @@ namespace Microsoft.PSharp.TestingServices.Threading
             MachineOperation callerOp = this.Runtime.GetAsynchronousOperation(caller.Id.Value);
             callerOp.OnWaitTask(this.AwaiterTask);
             this.Runtime.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
-            awaiter.GetResult();
+            return awaiter.GetResult();
         }
 
         /// <summary>
         /// Sets the action to perform when the task completes.
         /// </summary>
-        internal override void OnCompleted(Action continuation, TaskAwaiter awaiter) =>
+        internal override void OnCompleted(Action continuation, TaskAwaiter<TResult> awaiter) =>
             this.DispatchWork(continuation);
 
         /// <summary>
         /// Schedules the continuation action that is invoked when the task completes.
         /// </summary>
-        internal override void UnsafeOnCompleted(Action continuation, TaskAwaiter awaiter) =>
+        internal override void UnsafeOnCompleted(Action continuation, TaskAwaiter<TResult> awaiter) =>
+            this.DispatchWork(continuation);
+
+        /// <summary>
+        /// Configures an awaiter used to await this task.
+        /// </summary>
+        /// <param name="continueOnCapturedContext">
+        /// True to attempt to marshal the continuation back to the original context captured; otherwise, false.
+        /// </param>
+        public override ConfiguredMachineTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext)
+        {
+            IO.Debug.WriteLine("<MachineTask> Awaiting task '{0}' with result type '{1}' and type '{2}' from task '{3}'.",
+                this.AwaiterTask.Id, typeof(TResult), this.Type, Task.CurrentId);
+            return new ConfiguredMachineTaskAwaitable<TResult>(this, this.AwaiterTask, continueOnCapturedContext);
+        }
+
+        /// <summary>
+        /// Ends the wait for the completion of the task.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override TResult GetResult(ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter)
+        {
+            AsyncMachine caller = this.Runtime.GetExecutingMachine<AsyncMachine>();
+            IO.Debug.WriteLine("<MachineTask> Machine '{0}' is waiting task '{1}' with result type '{2}' to complete from task '{3}'.",
+                caller.Id, this.Id, typeof(TResult), Task.CurrentId);
+            MachineOperation callerOp = this.Runtime.GetAsynchronousOperation(caller.Id.Value);
+            callerOp.OnWaitTask(this.AwaiterTask);
+            this.Runtime.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            return awaiter.GetResult();
+        }
+
+        /// <summary>
+        /// Sets the action to perform when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override void OnCompleted(Action continuation, ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter) =>
+            this.DispatchWork(continuation);
+
+        /// <summary>
+        /// Schedules the continuation action that is invoked when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override void UnsafeOnCompleted(Action continuation, ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter) =>
             this.DispatchWork(continuation);
 
         /// <summary>

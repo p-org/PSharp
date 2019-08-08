@@ -44,26 +44,19 @@ namespace Microsoft.PSharp.Threading
         /// <summary>
         /// Ends the wait for the completion of the asynchronous task.
         /// </summary>
-        public void GetResult()
-        {
-            this.MachineTask.GetResult(this.Awaiter);
-        }
+        public void GetResult() => this.MachineTask.GetResult(this.Awaiter);
 
         /// <summary>
         /// Sets the action to perform when the asynchronous task completes.
         /// </summary>
-        public void OnCompleted(Action continuation)
-        {
+        public void OnCompleted(Action continuation) =>
             this.MachineTask.OnCompleted(continuation, this.Awaiter);
-        }
 
         /// <summary>
         /// Schedules the continuation action that is invoked when the asynchronous task completes.
         /// </summary>
-        public void UnsafeOnCompleted(Action continuation)
-        {
+        public void UnsafeOnCompleted(Action continuation) =>
             this.MachineTask.UnsafeOnCompleted(continuation, this.Awaiter);
-        }
     }
 
     /// <summary>
@@ -102,25 +95,18 @@ namespace Microsoft.PSharp.Threading
         /// <summary>
         /// Ends the wait for the completion of the asynchronous task.
         /// </summary>
-        public TResult GetResult()
-        {
-            return this.MachineTask.GetResult(this.Awaiter);
-        }
+        public TResult GetResult() => this.MachineTask.GetResult(this.Awaiter);
 
         /// <summary>
         /// Sets the action to perform when the asynchronous task completes.
         /// </summary>
-        public void OnCompleted(Action continuation)
-        {
+        public void OnCompleted(Action continuation) =>
             this.MachineTask.OnCompleted(continuation, this.Awaiter);
-        }
 
         /// <summary>
         /// Schedules the continuation action that is invoked when the asynchronous task completes.
         /// </summary>
-        public void UnsafeOnCompleted(Action continuation)
-        {
+        public void UnsafeOnCompleted(Action continuation) =>
             this.MachineTask.UnsafeOnCompleted(continuation, this.Awaiter);
-        }
     }
 }

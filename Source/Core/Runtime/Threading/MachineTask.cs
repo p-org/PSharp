@@ -427,6 +427,35 @@ namespace Microsoft.PSharp.Threading
             awaiter.UnsafeOnCompleted(continuation);
 
         /// <summary>
+        /// Configures an awaiter used to await this task.
+        /// </summary>
+        /// <param name="continueOnCapturedContext">
+        /// True to attempt to marshal the continuation back to the original context captured; otherwise, false.
+        /// </param>
+        public virtual ConfiguredMachineTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) =>
+            new ConfiguredMachineTaskAwaitable(this, this.InternalTask, continueOnCapturedContext);
+
+        /// <summary>
+        /// Ends the wait for the completion of the task.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void GetResult(ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter) => awaiter.GetResult();
+
+        /// <summary>
+        /// Sets the action to perform when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void OnCompleted(Action continuation, ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter) =>
+            awaiter.OnCompleted(continuation);
+
+        /// <summary>
+        /// Schedules the continuation action that is invoked when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void UnsafeOnCompleted(Action continuation, ConfiguredTaskAwaitable.ConfiguredTaskAwaiter awaiter) =>
+            awaiter.UnsafeOnCompleted(continuation);
+
+        /// <summary>
         /// Disposes the <see cref="MachineTask"/>, releasing all of its unmanaged resources.
         /// </summary>
         protected virtual void Dispose(bool disposing)
@@ -479,7 +508,7 @@ namespace Microsoft.PSharp.Threading
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public new virtual MachineTaskAwaiter<TResult> GetAwaiter() =>
-            new MachineTaskAwaiter<TResult>(this, this.InternalTask as Task<TResult>);
+            new MachineTaskAwaiter<TResult>(this, this.AwaiterTask);
 
         /// <summary>
         /// Ends the wait for the completion of the task.
@@ -499,6 +528,36 @@ namespace Microsoft.PSharp.Threading
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual void UnsafeOnCompleted(Action continuation, TaskAwaiter<TResult> awaiter) =>
+            awaiter.UnsafeOnCompleted(continuation);
+
+        /// <summary>
+        /// Configures an awaiter used to await this task.
+        /// </summary>
+        /// <param name="continueOnCapturedContext">
+        /// True to attempt to marshal the continuation back to the original context captured; otherwise, false.
+        /// </param>
+        public new virtual ConfiguredMachineTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) =>
+            new ConfiguredMachineTaskAwaitable<TResult>(this, this.AwaiterTask, continueOnCapturedContext);
+
+        /// <summary>
+        /// Ends the wait for the completion of the task.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual TResult GetResult(ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter) =>
+            awaiter.GetResult();
+
+        /// <summary>
+        /// Sets the action to perform when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void OnCompleted(Action continuation, ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter) =>
+            awaiter.OnCompleted(continuation);
+
+        /// <summary>
+        /// Schedules the continuation action that is invoked when the task completes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual void UnsafeOnCompleted(Action continuation, ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter awaiter) =>
             awaiter.UnsafeOnCompleted(continuation);
     }
 }

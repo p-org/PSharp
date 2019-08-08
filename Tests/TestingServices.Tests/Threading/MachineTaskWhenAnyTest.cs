@@ -131,9 +131,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout = 5000)]
         public void TestWhenAnyWithTwoAsynchronousMachineTaskResults()
         {
-            var config = GetConfiguration().WithNumberOfIterations(1000).WithVerbosityEnabled();
-            config.EnableDebugging = true;
-
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
@@ -143,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 Specification.Assert(result.Result == 5 || result.Result == 3, "Found unexpected value.");
                 Specification.Assert(task1.IsCompleted && task2.IsCompleted, "One task has not completed.");
             },
-            configuration: config, // GetConfiguration().WithNumberOfIterations(1000),
+            configuration: GetConfiguration().WithNumberOfIterations(1000),
             expectedError: "One task has not completed.",
             replay: true);
         }
@@ -178,9 +175,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout = 5000)]
         public void TestWhenAnyWithTwoParallelAsynchronousMachineTaskResults()
         {
-            var config = GetConfiguration().WithNumberOfIterations(1000).WithVerbosityEnabled();
-            config.EnableDebugging = true;
-
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
@@ -200,7 +194,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 Specification.Assert(result.Result == 5 || result.Result == 3, "Found unexpected value.");
                 Specification.Assert(task1.IsCompleted && task2.IsCompleted, "One task has not completed.");
             },
-            configuration: config, // GetConfiguration().WithNumberOfIterations(1000),
+            configuration: GetConfiguration().WithNumberOfIterations(1000),
             expectedError: "One task has not completed.",
             replay: true);
         }
