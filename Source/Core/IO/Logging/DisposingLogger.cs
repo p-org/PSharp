@@ -378,5 +378,15 @@ namespace Microsoft.PSharp.IO
         public void Dispose()
         {
         }
+
+        /// <summary>
+        /// Called when a machine receives failure from its domain.
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        public void OnMachineFailureDomain(MachineId machineId, string currStateName, string actionName)
+        {
+        }
     }
 }

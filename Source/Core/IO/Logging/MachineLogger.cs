@@ -825,6 +825,31 @@ namespace Microsoft.PSharp.IO
         }
 
         /// <summary>
+        /// Called when a machine receives failure from its domain.
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        public virtual void OnMachineFailureDomain(MachineId machineId, string currStateName, string actionName)
+        {
+            if (this.IsVerbose)
+            {
+                this.WriteLine(this.FormatOnMachineFailureDomainThrownString(machineId, currStateName, actionName));
+            }
+        }
+
+        /// <summary>
+        /// Returns a string formatted for the <see cref="OnMachineFailureDomain"/> event and its parameters.
+        /// </summary>
+        /// <param name="machineId">The id of the machine that threw the exception.</param>
+        /// <param name="currStateName">The name of the current machine state.</param>
+        /// <param name="actionName">The name of the action being executed.</param>
+        public virtual string FormatOnMachineFailureDomainThrownString(MachineId machineId, string currStateName, string actionName)
+        {
+            return $"<FailureLog> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' has received failure from its domain.";
+        }
+
+        /// <summary>
         /// Disposes the logger.
         /// </summary>
         public abstract void Dispose();

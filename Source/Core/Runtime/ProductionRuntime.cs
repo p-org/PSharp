@@ -39,11 +39,6 @@ namespace Microsoft.PSharp.Runtime
             : base(configuration)
         {
             this.Monitors = new List<Monitor>();
-            this.FailureDomains = new LinkedList<FailureDomain>();
-            this.MachineFailureDomainMap = new ConcurrentDictionary<MachineId, FailureDomain>();
-
-            // The "NONE" failure domain.
-            this.FailureDomains.AddLast(new FailureDomain());
         }
 
         /// <summary>
@@ -242,25 +237,9 @@ namespace Microsoft.PSharp.Runtime
                 this.Assert(false, "Machine with id '{0}' was already created in generation '{1}'. {2}", mid.Value, mid.Generation, info);
             }
 
-            if (createOptions != null && createOptions.MachineFailureDomain != null)
+            if (createOptions != null)
             {
-                if (!this.FailureDomains.Contains(createOptions.MachineFailureDomain))
-                {
-                    this.FailureDomains.AddLast(createOptions.MachineFailureDomain);
-                }
-
                 machine.MachineFailureDomain = createOptions.MachineFailureDomain;
-                this.MachineFailureDomainMap.TryAdd(machine.Id, createOptions.MachineFailureDomain);
-            }
-            else if (creator != null && creator.MachineFailureDomain != null)
-            {
-                machine.MachineFailureDomain = creator.MachineFailureDomain;
-                this.MachineFailureDomainMap.TryAdd(machine.Id, creator.MachineFailureDomain);
-            }
-            else
-            {
-                machine.MachineFailureDomain = this.FailureDomains.First();
-                this.MachineFailureDomainMap.TryAdd(machine.Id, this.FailureDomains.First());
             }
 
             return machine;
@@ -696,33 +675,6 @@ namespace Microsoft.PSharp.Runtime
         public override void TriggerFailureDomain(FailureDomain failureDomain)
         {
             this.Assert(false, "TriggerFailureDomain is available only for P# Runtime tester.");
-        }
-
-        /// <summary>
-        /// To get FailureDomain of the machine.
-        /// </summary>
-        /// <returns>FailureDomain of a Machine</returns>
-        public override FailureDomain GetDomain(MachineId machineId)
-        {
-            if (machineId != null)
-            {
-                this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
-                if (!ReferenceEquals(machineFailureDomain, this.FailureDomains.First()))
-                {
-                    return machineFailureDomain;
-                }
-                else
-                {
-                    this.Assert(false, "Given machineId is not allocated to failure domain.");
-                }
-            }
-            else
-            {
-                // print the error message - the machine not allocated to any domain.
-                this.Assert(false, "Null machineId");
-            }
-
-            return null;
         }
     }
 }

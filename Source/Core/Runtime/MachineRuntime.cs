@@ -57,16 +57,6 @@ namespace Microsoft.PSharp.Runtime
         public event OnEventDroppedHandler OnEventDropped;
 
         /// <summary>
-        /// Contains all failure domain's during runtime.
-        /// </summary>
-        internal LinkedList<FailureDomain> FailureDomains;
-
-        /// <summary>
-        /// Map from unique MachineId's to it's respective failure domain
-        /// </summary>
-        internal ConcurrentDictionary<MachineId, FailureDomain> MachineFailureDomainMap;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="MachineRuntime"/> class.
         /// </summary>
         protected MachineRuntime(Configuration configuration)
@@ -665,11 +655,5 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         /// <param name="failureDomain"> Failure Domain Name </param>
         public abstract void TriggerFailureDomain(FailureDomain failureDomain);
-
-        /// <summary>
-        /// To get FailureDomain of the machine.
-        /// </summary>
-        /// <returns>FailureDomain of a Machine</returns>
-        public abstract FailureDomain GetDomain(MachineId machineId);
     }
 }

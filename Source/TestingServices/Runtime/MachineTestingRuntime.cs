@@ -588,32 +588,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Assert(false, "TriggerFailureDomain is available only for P# Runtime tester.");
         }
-
-        /// <summary>
-        /// To get FailureDomain of the machine.
-        /// </summary>
-        /// <returns>FailureDomain of a Machine</returns>
-        public override FailureDomain GetDomain(MachineId machineId)
-        {
-            if (machineId != null)
-            {
-                this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
-                if (!ReferenceEquals(machineFailureDomain, this.FailureDomains.First()))
-                {
-                    return machineFailureDomain;
-                }
-                else
-                {
-                    this.Assert(false, "Given machineId is not allocated to failure domain.");
-                }
-            }
-            else
-            {
-                // print the error message - the machine not allocated to any domain.
-                this.Assert(false, "Null machineId");
-            }
-
-            return null;
-        }
     }
 }

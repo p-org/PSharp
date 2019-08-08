@@ -180,7 +180,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Failure domain allocated to the machine.
         /// </summary>
-        public FailureDomain MachineFailureDomain;
+        protected internal FailureDomain MachineFailureDomain { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Machine"/> class.
@@ -566,40 +566,41 @@ namespace Microsoft.PSharp
                     this.StateManager.OperationGroupId = opGroupId;
                 }
 
-                try
+                if (status is DequeueStatus.Success)
                 {
-                    if (status is DequeueStatus.Success)
+                    // Notify the runtime for a new event to handle. This is only used
+                    // during bug-finding and operation bounding, because the runtime
+                    // has to schedule a machine when a new operation is dequeued.
+                    try
                     {
-                        // Notify the runtime for a new event to handle. This is only used
-                        // during bug-finding and operation bounding, because the runtime
-                        // has to schedule a machine when a new operation is dequeued.
-                            this.Runtime.NotifyDequeuedEvent(this, e, info);
+                        this.Runtime.NotifyDequeuedEvent(this, e, info);
                     }
-                    else if (status is DequeueStatus.Raised)
+                    catch (FailureException ex)
                     {
-                        this.Runtime.NotifyHandleRaisedEvent(this, e);
-                    }
-                    else if (status is DequeueStatus.Default)
-                    {
-                        this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
-
-                        // If the default event was handled, then notify the runtime.
-                        // This is only used during bug-finding, because the runtime
-                        // has to schedule a machine between default handlers.
-                        this.Runtime.NotifyDefaultHandlerFired(this);
-                    }
-                    else if (status is DequeueStatus.NotAvailable)
-                    {
-                        break;
+                        if (ex is FailureException)
+                        {
+                            // this.IsHalted = true;
+                            Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                            this.HaltMachine();
+                        }
                     }
                 }
-                catch (Exception ex)
+                else if (status is DequeueStatus.Raised)
                 {
-                    Exception innerException = ex;
-                    if (innerException is FailureException)
-                    {
-                        this.HaltMachine();
-                    }
+                    this.Runtime.NotifyHandleRaisedEvent(this, e);
+                }
+                else if (status is DequeueStatus.Default)
+                {
+                    this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
+
+                    // If the default event was handled, then notify the runtime.
+                    // This is only used during bug-finding, because the runtime
+                    // has to schedule a machine between default handlers.
+                    this.Runtime.NotifyDefaultHandlerFired(this);
+                }
+                else if (status is DequeueStatus.NotAvailable)
+                {
+                    break;
                 }
 
                 // Assigns the received event.
@@ -877,11 +878,6 @@ namespace Microsoft.PSharp
                     innerException = innerException.InnerException;
                 }
 
-                /* if (innerException is FailureException)
-                {
-                    this.HaltMachine();
-                } */
-
                 if (innerException is ExecutionCanceledException)
                 {
                     this.IsHalted = true;
@@ -899,6 +895,8 @@ namespace Microsoft.PSharp
                 }
                 else if (innerException is FailureException)
                 {
+                    // this.IsHalted = true;
+                    Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
                     this.HaltMachine();
                 }
                 else
@@ -965,6 +963,12 @@ namespace Microsoft.PSharp
                 else if (this.OnExceptionRequestedGracefulHalt)
                 {
                     // Gracefully halt.
+                    this.HaltMachine();
+                }
+                else if (innerException is FailureException)
+                {
+                    // this.IsHalted = true;
+                    Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
                     this.HaltMachine();
                 }
                 else
@@ -1643,7 +1647,12 @@ namespace Microsoft.PSharp
         {
             if (ex is ExecutionCanceledException || ex is FailureException)
             {
-                // Internal exception, used during testing.
+                // Internal exception, used during testing. With Logger for Failure Exception.
+                if (ex is FailureException)
+                {
+                    this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, methodName);
+                }
+
                 return false;
             }
 
@@ -1741,15 +1750,6 @@ namespace Microsoft.PSharp
         protected void TriggerFailureDomain()
         {
             this.Runtime.TriggerFailureDomain(this.MachineFailureDomain);
-        }
-
-        /// <summary>
-        /// To get FailureDomain of the machine.
-        /// </summary>
-        /// <returns>FailureDomain of a Machine</returns>
-        protected FailureDomain GetDomain()
-        {
-            return this.Runtime.GetDomain(this.Id);
         }
     }
 }

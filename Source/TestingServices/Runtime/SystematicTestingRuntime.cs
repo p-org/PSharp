@@ -102,6 +102,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal readonly int? RootTaskId;
 
         /// <summary>
+        /// The "NONE" failure domain.
+        /// </summary>
+        internal FailureDomain NoneFailureDomain;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
         internal SystematicTestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
@@ -121,8 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.TaskScheduler = new ControlledTaskScheduler(this, this.ControlledTaskMap);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
-            this.FailureDomains = new LinkedList<FailureDomain>();
-            this.MachineFailureDomainMap = new ConcurrentDictionary<MachineId, FailureDomain>();
+            this.NoneFailureDomain = new FailureDomain();
 
             if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
             {
@@ -153,9 +157,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 this.Scheduler = new BugFindingScheduler(this, strategy);
             }
-
-            // The "NONE" failure domain.
-            this.FailureDomains.AddLast(new FailureDomain());
         }
 
         /// <summary>
@@ -536,23 +537,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             if (createOptions != null && createOptions.MachineFailureDomain != null)
             {
-                if (!this.FailureDomains.Contains(createOptions.MachineFailureDomain))
-                {
-                    this.FailureDomains.AddLast(createOptions.MachineFailureDomain);
-                }
-
                 machine.MachineFailureDomain = createOptions.MachineFailureDomain;
-                this.MachineFailureDomainMap.TryAdd(machine.Id, createOptions.MachineFailureDomain);
             }
             else if (creator != null && creator.MachineFailureDomain != null)
             {
                 machine.MachineFailureDomain = creator.MachineFailureDomain;
-                this.MachineFailureDomainMap.TryAdd(machine.Id, creator.MachineFailureDomain);
             }
             else
             {
-                machine.MachineFailureDomain = this.FailureDomains.First();
-                this.MachineFailureDomainMap.TryAdd(machine.Id, this.FailureDomains.First());
+                machine.MachineFailureDomain = this.NoneFailureDomain;
             }
 
             return machine;
@@ -781,6 +774,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     {
                         IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from machine '{machine.Id}'.");
                     }
+
+                    /* else if (innerException is FailureException)
+                    {
+                        machine.IsHalted = true;
+                    } */
                     else if (innerException is ObjectDisposedException)
                     {
                         IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}' with reason '{ex.Message}'.");
@@ -1748,8 +1746,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <returns> Returns the failure status of a domain</returns>
         private bool CheckDomainFailure (MachineId machineId)
         {
-            this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
-            return machineFailureDomain.DomainFailure;
+            return this.GetMachineFromId<Machine>(machineId).MachineFailureDomain.DomainFailure;
         }
 
         /// <summary>
@@ -1758,43 +1755,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <param name="failureDomain"> Failure Domain Name </param>
         public override void TriggerFailureDomain(FailureDomain failureDomain)
         {
-            if (failureDomain != null && !ReferenceEquals(failureDomain, this.FailureDomains.First()))
+            if (failureDomain != null && !ReferenceEquals(failureDomain, this.NoneFailureDomain))
             {
                 failureDomain.TriggerDomainFailure();
             }
             else
             {
                 // print the errror message - machine with no domain name allocated.
-                // this.Assert(false, "No domain alloacated to {0} (or) failure can't be triggered for the domain allocated to {0}", this.Id.ToString());
                 this.Assert(false, "Machine not allocated to failure domain or Null failure domain or failure cannot be triggered.");
             }
-        }
-
-        /// <summary>
-        /// To get FailureDomain of the machine.
-        /// </summary>
-        /// <returns>FailureDomain of a Machine</returns>
-        public override FailureDomain GetDomain(MachineId machineId)
-        {
-            if (machineId != null )
-            {
-                this.MachineFailureDomainMap.TryGetValue(machineId, out FailureDomain machineFailureDomain);
-                if (!ReferenceEquals(machineFailureDomain, this.FailureDomains.First()))
-                {
-                    return machineFailureDomain;
-                }
-                else
-                {
-                    this.Assert(false, "Given machineId is not allocated to failure domain.");
-                }
-            }
-            else
-            {
-                // print the error message - the machine not allocated to any domain.
-                this.Assert(false, "Null machineId");
-            }
-
-            return null;
         }
     }
 }

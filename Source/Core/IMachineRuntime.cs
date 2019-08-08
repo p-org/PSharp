@@ -330,5 +330,11 @@ namespace Microsoft.PSharp
         /// Terminates the runtime and notifies each active machine to halt execution.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        /// To trigger failure domain from runtime.
+        /// </summary>
+        /// <param name="failureDomain"> Failure Domain Name </param>
+        void TriggerFailureDomain(FailureDomain failureDomain);
     }
 }

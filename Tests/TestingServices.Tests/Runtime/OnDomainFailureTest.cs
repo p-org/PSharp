@@ -45,7 +45,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
             private void InitOnEntry()
             {
                 this.TriggerFailureDomain();
-                this.CreateMachine(typeof(M1));
+                if (this.FairRandom())
+                {
+                    this.CreateMachine(typeof(M1));
+                }
             }
         }
 
@@ -53,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             [Start]
             [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(E), nameof(Act))]
+            [OnEventDoAction(typeof(E), nameof(StepUp))]
             private class Init : MachineState
             {
             }
@@ -74,6 +77,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                     this.Send(this.Id, new E());
                 }
+            }
+
+            private void StepUp()
+            {
             }
         }
 
@@ -129,8 +136,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                this.Runtime.TriggerFailureDomain(null);
-                this.CreateMachine(typeof(M3));
+                this.Id.Runtime.TriggerFailureDomain(null);
+                if (this.FairRandom())
+                {
+                    this.CreateMachine(typeof(M3));
+                }
             }
         }
 
