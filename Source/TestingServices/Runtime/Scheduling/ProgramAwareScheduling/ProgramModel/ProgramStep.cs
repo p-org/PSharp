@@ -102,19 +102,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// For send steps, the Step which enqueues the message right after the message this step enqueued ( in the same inbox )
         /// For a create step, this is the step which first enqueues into the created machine.
-        /// </summary>
-        public ProgramStep NextEnqueuedStep;
-
-        /// <summary>
         /// For receive steps, the next Receive operation performed by this machine.
         /// For Start steps, the first Receive operation performed by this machine.
         /// This is needed for Deferred and Ignored events
         /// </summary>
-        public ProgramStep NextDequeuedStep
-        {
-            get => this.NextEnqueuedStep;
-            set => this.NextEnqueuedStep = value;
-        }
+        public ProgramStep NextInboxOrderingStep;
 
         /// <summary>
         /// For a step which invoked a monitor, the next (in the totally-ordered schedule) step which invoked the same monitor.
@@ -134,18 +126,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public ProgramStep CreatorParent;
 
         /// <summary>
-        /// The reverse of <see cref="NextEnqueuedStep"/>
+        /// The reverse of <see cref="NextInboxOrderingStep"/>
         /// </summary>
-        public ProgramStep PrevEnqueuedStep;
-
-        /// <summary>
-        /// The reverse of <see cref="NextDequeuedStep"/>
-        /// </summary>
-        public ProgramStep PrevDequeuedStep
-        {
-            get => this.PrevEnqueuedStep;
-            set => this.PrevEnqueuedStep = value;
-        }
+        public ProgramStep PrevInboxOrderingStep;
 
         /// <summary>
         /// The reverse of <see cref="NextMonitorSteps"/>

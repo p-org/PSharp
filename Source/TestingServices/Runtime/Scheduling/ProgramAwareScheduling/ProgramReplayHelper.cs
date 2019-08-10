@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             return this.EnabledSteps.Where( step =>
                     step.ProgramStepType == ProgramStepType.SchedulableStep &&
-                    this.NullOrSeen(step.PrevEnqueuedStep) && this.NullOrSeenAll(step.PrevMonitorSteps)).ToList();
+                    this.NullOrSeen(step.PrevInboxOrderingStep) && this.NullOrSeenAll(step.PrevMonitorSteps)).ToList();
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <returns>true if it is the last Schedulable step of its machine in the graph</returns>
         public static bool IsLastSchedulableStepOfMachine(ProgramStep step)
         {
-            if (step.NextEnqueuedStep == null)
+            if (step.NextInboxOrderingStep == null)
             {
                 while (step.NextMachineStep != null && step.NextMachineStep.ProgramStepType != ProgramStepType.SchedulableStep)
                 {

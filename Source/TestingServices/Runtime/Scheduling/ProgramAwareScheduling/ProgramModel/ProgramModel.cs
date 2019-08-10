@@ -227,14 +227,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private static void SetInboxOrderingRelation(ProgramStep parent, ProgramStep child)
         {
-            parent.NextEnqueuedStep = child;
-            child.PrevEnqueuedStep = parent;
+            parent.NextInboxOrderingStep = child;
+            child.PrevInboxOrderingStep = parent;
         }
 
         private static void SetDequeueOrderRelation(ProgramStep parent, ProgramStep child)
         {
-            parent.NextDequeuedStep = child;
-            child.PrevDequeuedStep = parent;
+            parent.NextInboxOrderingStep = child;
+            child.PrevInboxOrderingStep = parent;
         }
 
         internal void RecordMonitorStateChange(Monitor monitor)

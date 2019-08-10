@@ -47,10 +47,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     oldToNew[oldStep.CreatedStep].CreatorParent = newStep;
                 }
 
-                if (oldStep.NextEnqueuedStep != null)
+                if (oldStep.NextInboxOrderingStep != null)
                 {
-                    newStep.NextEnqueuedStep = oldToNew[oldStep.NextEnqueuedStep];
-                    oldToNew[oldStep.NextEnqueuedStep].PrevEnqueuedStep = newStep;
+                    newStep.NextInboxOrderingStep = oldToNew[oldStep.NextInboxOrderingStep];
+                    oldToNew[oldStep.NextInboxOrderingStep].PrevInboxOrderingStep = newStep;
                 }
 
                 if (oldStep.NextMonitorSteps != null)
@@ -174,9 +174,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             if (root.TotalOrderingIndex > indexLimit)
             {
                 // No need to recurse
-                if (root.PrevEnqueuedStep != null)
+                if (root.PrevInboxOrderingStep != null)
                 {
-                    root.PrevEnqueuedStep.NextEnqueuedStep = null;
+                    root.PrevInboxOrderingStep.NextInboxOrderingStep = null;
                 }
 
                 if (root.PrevMachineStep != null)
@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
             else
             {
-                PrunePartialOrderByTotalOrderingIndex(root.NextEnqueuedStep, indexLimit);
+                PrunePartialOrderByTotalOrderingIndex(root.NextInboxOrderingStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.NextMachineStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.CreatedStep, indexLimit);
             }
@@ -297,13 +297,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 step.CreatorParent.CreatedStep = null;
             }
 
-            if (step.PrevEnqueuedStep != null && !stepsInSubtree.Contains(step.PrevEnqueuedStep))
+            if (step.PrevInboxOrderingStep != null && !stepsInSubtree.Contains(step.PrevInboxOrderingStep))
             {
                 ProgramStep firstSendOutsideSubtree = RecurseEnqueueTillOutOfSubtree(step, stepsInSubtree);
-                step.PrevEnqueuedStep.NextEnqueuedStep = firstSendOutsideSubtree;
+                step.PrevInboxOrderingStep.NextInboxOrderingStep = firstSendOutsideSubtree;
                 if (firstSendOutsideSubtree != null)
                 {
-                    firstSendOutsideSubtree.PrevEnqueuedStep = step.PrevEnqueuedStep;
+                    firstSendOutsideSubtree.PrevInboxOrderingStep = step.PrevInboxOrderingStep;
                 }
             }
 
@@ -339,17 +339,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         private static ProgramStep RecurseEnqueueTillOutOfSubtree(ProgramStep step, HashSet<ProgramStep> stepsInSubtree)
         {
-            if (step.NextEnqueuedStep == null)
+            if (step.NextInboxOrderingStep == null)
             {
                 return null;
             }
-            else if (stepsInSubtree.Contains(step.NextEnqueuedStep))
+            else if (stepsInSubtree.Contains(step.NextInboxOrderingStep))
             {
-                return RecurseEnqueueTillOutOfSubtree(step.NextEnqueuedStep, stepsInSubtree);
+                return RecurseEnqueueTillOutOfSubtree(step.NextInboxOrderingStep, stepsInSubtree);
             }
             else
             {
-                return step.NextEnqueuedStep;
+                return step.NextInboxOrderingStep;
             }
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             {
                 return null;
             }
-            else if (stepsInSubtree.Contains(step.NextEnqueuedStep))
+            else if (stepsInSubtree.Contains(step.NextInboxOrderingStep))
             {
                 return RecurseMonitorTillOutOfSubtree(step.NextMonitorSteps[monitorType], monitorType, stepsInSubtree);
             }
