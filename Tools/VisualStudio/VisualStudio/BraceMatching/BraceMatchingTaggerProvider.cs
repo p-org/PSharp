@@ -12,7 +12,7 @@ using System.ComponentModel.Composition;
 namespace Microsoft.PSharp.VisualStudio.BraceMatching
 {
     [Export(typeof(IViewTaggerProvider))]
-    [ContentType("text")]
+    [ContentType("psharp")]
     [TagType(typeof(TextMarkerTag))]
     internal sealed class BraceMatchingTaggerProvider : IViewTaggerProvider
     {
