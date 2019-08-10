@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling
@@ -20,13 +21,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <param name="root">The root of the partial order</param>
         /// <param name="stepsToMap">The steps for which the mapping is to be returned</param>
         /// <param name="mappedSteps">Returns a dictionary of oldStep to newStep</param>
+        /// <param name="copyTotalOrderingIndex">Specifies whether or not to copy TotalOrderingIndex from the source partial order</param>
         /// <returns>The root of the new partial order</returns>
-        public static ProgramStep ClonePartialOrder(ProgramStep root, List<ProgramStep> stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps)
+        public static ProgramStep ClonePartialOrder(ProgramStep root, List<ProgramStep> stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, bool copyTotalOrderingIndex)
         {
             Dictionary<ProgramStep, ProgramStep> oldToNew = new Dictionary<ProgramStep, ProgramStep>();
 
-            int cnt = CountTreeSize(root);
-            ProgramStep newRoot = ClonePartialOrder(root, oldToNew);
+            ProgramStep newRoot = ClonePartialOrder(root, oldToNew, copyTotalOrderingIndex);
 
             // Now copy the edges using the map
             foreach (KeyValuePair<ProgramStep, ProgramStep> stepMapPair in oldToNew)
@@ -80,27 +81,120 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return newRoot;
         }
 
-        private static ProgramStep ClonePartialOrder(ProgramStep step, Dictionary<ProgramStep, ProgramStep> oldToNewStep)
+        private static ProgramStep ClonePartialOrder(ProgramStep step, Dictionary<ProgramStep, ProgramStep> oldToNewStep, bool copyTotalOrderingIndex)
         {
             if (oldToNewStep.TryGetValue(step, out ProgramStep newStep))
             {
                 return newStep;
             }
 
-            newStep = step.Clone();
+            newStep = step.Clone(copyTotalOrderingIndex);
             oldToNewStep.Add(step, newStep);
 
             if (step.NextMachineStep != null)
             {
-                ClonePartialOrder(step.NextMachineStep, oldToNewStep);
+                ClonePartialOrder(step.NextMachineStep, oldToNewStep, copyTotalOrderingIndex);
             }
 
             if (step.CreatedStep != null)
             {
-                ClonePartialOrder(step.CreatedStep, oldToNewStep);
+                ClonePartialOrder(step.CreatedStep, oldToNewStep, copyTotalOrderingIndex);
             }
 
             return newStep;
+        }
+
+        /// <summary>
+        /// Maps the step of the partial order rooted at keyRoot to those rooted at valueRoot.
+        /// </summary>
+        /// <param name="keyRoot">The root of the partial order, whose steps which will be the keys of the mapping</param>
+        /// <param name="valueRoot">The root of the partial order, whose steps which will be the values of the mapping</param>
+        /// <param name="mapping">The mapping</param>
+        /// <returns>The number of steps successfully mapped</returns>
+        public static int MapPartialOrders(ProgramStep keyRoot, ProgramStep valueRoot, out Dictionary<ProgramStep, ProgramStep> mapping)
+        {
+            mapping = new Dictionary<ProgramStep, ProgramStep>();
+            Dictionary<ulong, ulong> machineIdMapping = new Dictionary<ulong, ulong>();
+            machineIdMapping.Add(0, 0);
+            MapPartialOrdersImpl(keyRoot, valueRoot, machineIdMapping, mapping);
+            return mapping.Count;
+        }
+
+        private static void MapPartialOrdersImpl(ProgramStep keyStep, ProgramStep valueStep, Dictionary<ulong, ulong> machineIdMapping, Dictionary<ProgramStep, ProgramStep> stepMapping)
+        {
+            stepMapping[keyStep] = valueStep;
+
+            if (keyStep.OpType == TestingServices.Scheduling.AsyncOperationType.Create)
+            {
+                machineIdMapping.Add(keyStep.TargetId, valueStep.TargetId);
+            }
+
+            if (CheckEquivalence(keyStep.CreatedStep, valueStep.CreatedStep, machineIdMapping))
+            {
+                MapPartialOrdersImpl(keyStep.CreatedStep, valueStep.CreatedStep, machineIdMapping, stepMapping);
+            }
+
+            // else if (keyStep.CreatedStep != null || valueStep.CreatedStep != null)
+            // {
+            // Console.WriteLine("Put a breakpoint here");
+            // }
+
+            if (CheckEquivalence(keyStep.NextMachineStep, valueStep.NextMachineStep, machineIdMapping))
+            {
+                MapPartialOrdersImpl(keyStep.NextMachineStep, valueStep.NextMachineStep, machineIdMapping, stepMapping);
+            }
+
+            // else if (keyStep.NextMachineStep != null || valueStep.NextMachineStep != null)
+            // {
+            //    Console.WriteLine("Put a breakpoint here");
+            // }
+        }
+
+        private static bool CheckEquivalence(ProgramStep x, ProgramStep y, Dictionary<ulong, ulong> machineIdMapping)
+        {
+            return x != null && y != null && x.OpType == y.OpType &&
+                machineIdMapping.ContainsKey(x.SrcId) && machineIdMapping[x.SrcId] == y.SrcId && (
+                    x.OpType == TestingServices.Scheduling.AsyncOperationType.Create ||
+                    (machineIdMapping.ContainsKey(x.TargetId) && machineIdMapping[x.TargetId] == y.TargetId));
+        }
+
+        /// <summary>
+        /// Prunes the partial order by removing any edges from
+        /// a node with TotalOrderingIndex &lt; indexLimit to a node with TotalOrderingIndex &gt; indexLimit
+        /// </summary>
+        /// <param name="root">The root of the partial order</param>
+        /// <param name="indexLimit">The limit</param>
+        public static void PrunePartialOrderByTotalOrderingIndex(ProgramStep root, int indexLimit)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            if (root.TotalOrderingIndex > indexLimit)
+            {
+                // No need to recurse
+                if (root.PrevEnqueuedStep != null)
+                {
+                    root.PrevEnqueuedStep.NextEnqueuedStep = null;
+                }
+
+                if (root.PrevMachineStep != null)
+                {
+                    root.PrevMachineStep.NextMachineStep = null;
+                }
+
+                if (root.CreatorParent != null)
+                {
+                    root.CreatorParent.CreatedStep = null;
+                }
+            }
+            else
+            {
+                PrunePartialOrderByTotalOrderingIndex(root.NextEnqueuedStep, indexLimit);
+                PrunePartialOrderByTotalOrderingIndex(root.NextMachineStep, indexLimit);
+                PrunePartialOrderByTotalOrderingIndex(root.CreatedStep, indexLimit);
+            }
         }
 
         /// <summary>
@@ -122,6 +216,35 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             return cnt;
+        }
+
+        /// <summary>
+        /// Returns an ordered list of ProgramSteps ordered by TotalOrderingIndex.
+        /// </summary>
+        /// <param name="root">The root of the Partial Order</param>
+        /// <returns>An ordered list of ProgramSteps ordered by TotalOrderingIndex.</returns>
+        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
+        {
+            List<ProgramStep> reachableSet = new List<ProgramStep>();
+            CollectReachableSet(root, reachableSet);
+            List<ProgramStep> sortedSet = reachableSet.OrderBy(x => x.TotalOrderingIndex).ToList();
+
+            return sortedSet;
+        }
+
+        /// <summary>
+        /// Adds any node reachable from root to the reachableSet.
+        /// </summary>
+        /// <param name="root">The root of the partial order</param>
+        /// <param name="reachableSet">The list to which reachable steps must be added</param>
+        public static void CollectReachableSet(ProgramStep root, List<ProgramStep> reachableSet)
+        {
+            if (root != null)
+            {
+                reachableSet.Add(root);
+                CollectReachableSet(root.NextMachineStep, reachableSet);
+                CollectReachableSet(root.CreatedStep, reachableSet);
+            }
         }
 
         /// <summary>
@@ -244,6 +367,20 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             {
                 return step.NextMonitorSteps[monitorType];
             }
+        }
+
+        /// <summary>
+        /// Checks if two steps (stepX and stepY) of two partial orders ( rooted at rootX and rootY, resp. ) match.
+        /// </summary>
+        /// <param name="rootX">The root of the first partial order</param>
+        /// <param name="stepX">The step in the first partial order</param>
+        /// <param name="rootY">The root of the second partial order</param>
+        /// <param name="stepY">The step in the second partial order</param>
+        /// <returns>True if the steps match</returns>
+        public static bool StepsMatch(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY, ProgramStep stepY)
+        {
+            MapPartialOrders(rootX, rootY, out Dictionary<ProgramStep, ProgramStep> stepMapping);
+            return stepMapping.ContainsKey(stepX) && stepMapping[stepX] == stepY;
         }
     }
 }

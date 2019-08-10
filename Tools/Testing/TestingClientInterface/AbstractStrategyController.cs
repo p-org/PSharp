@@ -5,6 +5,8 @@
 
 using System;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
+using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware;
 using Microsoft.PSharp.TestingServices.Scheduling.ClientInterface;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.Utilities;
@@ -40,6 +42,7 @@ namespace Microsoft.PSharp.TestingClientInterface
 
         public abstract void StrategyReset();
 
+#if THIS_WAS_A_GOOD_IDEA
         // Can't touch this :p
         public bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configurationForNextIter)
         {
@@ -57,8 +60,23 @@ namespace Microsoft.PSharp.TestingClientInterface
                 return false;
             }
         }
+#endif
+        public bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configurationForNextIter)
+        {
+            // Noooope. Let's not give a Configuration object to the programmer.
+            if (this.PrepareStrategyAndConfigurationForNextIteration(out nextStrategy, configurationForNextIter))
+            {
+                this.ActiveStrategy = nextStrategy;
+                return true;
+            }
+            else
+            {
+                this.ActiveStrategy = null;
+                return false;
+            }
+        }
 
-        public abstract bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, out int maxSteps);
+        public abstract bool PrepareStrategyAndConfigurationForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configuration);
 
         // Configuration manipulation
 
@@ -106,6 +124,11 @@ namespace Microsoft.PSharp.TestingClientInterface
             Configuration config = Configuration.Create();
             config.SchedulingStrategy = SchedulingStrategy.ControlUnit;
             return config;
+        }
+
+        public virtual bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event evt)
+        {
+            return true;
         }
     }
 }

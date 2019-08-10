@@ -39,6 +39,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.ClientInterface
         void NotifySchedulingEnded(bool bugFound);
 
         /// <summary>
+        /// Tell the runtime whether or not to enqueue this event
+        /// </summary>
+        /// <param name="senderId">MachineId of the sender</param>
+        /// <param name="targetId">MachineId of the target</param>
+        /// <param name="evt">The event being sent</param>
+        /// <returns>true if the event must be enqueued</returns>
+        bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event evt);
+
+        /// <summary>
         /// A report which will be printed at the end.
         /// </summary>
         /// <returns>The report</returns>

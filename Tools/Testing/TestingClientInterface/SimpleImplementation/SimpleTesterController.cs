@@ -40,10 +40,9 @@ namespace Microsoft.PSharp.TestingClientInterface
             strategy = this.Strategy;
         }
 
-        public override bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, out int maxSteps)
+        public override bool PrepareStrategyAndConfigurationForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configuration)
         {
             nextStrategy = this.Strategy;
-            maxSteps = this.Configuration.MaxUnfairSchedulingSteps;
             return this.Strategy.PrepareForNextIteration();
         }
 

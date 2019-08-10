@@ -6,8 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Scheduling;
+
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware
@@ -21,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <summary>
         /// The root of the partial order
         /// </summary>
-        private readonly ProgramStep RootStep;
+        protected readonly ProgramStep OriginalRootStep;
 
         // Is the schedule represented by the partial order fair. ( doesn't mean our replay will be )
         private readonly bool IsScheduleFair;
@@ -30,21 +32,44 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         // The regular stuff
         private int ScheduledSteps;
-
+        private readonly Configuration Configuration;
         private ProgramStep currentlyChosenStep;
+        private bool HasReachedEndHard;
+
+        /// <summary>
+        /// The suffix strategy to use after we are done with the replay.
+        /// </summary>
+        protected readonly ISchedulingStrategy SuffixStrategy;
+
+        private bool UseSuffixStrategy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramGraphReplayStrategy"/> class.
         /// </summary>
         /// <param name="rootStep">The first (root) step of the program. All steps must be reachable from this to be replayed.</param>
         /// <param name="isScheduleFair">Is the schedule represented by the partial order fair</param>
-        public ProgramGraphReplayStrategy(ProgramStep rootStep, bool isScheduleFair)
+        /// <param name="configuration">A configuration object</param>
+        /// <param name="suffixStrategy">If the graph replay is over and we want to hit liveness violations, we may need a suffix strategy</param>
+        public ProgramGraphReplayStrategy(ProgramStep rootStep, bool isScheduleFair, Configuration configuration, ISchedulingStrategy suffixStrategy = null)
             : base()
         {
-            this.RootStep = rootStep;
+            this.OriginalRootStep = rootStep;
             this.IsScheduleFair = isScheduleFair;
             this.ResetProgramReplayHelper(rootStep);
             this.ScheduledSteps = 0;
+
+            this.Configuration = configuration;
+            this.SuffixStrategy = suffixStrategy;
+
+            this.HasReachedEndHard = false;
+        }
+
+        /// <summary>
+        /// Abandons program replay and uses Suffix Strategy for any following step
+        /// </summary>
+        public void SwitchToSuffixStrategy()
+        {
+            this.UseSuffixStrategy = true;
         }
 
         /// <inheritdoc/>
@@ -80,51 +105,122 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
-            Console.WriteLine("In GetNext");
-            Dictionary<ulong, IAsyncOperation> enabledOps = ops.Where(o => o.IsEnabled).ToDictionary( o => o.SourceId );
-            List<ProgramStep> candidateSteps = this.ProgramReplayHelper.GetEnabledSteps(enabledOps);
-
-            if (candidateSteps.Count > 0)
+            if (this.UseSuffixStrategy)
             {
-                this.ScheduledSteps++;
-
-                ProgramStep chosenStep = candidateSteps.First();
-                next = enabledOps[chosenStep.SrcId];
-                this.ProgramReplayHelper.RecordChoice(chosenStep, this.ScheduledSteps);
-
-                Console.WriteLine("Out GetNext");
-                this.currentlyChosenStep = chosenStep;
-
-                return true;
+                next = null;
+                if (this.SuffixStrategy?.GetNext(out next, ops, current) ?? false)
+                {
+                    this.ScheduledSteps++;
+                    return true;
+                }
+                else
+                {
+                    next = null;
+                    return false;
+                }
             }
             else
             {
-                next = null;
-                Console.WriteLine("Fail GetNext");
-                return false;
+                if (this.ProgramReplayHelper.HasReachedEnd())
+                {
+                    this.HasReachedEndHard = true;
+                    this.SwitchToSuffixStrategy();
+                    return this.GetNext(out next, ops, current);
+                }
+
+                Console.WriteLine("In GetNext");
+                List<IAsyncOperation> enabledOps = ops.Where(o => o.IsEnabled).ToList();
+                Dictionary<ProgramStep, IAsyncOperation> candidateSteps = this.ProgramReplayHelper.GetEnabledSteps(enabledOps);
+
+                if (candidateSteps.Count > 0)
+                {
+                    this.ScheduledSteps++;
+
+                    ProgramStep chosenStep = this.ChooseNextStep(candidateSteps);
+                    next = candidateSteps[chosenStep];
+                    this.ProgramReplayHelper.RecordChoice(chosenStep, this.ScheduledSteps);
+
+                    Console.WriteLine("Out GetNext");
+                    this.currentlyChosenStep = chosenStep;
+
+                    return true;
+                }
+                else
+                {
+                    next = null;
+                    Console.WriteLine("Fail GetNext");
+                    return false;
+                }
             }
+        }
+
+        /// <summary>
+        /// Returns which step amongst candidate steps should be executed.
+        /// Can be overriden by subclasses
+        /// Default behaviour: Return first in the list.
+        /// </summary>
+        /// <param name="candidateSteps">A Dictionary of enabled corresponding ProgramStep -> IAsyncOperation</param>
+        /// <returns>ProgramStep to replay next</returns>
+        protected virtual ProgramStep ChooseNextStep(Dictionary<ProgramStep, IAsyncOperation> candidateSteps)
+        {
+            return candidateSteps.OrderBy(x => x.Key.TotalOrderingIndex).First().Key;
+            // return candidateSteps.First().Key;
         }
 
         /// <inheritdoc/>
         public override bool GetNextBooleanChoice(int maxValue, out bool next)
         {
             Console.WriteLine("In GetBool");
-            ProgramStep candidateStep = this.ProgramReplayHelper.GetNextBooleanStep();
-            if (candidateStep != null && candidateStep.BooleanChoice != null)
+            if (this.UseSuffixStrategy)
             {
-                this.ScheduledSteps++;
-
-                this.ProgramReplayHelper.RecordChoice(candidateStep, this.ScheduledSteps);
-                next = (bool)candidateStep.BooleanChoice;
-
-                Console.WriteLine("Out GetBool");
-                return true;
+                this.HasReachedEndHard = true;
+                next = false;
+                if (this.SuffixStrategy?.GetNextBooleanChoice(maxValue, out next) ?? false)
+                {
+                    this.ScheduledSteps++;
+                    return true;
+                }
+                else
+                {
+                    next = false;
+                    return false;
+                }
             }
             else
             {
-                next = false;
-                Console.WriteLine("Fail GetBool");
-                return false;
+                if (this.ProgramReplayHelper.HasReachedEnd())
+                {
+                    this.SwitchToSuffixStrategy();
+                    return this.GetNextBooleanChoice(maxValue, out next);
+                }
+
+                ProgramStep candidateStep = null;
+
+                candidateStep = this.ProgramReplayHelper.GetNextBooleanStep();
+
+                if (candidateStep != null && candidateStep.BooleanChoice != null)
+                {
+                    this.ScheduledSteps++;
+
+                    this.ProgramReplayHelper.RecordChoice(candidateStep, this.ScheduledSteps);
+                    next = (bool)candidateStep.BooleanChoice;
+
+                    Console.WriteLine("Out GetBool");
+                    return true;
+                }
+                else if (candidateStep == null && ProgramReplayHelper.IsLastSchedulableStepOfMachine(this.ProgramReplayHelper.GetCurrentStep()))
+                {
+                    // Break arbitrarily?
+                    this.ScheduledSteps++;
+                    next = this.GetScheduledSteps() % 2 == 0 ? true : false;
+                    return true;
+                }
+                else
+                {
+                    next = false;
+                    Console.WriteLine("Fail GetBool");
+                    return false;
+                }
             }
         }
 
@@ -132,21 +228,52 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override bool GetNextIntegerChoice(int maxValue, out int next)
         {
             Console.WriteLine("In GetInt");
-            ProgramStep candidateStep = this.ProgramReplayHelper.GetNextIntegerStep();
-            if (candidateStep != null && candidateStep.BooleanChoice != null)
+            if (this.UseSuffixStrategy)
             {
-                this.ScheduledSteps++;
-                this.ProgramReplayHelper.RecordChoice(candidateStep, this.ScheduledSteps);
-                next = (int)candidateStep.IntChoice;
-
-                Console.WriteLine("Out GetInt");
-                return true;
+                this.HasReachedEndHard = true;
+                next = 0;
+                if (this.SuffixStrategy?.GetNextIntegerChoice(maxValue, out next) ?? false)
+                {
+                    this.ScheduledSteps++;
+                    return true;
+                }
+                else
+                {
+                    next = 0;
+                    return false;
+                }
             }
             else
             {
-                next = 0;
-                Console.WriteLine("Fail GetInt");
-                return false;
+                if (this.ProgramReplayHelper.HasReachedEnd())
+                {
+                    this.SwitchToSuffixStrategy();
+                    return this.GetNextIntegerChoice(maxValue, out next);
+                }
+
+                ProgramStep candidateStep = this.ProgramReplayHelper.GetNextIntegerStep();
+                if (candidateStep != null && candidateStep.IntChoice != null)
+                {
+                    this.ScheduledSteps++;
+                    this.ProgramReplayHelper.RecordChoice(candidateStep, this.ScheduledSteps);
+                    next = (int)candidateStep.IntChoice;
+
+                    Console.WriteLine("Out GetInt");
+                    return true;
+                }
+                else if (candidateStep == null && ProgramReplayHelper.IsLastSchedulableStepOfMachine(this.ProgramReplayHelper.GetCurrentStep()))
+                {
+                    // Break arbitrarily?
+                    this.ScheduledSteps++;
+                    next = 0;
+                    return true;
+                }
+                else
+                {
+                    next = 0;
+                    Console.WriteLine("Fail GetInt");
+                    return false;
+                }
             }
         }
 
@@ -159,8 +286,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public override bool HasReachedMaxSchedulingSteps()
         {
-            // return this.ScheduledSteps < this.MaxSteps;
-            return this.ProgramReplayHelper.HasReachedEnd();
+            bool isFair = (this.SuffixStrategy != null) ? this.SuffixStrategy.IsFair() : this.IsScheduleFair;
+            int stepBound = isFair ? this.Configuration.MaxFairSchedulingSteps : this.Configuration.MaxUnfairSchedulingSteps;
+            bool stepBoundReached = stepBound > 0 && this.ScheduledSteps >= stepBound;
+
+            if (this.SuffixStrategy == null)
+            {
+                // return this.ProgramReplayHelper.HasReachedEnd();
+                return this.HasReachedEndHard || stepBoundReached;
+            }
+            else
+            {
+                return stepBoundReached;
+            }
         }
 
         /// <inheritdoc/>
@@ -172,21 +310,30 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public override void NotifySchedulingEnded(bool bugFound)
         {
+            base.NotifySchedulingEnded(bugFound);
         }
 
         /// <inheritdoc/>
         public override bool PrepareForNextIteration()
         {
-            this.ResetProgramReplayHelper(this.RootStep);
+            this.ResetProgramReplayHelper(this.OriginalRootStep);
             this.ScheduledSteps = 0;
-            return true;
+            this.HasReachedEndHard = false;
+            this.UseSuffixStrategy = false;
+
+            bool basePrep = base.PrepareForNextIteration();
+            bool suffixPrep = this.SuffixStrategy?.PrepareForNextIteration() ?? true;
+
+            return basePrep && suffixPrep;
         }
 
         /// <inheritdoc/>
         public override void Reset()
         {
-            this.ResetProgramReplayHelper(this.RootStep);
+            this.ResetProgramReplayHelper(this.OriginalRootStep);
             this.ScheduledSteps = 0;
+            this.HasReachedEndHard = false;
+            this.UseSuffixStrategy = false;
         }
 
         private void ResetProgramReplayHelper(ProgramStep rootStep)
@@ -198,10 +345,45 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override void RecordCreateMachine(Machine createdMachine, Machine creatorMachine)
         {
             base.RecordCreateMachine(createdMachine, creatorMachine);
-            if ( this.currentlyChosenStep.TargetId != createdMachine.Id.Value)
+
+            if (!this.UseSuffixStrategy)
             {
-                Console.WriteLine("Aha. We need invariance");
+                this.ProgramReplayHelper.RecordCreateMachine(creatorMachine, createdMachine);
             }
+        }
+
+        /// <inheritdoc/>
+        public override void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqueued)
+        {
+            base.RecordSendEvent(sender, targetMachine, e, stepIndex, wasEnqueued);
+            if (!this.UseSuffixStrategy)
+            {
+                if (!wasEnqueued)
+                {
+                    this.ProgramReplayHelper.RecordSendDropped(this.ProgramReplayHelper.GetCurrentStep());
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e)
+        {
+            ProgramStep matchingStep = this.UseSuffixStrategy ? null : this.ProgramReplayHelper.GetCurrentStep();
+            return this.ShouldEnqueueEvent(senderId, targetId, e, matchingStep);
+        }
+
+        /// <summary>
+        /// Similar to <see cref="ShouldEnqueueEvent(MachineId, MachineId, Event)"/> but with the step being replayed for extra info.
+        /// Intended for subclasses to make informed choices about enqueueing events
+        /// </summary>
+        /// <param name="senderId"><see cref="ShouldEnqueueEvent(MachineId, MachineId, Event)"/> for senderId</param>
+        /// <param name="targetId"><see cref="ShouldEnqueueEvent(MachineId, MachineId, Event)"/> for targetId</param>
+        /// <param name="e"><see cref="ShouldEnqueueEvent(MachineId, MachineId, Event)"/> for e</param>
+        /// <param name="programStep">The program step being replayed</param>
+        /// <returns>Must return true if the event must be enqueued</returns>
+        public virtual bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e, ProgramStep programStep)
+        {
+            return true;
         }
     }
 }

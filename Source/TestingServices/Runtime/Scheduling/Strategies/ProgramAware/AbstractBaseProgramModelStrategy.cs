@@ -177,7 +177,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex)
+        public virtual void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqueued)
         {
             ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(e, sender?.Id.Value ?? 0, stepIndex);
             if (this.HashEvents)
@@ -185,8 +185,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 pEventInfo.HashedState = this.HashEvent(e);
             }
 
-            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachineId.Value, pEventInfo);
+            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachine.Id.Value, pEventInfo);
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
+
+            if (!wasEnqueued)
+            {
+                this.ProgramModel.RecordEventDropped(sendStep);
+            }
         }
 
         private int HashEvent(Event e)
@@ -215,6 +220,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.ProgramModel.RecordMonitorEvent(monitorType, sender);
         }
 
+        /// <inheritdoc/>
+        public void RecordMonitorStateChange(Monitor monitor, bool isHotState)
+        {
+            this.ProgramModel.RecordMonitorStateChange(monitor);
+        }
+
         /// <summary>
         /// Called at the end of a scheduling iteration.
         /// Please explicitly call base.NotifySchedulingEnded if you override.
@@ -223,7 +234,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public virtual void NotifySchedulingEnded(bool bugFound)
         {
             // TODO: Liveness bugs.
-            this.ProgramModel.RecordSchedulingEnded(bugFound, false);
+            this.ProgramModel.RecordSchedulingEnded(bugFound);
+        }
+
+        // Trace minimization
+
+        /// <inheritdoc/>
+        public virtual bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e)
+        {
+            return true;
         }
 
         /// <summary>

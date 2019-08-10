@@ -14,12 +14,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     internal class ProgramAwareTestingRuntime : SystematicTestingRuntime
     {
         internal IProgramAwareSchedulingStrategy ProgramAwareStrategy;
+        private readonly bool EnableEventDropping;
 
         internal ProgramAwareTestingRuntime(Configuration configuration, IProgramAwareSchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration, strategy, reporter)
         {
             this.ProgramAwareStrategy = strategy;
-        }
+            this.EnableEventDropping = true;
+    }
 
         protected override Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
         {
@@ -33,26 +35,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.ProgramAwareStrategy.RecordStartMachine(machine, initialEvent);
         }
 
-        protected override EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
-            SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
+        internal override void NotifyEnteredState(Monitor monitor)
         {
-            EnqueueStatus enqueueStatus = base.EnqueueEvent(target, e, sender, opGroupId, options, out targetMachine, out eventInfo);
+            base.NotifyEnteredState(monitor);
+            this.ProgramAwareStrategy.RecordMonitorStateChange(monitor, monitor.IsInHotState());
+        }
+
+        // (MachineId targetId, Event e, AsyncMachine sender, Guid opGroupId, SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
+        protected override EnqueueStatus EnqueueEvent(Machine targetMachine, Event e, AsyncMachine sender, Guid opGroupId,
+            SendOptions options, out EventInfo eventInfo)
+        {
+            eventInfo = null;
+            bool enqueueEvent = this.EnableEventDropping && this.ProgramAwareStrategy.ShouldEnqueueEvent(sender?.Id ?? null, targetMachine.Id, e);
+            EnqueueStatus enqueueStatus = enqueueEvent ?
+                base.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo) :
+                enqueueStatus = EnqueueStatus.Dropped;
 
             // Record the Send.
-#if DO_WE_USE_STANDARDIZED_EVENT_INFO_NO_WE_DONT
-            EventInfo standardizedEventInfo = null;
-            if (eventInfo == null)
-            {
-                standardizedEventInfo = CreateStandardizedEventInfo(sender, e);
-            }
-            else
-            {
-                standardizedEventInfo = eventInfo;
-            }
-#endif
             // What do we do if eventInfo is null? Right now, Ask the ProgramAwareStrategy?
             int sendStepIndex = eventInfo?.SendStep ?? this.ProgramAwareStrategy.GetScheduledSteps();
-            this.ProgramAwareStrategy.RecordSendEvent(sender, target, e, sendStepIndex);
+            this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, enqueueEvent);
 
             return enqueueStatus;
         }

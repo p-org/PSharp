@@ -45,24 +45,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// Tells what type this step is
         /// </summary>
-        public ProgramStepType ProgramStepType { get; }
+        public readonly ProgramStepType ProgramStepType;
 
         // Main info
 
         /// <summary>
         /// If SchedulableStep, tells what kind of operationo was performed
         /// </summary>
-        public AsyncOperationType OpType { get; }
+        public readonly AsyncOperationType OpType;
 
         /// <summary>
         /// The MachineId.Value of the machine performing the step
         /// </summary>
-        public ulong SrcId { get; }
+        public readonly ulong SrcId;
 
         /// <summary>
         /// For Send/Create the MachineId.Value of the machine receiving/created.
         /// </summary>
-        public ulong TargetId { get; }
+        public readonly ulong TargetId;
 
         /// <summary>
         /// For Send/Receive/Create(?) the EventInfo of the event being sent.
@@ -106,6 +106,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public ProgramStep NextEnqueuedStep;
 
         /// <summary>
+        /// For receive steps, the next Receive operation performed by this machine.
+        /// For Start steps, the first Receive operation performed by this machine.
+        /// This is needed for Deferred and Ignored events
+        /// </summary>
+        public ProgramStep NextDequeuedStep
+        {
+            get => this.NextEnqueuedStep;
+            set => this.NextEnqueuedStep = value;
+        }
+
+        /// <summary>
         /// For a step which invoked a monitor, the next (in the totally-ordered schedule) step which invoked the same monitor.
         /// </summary>
         public Dictionary<Type, ProgramStep> NextMonitorSteps;
@@ -126,6 +137,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// The reverse of <see cref="NextEnqueuedStep"/>
         /// </summary>
         public ProgramStep PrevEnqueuedStep;
+
+        /// <summary>
+        /// The reverse of <see cref="NextDequeuedStep"/>
+        /// </summary>
+        public ProgramStep PrevDequeuedStep
+        {
+            get => this.PrevEnqueuedStep;
+            set => this.PrevEnqueuedStep = value;
+        }
 
         /// <summary>
         /// The reverse of <see cref="NextMonitorSteps"/>
@@ -236,7 +256,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Creates a copy of this step, but with no edges set.
         /// </summary>
         /// <returns>A copy of this step</returns>
-        public ProgramStep Clone()
+        public ProgramStep Clone(bool copyTotalOrderingIndex = false)
         {
             ProgramStep newStep = null;
             switch (this.ProgramStepType)
@@ -264,7 +284,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             newStep.Signature = null;
 
             // HAX: Easy debugging
-            newStep.TotalOrderingIndex = this.TotalOrderingIndex; // = 0;
+            newStep.TotalOrderingIndex = copyTotalOrderingIndex ? this.TotalOrderingIndex : 0;
 
             return newStep;
         }

@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
         public void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordReceiveEvent(machine, evt, sendStepIndex);
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordSendEvent(sender, targetMachineId, e, stepIndex);
+        public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqueued) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordSendEvent(sender, targetMachine, e, stepIndex, wasEnqueued);
 
         public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordMonitorEvent(monitorType, sender, e);
 
@@ -129,5 +129,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.NotifySchedulingEnded(bugFound);
             this.Controller.NotifySchedulingEnded(bugFound);
         }
+
+        public bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event evt)
+        {
+            return (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.ShouldEnqueueEvent(senderId, targetId, evt) ?? true;
+        }
+
+        public void RecordMonitorStateChange(Monitor monitor, bool isHotState) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordMonitorStateChange(monitor, isHotState);
     }
 }

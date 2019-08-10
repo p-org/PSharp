@@ -26,25 +26,35 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private readonly Dictionary<ProgramStepEventInfo, ProgramStep> PendingEventToSendStep;
         private readonly Dictionary<ulong, ProgramStep> MachineIdToCreateStep;
         private readonly Dictionary<ulong, ProgramStep> MachineIdToLastStep;
-        // private readonly Dictionary<int, IProgramStep> SendIndexToSendStep; // TODO: Chuck this.
         private readonly Dictionary<ulong, ProgramStep> MachineIdToLatestSendTo;
+        private readonly Dictionary<ulong, ProgramStep> MachineIdToLatestReceive;
         private readonly Dictionary<Type, ProgramStep> MonitorTypeToLatestSendTo;
         internal readonly Dictionary<ulong, Machine> MachineIdToMachine;
 
         internal ProgramStep BugTriggeringStep;
+        private bool IsLivenessBug;
+        private readonly Dictionary<Monitor, ProgramStep> HotMonitors;
         private static readonly HashSet<Type> IgnoredMachineHashTypes = new HashSet<Type> { typeof(AsyncMachine), typeof(Machine) };
+        private readonly HashSet<ProgramStep> DroppedEventSendSteps;
 
         internal ProgramModel()
         {
             this.MachineIdToCreateStep = new Dictionary<ulong, ProgramStep>();
             this.MachineIdToLastStep = new Dictionary<ulong, ProgramStep>();
-            // this.SendIndexToSendStep = new Dictionary<int, IProgramStep>();
             this.PendingEventToSendStep = new Dictionary<ProgramStepEventInfo, ProgramStep>();
             this.MachineIdToLatestSendTo = new Dictionary<ulong, ProgramStep>();
+            this.MachineIdToLatestReceive = new Dictionary<ulong, ProgramStep>();
             this.MonitorTypeToLatestSendTo = new Dictionary<Type, ProgramStep>();
             this.MachineIdToMachine = new Dictionary<ulong, Machine>();
 
+            this.HotMonitors = new Dictionary<Monitor, ProgramStep>();
+
+            this.DroppedEventSendSteps = new HashSet<ProgramStep>();
+
             this.OrderedSteps = new List<ProgramStep>();
+
+            this.BugTriggeringStep = null;
+            this.IsLivenessBug = false;
 
             this.Initialize(0);
         }
@@ -89,11 +99,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                         ProgramStep sendStep = this.FindSendStep(programStep);
                         SetCreatedRelation(sendStep, programStep);
                         this.PendingEventToSendStep.Remove(sendStep.EventInfo);
+
+                        // Connect Successive handlers ( Conenct to start step if there were none )
+                        ProgramStep prevReceive = this.MachineIdToLatestReceive[programStep.SrcId];
+                        SetDequeueOrderRelation(prevReceive, programStep);
+                        this.MachineIdToLatestReceive[programStep.SrcId] = programStep;
                         break;
 
                     case AsyncOperationType.Start:
                         ProgramStep creatorStep = this.MachineIdToCreateStep[programStep.SrcId];
                         SetCreatedRelation(creatorStep, programStep);
+
+                        this.MachineIdToLatestReceive[programStep.SrcId] = programStep;
+
                         break;
                 }
             }
@@ -151,13 +169,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.MonitorTypeToLatestSendTo[monitorType] = this.ActiveStep;
         }
 
-        internal void RecordSchedulingEnded(bool bugFound, bool isLivenessBug)
+        internal void RecordSchedulingEnded(bool bugFound)
         {
-            // TODO: This is just to use the argument
-            isLivenessBug = false;
             if (bugFound)
             {
-                this.BugTriggeringStep = this.OrderedSteps[this.OrderedSteps.Count - 1];
+                // TODO: This is just to use the argument
+                this.IsLivenessBug = false;
+                foreach (KeyValuePair<Monitor, ProgramStep> kv in this.HotMonitors)
+                {
+                    if (kv.Key.ExceedsLivenessTemperatureLimit())
+                    {
+                        this.IsLivenessBug = true;
+                        this.BugTriggeringStep = kv.Value;
+                        break;
+                    }
+                }
+
+                if (!this.IsLivenessBug)
+                {
+                    this.BugTriggeringStep = this.OrderedSteps[this.OrderedSteps.Count - 1];
+                }
             }
         }
 
@@ -169,6 +200,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             return sendStep;
+        }
+
+        internal void RecordEventDropped(ProgramStep sendStep)
+        {
+            this.DroppedEventSendSteps.Add(sendStep);
         }
 
         private void AppendStepToTotalOrdering(ProgramStep programStep)
@@ -193,6 +229,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             parent.NextEnqueuedStep = child;
             child.PrevEnqueuedStep = parent;
+        }
+
+        private static void SetDequeueOrderRelation(ProgramStep parent, ProgramStep child)
+        {
+            parent.NextDequeuedStep = child;
+            child.PrevDequeuedStep = parent;
+        }
+
+        internal void RecordMonitorStateChange(Monitor monitor)
+        {
+            if (monitor.IsInHotState())
+            {
+                this.HotMonitors[monitor] = this.ActiveStep;
+            }
+            else
+            {
+                if (this.HotMonitors.ContainsKey(monitor))
+                {
+                    this.HotMonitors.Remove(monitor);
+                }
+            }
         }
 
         private static void SetMonitorCommunicationRelation(ProgramStep prevStep, ProgramStep currentStep, Type monitorType)

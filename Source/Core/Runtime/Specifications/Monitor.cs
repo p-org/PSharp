@@ -445,6 +445,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns true if this monitor exceeds the liveness temperature limit
+        /// </summary>
+        internal bool ExceedsLivenessTemperatureLimit()
+        {
+            return this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold;
+        }
+
+        /// <summary>
         /// Checks the liveness temperature of the monitor and report
         /// a potential liveness bug if the temperature passes the
         /// specified threshold. Only works in a liveness monitor.

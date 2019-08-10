@@ -38,13 +38,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void RecordStartMachine(Machine machine, Event initialEvent);
 
         /// <summary>
+        /// Records the change of state of a monitor
+        /// </summary>
+        /// <param name="monitor">The monitor</param>
+        /// <param name="isHotState">Whether the state is hot or not</param>
+        void RecordMonitorStateChange(Monitor monitor, bool isHotState);
+
+        /// <summary>
+        /// Runtime asks the strategy whether or not to deliver this event.
+        /// </summary>
+        /// <param name="senderId">MachineId of the sender</param>
+        /// <param name="targetId">MachineId of the target</param>
+        /// <param name="evt">The event being sent</param>
+        /// <returns>true if the event must be enqueued</returns>
+        bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event evt);
+
+        /// <summary>
         /// Records a executing a Send operation
         /// </summary>
         /// <param name="sender">The sender machine</param>
-        /// <param name="targetMachineId">The recipient machine</param>
+        /// <param name="targetMachine">The recipient machine</param>
         /// <param name="e">The event being sent</param>
         /// <param name="stepIndex">The stepIndex of this send step - used to match to receive step</param>
-        void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex);
+        /// <param name="wasEnqeueued">Indicates whether or not event was enqueued</param>
+        void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqeueued);
 
         /// <summary>
         /// Records a executing a Send operation

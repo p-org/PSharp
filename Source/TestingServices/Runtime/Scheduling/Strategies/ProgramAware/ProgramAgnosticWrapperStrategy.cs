@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordSendEvent(AsyncMachine sender, MachineId targetMachineId, Event e, int stepIndex)
+        public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqueued)
         {
         }
 
@@ -98,6 +98,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
         {
             // Do Nothing
+        }
+
+        public void RecordMonitorStateChange(Monitor monitor, bool isHotState)
+        {
+            // Do nothing
         }
 
         public void RecordNonDetBooleanChoice(bool boolChoice)
@@ -121,6 +126,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public string GetReport()
         {
             return null;
+        }
+
+        public bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e)
+        {
+            return true;
         }
 
 #if false
