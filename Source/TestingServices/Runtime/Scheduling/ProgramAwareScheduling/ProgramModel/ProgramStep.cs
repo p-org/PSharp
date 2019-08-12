@@ -271,5 +271,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             return newStep;
         }
+
+        /// <summary>
+        /// Implements the <see cref="IComparer{T}" /> for ProgramStep.
+        /// </summary>
+        public class ProgramStepTotalOrderingComparer : IComparer<ProgramStep>
+        {
+            /// <summary>
+            /// Implements the <see cref="IComparer{T}.Compare(T, T)" /> for ProgramStep.
+            /// </summary>
+            /// <param name="x">The first object</param>
+            /// <param name="y">The second object</param>
+            /// <returns>-1,0, or 1 depending on whether x is less, equal or greater than y</returns>
+            public int Compare(ProgramStep x, ProgramStep y)
+            {
+                return x.TotalOrderingIndex.CompareTo(y.TotalOrderingIndex);
+            }
+        }
     }
 }

@@ -97,15 +97,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public abstract bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
 
         /// <summary>
-        /// Returns the root of the partial order
-        /// </summary>
-        /// <returns>RootStep</returns>
-        public ProgramStep GetRootStep()
-        {
-            return this.ProgramModel.Rootstep;
-        }
-
-        /// <summary>
         /// Returns the steps in order of execution
         /// </summary>
         /// <returns>RootStep</returns>
@@ -123,16 +114,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             Dictionary<ulong, Type> machineIdToType = this.ProgramModel.MachineIdToMachine.Values.ToDictionary(x => x.Id.Value, y => y.GetType());
             machineIdToType.Add(0, typeof(TestHarnessMachine));
             return machineIdToType;
-        }
-
-        /// <summary>
-        /// Tells which bug triggered the assertion violation OR caused the monitor to go into hot state
-        /// Hack for now, Only does assertion violation.
-        /// </summary>
-        /// <returns>The program model</returns>
-        public ProgramStep GetBugTriggeringStep()
-        {
-            return this.ProgramModel.BugTriggeringStep;
         }
 
         /// <inheritdoc/>
@@ -243,6 +224,47 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public virtual bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Returns the root of the partial order
+        /// </summary>
+        /// <returns>RootStep</returns>
+        public ProgramModelSummary GetProgramSummary(bool clone = false)
+        {
+            ProgramModelSummary summary = this.ProgramModel.GetProgramSummary();
+            if (clone)
+            {
+                List<ProgramStep> stepsToMap = new List<ProgramStep>(summary.WithHeldSends);
+                stepsToMap.Add(summary.PartialOrderRoot);
+                stepsToMap.Add(summary.BugTriggeringStep);
+                ProgramStep newRoot = ProgramAwareScheduling.PartialOrderManipulationUtils.ClonePartialOrder(summary.PartialOrderRoot, stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, true);
+
+                return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.IsLivenessBug);
+            }
+            else
+            {
+                return summary;
+            }
+        }
+
+        /// <summary>
+        /// Returns the root of the partial order
+        /// </summary>
+        /// <returns>RootStep</returns>
+        protected ProgramStep GetRootStep()
+        {
+            return this.ProgramModel.Rootstep;
+        }
+
+        /// <summary>
+        /// Tells which bug triggered the assertion violation OR caused the monitor to go into hot state
+        /// Hack for now, Only does assertion violation.
+        /// </summary>
+        /// <returns>The program model</returns>
+        protected ProgramStep GetBugTriggeringStep()
+        {
+            return this.ProgramModel.BugTriggeringStep;
         }
 
         /// <summary>

@@ -202,6 +202,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return sendStep;
         }
 
+        internal ProgramModelSummary GetProgramSummary()
+        {
+            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.IsLivenessBug);
+        }
+
         internal void RecordEventDropped(ProgramStep sendStep)
         {
             this.DroppedEventSendSteps.Add(sendStep);

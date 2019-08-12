@@ -219,11 +219,27 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         }
 
         /// <summary>
+        /// Linearizes a partial order, and then returns a list based on the TotalOrderingIndex assigned by the linearization
+        /// </summary>
+        /// <param name="root">The root of the partial order</param>
+        /// <returns>A List of ProgramStep respecting the partial order</returns>
+        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
+        {
+            List<ProgramStep> linearizedOrder = LinearizePartialOrder(root);
+            for (int i = 0; i < linearizedOrder.Count; i++)
+            {
+                linearizedOrder[i].TotalOrderingIndex = i;
+            }
+
+            return linearizedOrder;
+        }
+
+        /// <summary>
         /// Returns an ordered list of ProgramSteps ordered by TotalOrderingIndex.
         /// </summary>
         /// <param name="root">The root of the Partial Order</param>
         /// <returns>An ordered list of ProgramSteps ordered by TotalOrderingIndex.</returns>
-        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
+        public static List<ProgramStep> ConsolidatePartialOrderOnTotalOrderingIndex(ProgramStep root)
         {
             List<ProgramStep> reachableSet = new List<ProgramStep>();
             CollectReachableSet(root, reachableSet);
@@ -322,9 +338,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     }
                 }
             }
-#if nottrue
-            throw new NotImplementedException("This needs to be tested");
-#endif
+
             // Now recurse, and fix other links too.
             if (step.CreatedStep != null)
             {
@@ -381,6 +395,70 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             MapPartialOrders(rootX, rootY, out Dictionary<ProgramStep, ProgramStep> stepMapping);
             return stepMapping.ContainsKey(stepX) && stepMapping[stepX] == stepY;
+        }
+
+        /// <summary>
+        /// Linearizes the partial order into a total-order respecting the partial order.
+        /// </summary>
+        /// <returns>A list of the steps respecting the partial ordering</returns>
+        private static List<ProgramStep> LinearizePartialOrder(ProgramStep root)
+        {
+            // Why does C# not have a min-heap?
+            SortedSet<ProgramStep> pendingSteps = new SortedSet<ProgramStep>(new ProgramStep.ProgramStepTotalOrderingComparer());
+            HashSet<ProgramStep> seenSteps = new HashSet<ProgramStep>();
+            List<ProgramStep> totalOrdering = new List<ProgramStep>();
+
+            pendingSteps.Add(root);
+            while (pendingSteps.Count > 0)
+            {
+                ProgramStep at = pendingSteps.Min;
+                seenSteps.Add(at);
+                pendingSteps.Remove(at);
+
+                IEnumerable<ProgramStep> enabledChildren = GetChildren(at).Where(x => GetParents(x).All(y => NullOrSeen(y, seenSteps)));
+                enabledChildren.Select(x => pendingSteps.Add(x));
+            }
+
+            return totalOrdering;
+        }
+
+        private static bool NullOrSeen(ProgramStep y, HashSet<ProgramStep> seenSteps)
+        {
+            return y == null || seenSteps.Contains(y);
+        }
+
+        private static HashSet<ProgramStep> GetChildren(ProgramStep at)
+        {
+            HashSet<ProgramStep> children = new HashSet<ProgramStep>();
+            children.Add(at.NextMachineStep);
+            children.Add(at.CreatedStep);
+            children.Add(at.NextInboxOrderingStep);
+
+            if (at.NextMonitorSteps != null)
+            {
+                at.NextMonitorSteps.Values.Select(x => children.Add(x));
+            }
+
+            children.Remove(null);
+
+            return children;
+        }
+
+        private static HashSet<ProgramStep> GetParents(ProgramStep at)
+        {
+            HashSet<ProgramStep> parents = new HashSet<ProgramStep>();
+            parents.Add(at.PrevMachineStep);
+            parents.Add(at.CreatorParent);
+            parents.Add(at.PrevInboxOrderingStep);
+
+            if (at.PrevMonitorSteps != null)
+            {
+                at.PrevMonitorSteps.Values.Select(x => parents.Add(x));
+            }
+
+            parents.Remove(null);
+
+            return parents;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
     public class TestingReporter : IMetricReporter
     {
         public readonly ISchedulingStrategy Strategy;
-        public ProgramStep PartialOrder;
+        public ProgramModelSummary ProgramSummary;
 
         public bool BugFound { get; private set; }
 
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
         public void RecordIteration(ISchedulingStrategy strategy, bool bugFound)
         {
             this.BugFound = bugFound;
-            this.PartialOrder = (strategy as AbstractBaseProgramModelStrategy).GetRootStep();
+            this.ProgramSummary = (strategy as AbstractBaseProgramModelStrategy).GetProgramSummary();
         }
     }
 }
