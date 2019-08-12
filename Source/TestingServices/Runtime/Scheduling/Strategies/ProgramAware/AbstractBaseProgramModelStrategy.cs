@@ -66,6 +66,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <summary>
+        /// Once this is called, we no longer update the program model for that iteration.
+        /// </summary>
+        public void StopRecording()
+        {
+            this.ProgramModel.StopRecording();
+        }
+
+        /// <summary>
         /// Resets program model. Call if you override.
         /// </summary>
         /// <returns>true if the reset succeeded ( which it would )</returns>
@@ -230,22 +238,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// Returns the root of the partial order
         /// </summary>
         /// <returns>RootStep</returns>
-        public ProgramModelSummary GetProgramSummary(bool clone = false)
+        public ProgramModelSummary GetProgramSummary()
         {
-            ProgramModelSummary summary = this.ProgramModel.GetProgramSummary();
-            if (clone)
-            {
-                List<ProgramStep> stepsToMap = new List<ProgramStep>(summary.WithHeldSends);
-                stepsToMap.Add(summary.PartialOrderRoot);
-                stepsToMap.Add(summary.BugTriggeringStep);
-                ProgramStep newRoot = ProgramAwareScheduling.PartialOrderManipulationUtils.ClonePartialOrder(summary.PartialOrderRoot, stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, true);
-
-                return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.IsLivenessBug);
-            }
-            else
-            {
-                return summary;
-            }
+            return this.ProgramModel.GetProgramSummary();
         }
 
         /// <summary>

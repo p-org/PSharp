@@ -33,6 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal ProgramStep BugTriggeringStep;
         private bool IsLivenessBug;
+        private bool IsRecording;
         private readonly Dictionary<Monitor, ProgramStep> HotMonitors;
         private static readonly HashSet<Type> IgnoredMachineHashTypes = new HashSet<Type> { typeof(AsyncMachine), typeof(Machine) };
         private readonly HashSet<ProgramStep> DroppedEventSendSteps;
@@ -57,6 +58,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.IsLivenessBug = false;
 
             this.Initialize(0);
+
+            this.IsRecording = true;
+        }
+
+        internal void StopRecording()
+        {
+            this.IsRecording = false;
         }
 
         public void Initialize(ulong testHarnessMachineId)
@@ -74,6 +82,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         public void RecordStep(ProgramStep programStep, int stepIndex)
         {
+            if (!this.IsRecording)
+            {
+                return;
+            }
+
             if (programStep.ProgramStepType == ProgramStepType.SchedulableStep)
             {
                 switch (programStep.OpType)
@@ -146,11 +159,21 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal void RecordMachineCreation(ulong machineId, Machine machine)
         {
+            if (!this.IsRecording)
+            {
+                return;
+            }
+
             this.MachineIdToMachine.Add(machineId, machine);
         }
 
         internal void RecordMonitorEvent(Type monitorType, AsyncMachine sender)
         {
+            if (!this.IsRecording)
+            {
+                return;
+            }
+
             // Pray that this is right :p
             if (sender == null && !AllowRuntimeInvokeMonitor)
             {
@@ -192,6 +215,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
+        internal void RecordEventDropped(ProgramStep sendStep)
+        {
+            if (this.IsRecording)
+            {
+                return;
+            }
+
+            this.DroppedEventSendSteps.Add(sendStep);
+        }
+
         private ProgramStep FindSendStep(ProgramStep receiveStep)
         {
             if (!this.PendingEventToSendStep.TryGetValue(receiveStep.EventInfo, out ProgramStep sendStep))
@@ -200,16 +233,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             return sendStep;
-        }
-
-        internal ProgramModelSummary GetProgramSummary()
-        {
-            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.IsLivenessBug);
-        }
-
-        internal void RecordEventDropped(ProgramStep sendStep)
-        {
-            this.DroppedEventSendSteps.Add(sendStep);
         }
 
         private void AppendStepToTotalOrdering(ProgramStep programStep)
@@ -294,6 +317,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             while ( stateAtI != null);
 
             return hash;
+        }
+
+        internal ProgramModelSummary GetProgramSummary()
+        {
+            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.IsLivenessBug);
         }
 
         internal string SerializeProgramTrace()

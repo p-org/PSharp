@@ -15,6 +15,176 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
     /// </summary>
     public static class PartialOrderManipulationUtils
     {
+        // #region counting
+
+        /// <summary>
+        /// Counts how many nodes are reachable from at
+        /// </summary>
+        /// <param name="at">The root, ideally</param>
+        /// <returns>the count of nodes reachable from at ( at included )</returns>
+        public static int CountTreeSize(ProgramStep at)
+        {
+            int cnt = 1;
+            if (at.CreatedStep != null)
+            {
+                cnt += CountTreeSize(at.CreatedStep);
+            }
+
+            if (at.NextMachineStep != null && at.NextMachineStep != at.CreatedStep)
+            {
+                cnt += CountTreeSize(at.NextMachineStep);
+            }
+
+            return cnt;
+        }
+
+        /// <summary>
+        /// Returns an ordered list of ProgramSteps ordered by TotalOrderingIndex.
+        /// </summary>
+        /// <param name="root">The root of the Partial Order</param>
+        /// <returns>An ordered list of ProgramSteps ordered by TotalOrderingIndex.</returns>
+        public static List<ProgramStep> ConsolidatePartialOrderOnOriginalTotalOrderingIndex(ProgramStep root)
+        {
+            List<ProgramStep> reachableSet = new List<ProgramStep>();
+            CollectReachableSet(root, reachableSet);
+            List<ProgramStep> sortedSet = reachableSet.OrderBy(x => x.TotalOrderingIndex).ToList();
+
+            return sortedSet;
+        }
+
+        /// <summary>
+        /// Linearizes a partial order, and then returns a list based on the TotalOrderingIndex assigned by the linearization
+        /// </summary>
+        /// <param name="root">The root of the partial order</param>
+        /// <returns>A List of ProgramStep respecting the partial order</returns>
+        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
+        {
+            List<ProgramStep> linearizedOrder = LinearizePartialOrder(root);
+            for (int i = 0; i < linearizedOrder.Count; i++)
+            {
+                linearizedOrder[i].TotalOrderingIndex = i;
+            }
+
+            return linearizedOrder;
+        }
+
+        /// <summary>
+        /// Linearizes the partial order into a total-order respecting the partial order.
+        /// </summary>
+        /// <returns>A list of the steps respecting the partial ordering</returns>
+        private static List<ProgramStep> LinearizePartialOrder(ProgramStep root)
+        {
+            // Why does C# not have a min-heap?
+            SortedSet<ProgramStep> pendingSteps = new SortedSet<ProgramStep>(new ProgramStep.ProgramStepTotalOrderingComparer());
+            HashSet<ProgramStep> seenSteps = new HashSet<ProgramStep>();
+            List<ProgramStep> totalOrdering = new List<ProgramStep>();
+
+            pendingSteps.Add(root);
+            while (pendingSteps.Count > 0)
+            {
+                ProgramStep at = pendingSteps.Min;
+                seenSteps.Add(at);
+                pendingSteps.Remove(at);
+
+                IEnumerable<ProgramStep> enabledChildren = GetChildren(at).Where(x => GetParents(x).All(y => NullOrSeen(y, seenSteps)));
+                enabledChildren.Select(x => pendingSteps.Add(x));
+            }
+
+            return totalOrdering;
+        }
+
+        /// <summary>
+        /// Adds any node reachable from root to the reachableSet.
+        /// </summary>
+        /// <param name="root">The root of the partial order</param>
+        /// <param name="reachableSet">The list to which reachable steps must be added</param>
+        public static void CollectReachableSet(ProgramStep root, List<ProgramStep> reachableSet)
+        {
+            if (root != null)
+            {
+                reachableSet.Add(root);
+                CollectReachableSet(root.NextMachineStep, reachableSet);
+                CollectReachableSet(root.CreatedStep, reachableSet);
+            }
+        }
+
+        /// <summary>
+        /// Returns a set of nodes in the subtree
+        /// </summary>
+        /// <param name="root">The root of the subtree</param>
+        /// <returns>A hashset containing all nodes in the subtree</returns>
+        public static HashSet<ProgramStep> GetStepsInSubtree(ProgramStep root)
+        {
+            HashSet<ProgramStep> stepsInSubtree = new HashSet<ProgramStep>();
+            GetStepsInSubtree(root, stepsInSubtree);
+            return stepsInSubtree;
+        }
+
+        private static void GetStepsInSubtree(ProgramStep at, HashSet<ProgramStep> stepsInSubtree)
+        {
+            stepsInSubtree.Add(at);
+            if (at.CreatedStep != null)
+            {
+                GetStepsInSubtree(at.CreatedStep, stepsInSubtree);
+            }
+
+            if (at.NextMachineStep != null)
+            {
+                GetStepsInSubtree(at.NextMachineStep, stepsInSubtree);
+            }
+        }
+
+        private static HashSet<ProgramStep> GetChildren(ProgramStep at)
+        {
+            HashSet<ProgramStep> children = new HashSet<ProgramStep>();
+            children.Add(at.NextMachineStep);
+            children.Add(at.CreatedStep);
+            children.Add(at.NextInboxOrderingStep);
+
+            if (at.NextMonitorSteps != null)
+            {
+                at.NextMonitorSteps.Values.Select(x => children.Add(x));
+            }
+
+            children.Remove(null);
+
+            return children;
+        }
+
+        private static HashSet<ProgramStep> GetParents(ProgramStep at)
+        {
+            HashSet<ProgramStep> parents = new HashSet<ProgramStep>();
+            parents.Add(at.PrevMachineStep);
+            parents.Add(at.CreatorParent);
+            parents.Add(at.PrevInboxOrderingStep);
+
+            if (at.PrevMonitorSteps != null)
+            {
+                at.PrevMonitorSteps.Values.Select(x => parents.Add(x));
+            }
+
+            parents.Remove(null);
+
+            return parents;
+        }
+
+        // #region clone
+
+        /// <summary>
+        /// Clones a ProgramModelSummary.
+        /// </summary>
+        /// <param name="summary">The summary to be cloned</param>
+        /// <returns>The cloned summary</returns>
+        public static ProgramModelSummary CloneProgramSummary(ProgramModelSummary summary)
+        {
+            List<ProgramStep> stepsToMap = new List<ProgramStep>(summary.WithHeldSends);
+            stepsToMap.Add(summary.PartialOrderRoot);
+            stepsToMap.Add(summary.BugTriggeringStep);
+            ProgramStep newRoot = ClonePartialOrder(summary.PartialOrderRoot, stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, true);
+
+            return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.IsLivenessBug);
+        }
+
         /// <summary>
         /// Makes a copy of the partial order so we can manipualte it happily
         /// </summary>
@@ -104,6 +274,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return newStep;
         }
 
+        // #region equivalence_checking
+
+        /// <summary>
+        /// Checks if two steps (stepX and stepY) of two partial orders ( rooted at rootX and rootY, resp. ) match.
+        /// </summary>
+        /// <param name="rootX">The root of the first partial order</param>
+        /// <param name="stepX">The step in the first partial order</param>
+        /// <param name="rootY">The root of the second partial order</param>
+        /// <param name="stepY">The step in the second partial order</param>
+        /// <returns>True if the steps match</returns>
+        public static bool StepsMatch(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY, ProgramStep stepY)
+        {
+            MapPartialOrders(rootX, rootY, out Dictionary<ProgramStep, ProgramStep> stepMapping);
+            return stepMapping.ContainsKey(stepX) && stepMapping[stepX] == stepY;
+        }
+
         /// <summary>
         /// Maps the step of the partial order rooted at keyRoot to those rooted at valueRoot.
         /// </summary>
@@ -158,6 +344,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     (machineIdMapping.ContainsKey(x.TargetId) && machineIdMapping[x.TargetId] == y.TargetId));
         }
 
+        // #region pruning_slicing
+
         /// <summary>
         /// Prunes the partial order by removing any edges from
         /// a node with TotalOrderingIndex &lt; indexLimit to a node with TotalOrderingIndex &gt; indexLimit
@@ -194,98 +382,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 PrunePartialOrderByTotalOrderingIndex(root.NextInboxOrderingStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.NextMachineStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.CreatedStep, indexLimit);
-            }
-        }
-
-        /// <summary>
-        /// Counts how many nodes are reachable from at
-        /// </summary>
-        /// <param name="at">The root, ideally</param>
-        /// <returns>the count of nodes reachable from at ( at included )</returns>
-        public static int CountTreeSize(ProgramStep at)
-        {
-            int cnt = 1;
-            if ( at.CreatedStep != null)
-            {
-                cnt += CountTreeSize(at.CreatedStep);
-            }
-
-            if (at.NextMachineStep != null && at.NextMachineStep != at.CreatedStep)
-            {
-                cnt += CountTreeSize(at.NextMachineStep);
-            }
-
-            return cnt;
-        }
-
-        /// <summary>
-        /// Linearizes a partial order, and then returns a list based on the TotalOrderingIndex assigned by the linearization
-        /// </summary>
-        /// <param name="root">The root of the partial order</param>
-        /// <returns>A List of ProgramStep respecting the partial order</returns>
-        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
-        {
-            List<ProgramStep> linearizedOrder = LinearizePartialOrder(root);
-            for (int i = 0; i < linearizedOrder.Count; i++)
-            {
-                linearizedOrder[i].TotalOrderingIndex = i;
-            }
-
-            return linearizedOrder;
-        }
-
-        /// <summary>
-        /// Returns an ordered list of ProgramSteps ordered by TotalOrderingIndex.
-        /// </summary>
-        /// <param name="root">The root of the Partial Order</param>
-        /// <returns>An ordered list of ProgramSteps ordered by TotalOrderingIndex.</returns>
-        public static List<ProgramStep> ConsolidatePartialOrderOnTotalOrderingIndex(ProgramStep root)
-        {
-            List<ProgramStep> reachableSet = new List<ProgramStep>();
-            CollectReachableSet(root, reachableSet);
-            List<ProgramStep> sortedSet = reachableSet.OrderBy(x => x.TotalOrderingIndex).ToList();
-
-            return sortedSet;
-        }
-
-        /// <summary>
-        /// Adds any node reachable from root to the reachableSet.
-        /// </summary>
-        /// <param name="root">The root of the partial order</param>
-        /// <param name="reachableSet">The list to which reachable steps must be added</param>
-        public static void CollectReachableSet(ProgramStep root, List<ProgramStep> reachableSet)
-        {
-            if (root != null)
-            {
-                reachableSet.Add(root);
-                CollectReachableSet(root.NextMachineStep, reachableSet);
-                CollectReachableSet(root.CreatedStep, reachableSet);
-            }
-        }
-
-        /// <summary>
-        /// Returns a set of nodes in the subtree
-        /// </summary>
-        /// <param name="root">The root of the subtree</param>
-        /// <returns>A hashset containing all nodes in the subtree</returns>
-        public static HashSet<ProgramStep> GetStepsInSubtree(ProgramStep root)
-        {
-            HashSet<ProgramStep> stepsInSubtree = new HashSet<ProgramStep>();
-            GetStepsInSubtree(root, stepsInSubtree);
-            return stepsInSubtree;
-        }
-
-        private static void GetStepsInSubtree(ProgramStep at, HashSet<ProgramStep> stepsInSubtree)
-        {
-            stepsInSubtree.Add(at);
-            if (at.CreatedStep != null)
-            {
-                GetStepsInSubtree(at.CreatedStep, stepsInSubtree);
-            }
-
-            if (at.NextMachineStep != null)
-            {
-                GetStepsInSubtree(at.NextMachineStep, stepsInSubtree);
             }
         }
 
@@ -383,82 +479,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
-        /// <summary>
-        /// Checks if two steps (stepX and stepY) of two partial orders ( rooted at rootX and rootY, resp. ) match.
-        /// </summary>
-        /// <param name="rootX">The root of the first partial order</param>
-        /// <param name="stepX">The step in the first partial order</param>
-        /// <param name="rootY">The root of the second partial order</param>
-        /// <param name="stepY">The step in the second partial order</param>
-        /// <returns>True if the steps match</returns>
-        public static bool StepsMatch(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY, ProgramStep stepY)
-        {
-            MapPartialOrders(rootX, rootY, out Dictionary<ProgramStep, ProgramStep> stepMapping);
-            return stepMapping.ContainsKey(stepX) && stepMapping[stepX] == stepY;
-        }
-
-        /// <summary>
-        /// Linearizes the partial order into a total-order respecting the partial order.
-        /// </summary>
-        /// <returns>A list of the steps respecting the partial ordering</returns>
-        private static List<ProgramStep> LinearizePartialOrder(ProgramStep root)
-        {
-            // Why does C# not have a min-heap?
-            SortedSet<ProgramStep> pendingSteps = new SortedSet<ProgramStep>(new ProgramStep.ProgramStepTotalOrderingComparer());
-            HashSet<ProgramStep> seenSteps = new HashSet<ProgramStep>();
-            List<ProgramStep> totalOrdering = new List<ProgramStep>();
-
-            pendingSteps.Add(root);
-            while (pendingSteps.Count > 0)
-            {
-                ProgramStep at = pendingSteps.Min;
-                seenSteps.Add(at);
-                pendingSteps.Remove(at);
-
-                IEnumerable<ProgramStep> enabledChildren = GetChildren(at).Where(x => GetParents(x).All(y => NullOrSeen(y, seenSteps)));
-                enabledChildren.Select(x => pendingSteps.Add(x));
-            }
-
-            return totalOrdering;
-        }
-
         private static bool NullOrSeen(ProgramStep y, HashSet<ProgramStep> seenSteps)
         {
             return y == null || seenSteps.Contains(y);
-        }
-
-        private static HashSet<ProgramStep> GetChildren(ProgramStep at)
-        {
-            HashSet<ProgramStep> children = new HashSet<ProgramStep>();
-            children.Add(at.NextMachineStep);
-            children.Add(at.CreatedStep);
-            children.Add(at.NextInboxOrderingStep);
-
-            if (at.NextMonitorSteps != null)
-            {
-                at.NextMonitorSteps.Values.Select(x => children.Add(x));
-            }
-
-            children.Remove(null);
-
-            return children;
-        }
-
-        private static HashSet<ProgramStep> GetParents(ProgramStep at)
-        {
-            HashSet<ProgramStep> parents = new HashSet<ProgramStep>();
-            parents.Add(at.PrevMachineStep);
-            parents.Add(at.CreatorParent);
-            parents.Add(at.PrevInboxOrderingStep);
-
-            if (at.PrevMonitorSteps != null)
-            {
-                at.PrevMonitorSteps.Values.Select(x => parents.Add(x));
-            }
-
-            parents.Remove(null);
-
-            return parents;
         }
     }
 }

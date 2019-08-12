@@ -20,6 +20,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
     /// </summary>
     public class ProgramGraphReplayStrategy : AbstractBaseProgramModelStrategy
     {
+        private const bool StopRecordingAfterGraphCompleted = true;
+
         /// <summary>
         /// The root of the partial order
         /// </summary>
@@ -40,7 +42,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// The suffix strategy to use after we are done with the replay.
         /// </summary>
         protected readonly ISchedulingStrategy SuffixStrategy;
-
         private bool UseSuffixStrategy;
 
         /// <summary>
@@ -67,9 +68,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <summary>
         /// Abandons program replay and uses Suffix Strategy for any following step
         /// </summary>
-        public void SwitchToSuffixStrategy()
+        public void SwitchToSuffixStrategy(bool stopRecording)
         {
             this.UseSuffixStrategy = true;
+            if (stopRecording)
+            {
+                this.StopRecording();
+            }
         }
 
         /// <inheritdoc/>
@@ -124,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 if (this.ProgramReplayHelper.HasReachedEnd())
                 {
                     this.HasReachedEndHard = true;
-                    this.SwitchToSuffixStrategy();
+                    this.SwitchToSuffixStrategy(StopRecordingAfterGraphCompleted);
                     return this.GetNext(out next, ops, current);
                 }
 
@@ -190,7 +195,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             {
                 if (this.ProgramReplayHelper.HasReachedEnd())
                 {
-                    this.SwitchToSuffixStrategy();
+                    this.SwitchToSuffixStrategy(true);
                     return this.GetNextBooleanChoice(maxValue, out next);
                 }
 
@@ -247,7 +252,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             {
                 if (this.ProgramReplayHelper.HasReachedEnd())
                 {
-                    this.SwitchToSuffixStrategy();
+                    this.SwitchToSuffixStrategy(StopRecordingAfterGraphCompleted);
                     return this.GetNextIntegerChoice(maxValue, out next);
                 }
 
