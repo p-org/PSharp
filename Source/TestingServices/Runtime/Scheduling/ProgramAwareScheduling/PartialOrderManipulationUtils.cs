@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling
@@ -83,11 +84,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             while (pendingSteps.Count > 0)
             {
                 ProgramStep at = pendingSteps.Min;
+                totalOrdering.Add(at);
                 seenSteps.Add(at);
                 pendingSteps.Remove(at);
 
-                IEnumerable<ProgramStep> enabledChildren = GetChildren(at).Where(x => GetParents(x).All(y => NullOrSeen(y, seenSteps)));
-                enabledChildren.Select(x => pendingSteps.Add(x));
+                List<ProgramStep> enabledChildren = GetChildren(at).Where(x => GetParents(x).All(y => NullOrSeen(y, seenSteps))).ToList();
+                enabledChildren.ForEach(x => pendingSteps.Add(x));
             }
 
             return totalOrdering;
@@ -482,6 +484,90 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         private static bool NullOrSeen(ProgramStep y, HashSet<ProgramStep> seenSteps)
         {
             return y == null || seenSteps.Contains(y);
+        }
+
+        // #region serialization
+
+        /// <summary>
+        /// Serializes a ProgramSummary into XML
+        /// </summary>
+        /// <param name="originalSummary">The PrograModelSummary</param>
+        /// <param name="livenessTemperatureTreshold">In the case of a liveness bug, what was the LivenessTemperatureTreshold</param>
+        /// <returns>The XML representation of the PrograModelSummary</returns>
+        public static XDocument SerializeProgramSummaryToXml(ProgramModelSummary originalSummary, int livenessTemperatureTreshold)
+        {
+            ProgramModelSummary summary = CloneProgramSummary(originalSummary);
+            List<ProgramStep> linearization = ConsolidatePartialOrder(summary.PartialOrderRoot);
+
+            XElement metaXml = new XElement("Meta");
+            metaXml.Add(new XElement("LivenessTemperatureTreshold", livenessTemperatureTreshold));
+            metaXml.Add(new XElement("BugTriggeringStepIndex", summary.BugTriggeringStep.TotalOrderingIndex));
+            metaXml.Add(new XElement("IsLivenessBug", summary.IsLivenessBug));
+            metaXml.Add(new XElement("WithHeldSendIndices",
+                summary.WithHeldSends.Select( x => new XElement("WithHeldSendIndex", x.TotalOrderingIndex)).ToArray()));
+
+            XElement stepsXml = new XElement("Steps", linearization.Select( s => SerializeStep(s)).ToArray());
+
+            return new XDocument(new XElement("ProgramSummary",
+                metaXml,
+                stepsXml));
+        }
+
+        private static XElement SerializeStep(ProgramStep s)
+        {
+            // Basic info
+            List<XElement> elements = new List<XElement>
+            {
+                new XElement("TotalOrderingIndex", s.TotalOrderingIndex),
+                new XElement("ProgramStepType", s.ProgramStepType),
+                new XElement("SourceId", s.SrcId),
+                new XElement("TargetId", s.TargetId),
+            };
+
+            // ProgramStepType specifics
+            switch (s.ProgramStepType)
+            {
+                case ProgramStepType.SchedulableStep:
+                    elements.Add(new XElement("OpType", s.OpType.ToString()));
+                    break;
+
+                case ProgramStepType.NonDetBoolStep:
+                    elements.Add(new XElement("NonDetBoolChoice", s.BooleanChoice));
+                    break;
+
+                case ProgramStepType.NonDetIntStep:
+                    elements.Add(new XElement("NonDetIntChoice", s.IntChoice));
+                    break;
+
+                case ProgramStepType.SpecialProgramStepType:
+                default:
+                    break;
+            }
+
+            // Edges
+
+            if (s.NextMachineStep != null)
+            {
+                elements.Add(new XElement("NextMachineStepIndex", s.NextMachineStep.TotalOrderingIndex));
+            }
+
+            if (s.CreatedStep != null)
+            {
+                elements.Add(new XElement("NextMachineStepIndex", s.CreatedStep.TotalOrderingIndex));
+            }
+
+            if (s.NextInboxOrderingStep != null)
+            {
+                elements.Add(new XElement("NextInboxOrderingStepIndex", s.NextInboxOrderingStep.TotalOrderingIndex));
+            }
+
+            if (s.NextMonitorSteps != null)
+            {
+                elements.Add(new XElement("NextMonitorSteps", s.NextMonitorSteps.Select(
+                    x => new XElement( "NextMonitorStep", new XAttribute("MonitorType", x.Key), x.Value.TotalOrderingIndex))));
+            }
+
+            return new XElement("Step", elements.ToArray());
         }
     }
 }
