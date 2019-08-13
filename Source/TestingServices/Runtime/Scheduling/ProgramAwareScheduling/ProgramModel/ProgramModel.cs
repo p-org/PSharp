@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal void RecordEventDropped(ProgramStep sendStep)
         {
-            if (this.IsRecording)
+            if (!this.IsRecording)
             {
                 return;
             }
@@ -321,7 +321,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal ProgramModelSummary GetProgramSummary()
         {
-            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.IsLivenessBug);
+            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.OrderedSteps.Count, this.IsLivenessBug);
         }
 
         internal string SerializeProgramTrace()

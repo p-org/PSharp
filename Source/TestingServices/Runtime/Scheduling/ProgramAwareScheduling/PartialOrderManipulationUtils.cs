@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             stepsToMap.Add(summary.BugTriggeringStep);
             ProgramStep newRoot = ClonePartialOrder(summary.PartialOrderRoot, stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, true);
 
-            return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.IsLivenessBug);
+            return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.NumSteps, summary.IsLivenessBug);
         }
 
         /// <summary>

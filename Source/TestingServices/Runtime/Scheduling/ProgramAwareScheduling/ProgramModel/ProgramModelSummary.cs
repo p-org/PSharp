@@ -27,6 +27,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         public readonly ProgramStep BugTriggeringStep;
 
+        /// <summary>
+        /// The number of steps executed
+        /// </summary>
+        public readonly int NumSteps;
+
 #if WE_DECIDE_TO_INCLUDE_CRITICAL_TRANSITION_EXPLICITLY
         /// <summary>
         /// The critical transition - For liveness bugs, executing the trace till this step is guaranteed to reproduce the bug.
@@ -53,13 +58,16 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <param name="partialOrderRoot">the root of the partial order</param>
         /// <param name="bugTriggeringStep">the step which triggered the bug</param>
         /// <param name="withHeldSends">list of send steps for which the message was not enqueued</param>
+        /// <param name="numSteps">The number of steps executed</param>
         /// <param name="isLivenessBug">Tells whether or not the bug is a liveness bug</param>
-        public ProgramModelSummary(ProgramStep partialOrderRoot, ProgramStep bugTriggeringStep, List<ProgramStep> withHeldSends, bool isLivenessBug)
+        public ProgramModelSummary(ProgramStep partialOrderRoot, ProgramStep bugTriggeringStep, List<ProgramStep> withHeldSends, int numSteps, bool isLivenessBug)
         {
             this.PartialOrderRoot = partialOrderRoot;
             this.WithHeldSends = withHeldSends;
             this.BugTriggeringStep = bugTriggeringStep;
             this.IsLivenessBug = isLivenessBug;
+
+            this.NumSteps = numSteps;
         }
     }
 }

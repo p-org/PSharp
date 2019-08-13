@@ -263,6 +263,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <summary>
+        /// Returns the number of steps recorded by the program model.
+        /// </summary>
+        /// <returns>the number of steps recorded by the program model.</returns>
+        protected int GetProgramModelStepsCount()
+        {
+            return this.ProgramModel.OrderedSteps.Count;
+        }
+
+        /// <summary>
         /// Returns a trace of the program
         /// </summary>
         /// <returns>A trace of the program</returns>
