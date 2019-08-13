@@ -636,7 +636,7 @@ namespace Microsoft.PSharp
                     }
 
                     var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
-                    if (this.OnUnhandledEventExceptionHandler(nameof(this.HandleEvent), unhandledEx))
+                    if (await this.OnUnhandledEventExceptionHandler(nameof(this.HandleEvent), unhandledEx))
                     {
                         this.HaltMachine();
                         return;
@@ -822,9 +822,15 @@ namespace Microsoft.PSharp
                         // We have no reliable stack for awaited operations.
                         await cachedAction.ExecuteAsync();
                     }
-                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    catch (Exception ex)
                     {
-                        // User handled the exception, return normally.
+                        var handled = await this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex);
+                        if (!handled)
+                        {
+                            throw;
+                        }
+
+                        // else, the user handled the exception, return normally.
                     }
                 }
                 else
@@ -834,14 +840,18 @@ namespace Microsoft.PSharp
                     {
                         cachedAction.Execute();
                     }
-                    catch (Exception ex) when (this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex))
+                    catch (Exception ex)
                     {
-                        // User handled the exception, return normally.
-                    }
-                    catch (Exception ex) when (!this.OnExceptionRequestedGracefulHalt && this.InvokeOnFailureExceptionFilter(cachedAction, ex))
-                    {
-                        // If InvokeOnFailureExceptionFilter does not fail-fast, it returns
-                        // false to process the exception normally.
+                        var handled = await this.OnExceptionHandler(cachedAction.MethodInfo.Name, ex);
+                        if (!handled)
+                        {
+                            if (this.OnExceptionRequestedGracefulHalt || !this.InvokeOnFailureExceptionFilter(cachedAction, ex))
+                            {
+                                throw;
+                            }
+                        }
+
+                        // else, the user handled the exception, return normally.
                     }
                 }
             }
@@ -894,9 +904,15 @@ namespace Microsoft.PSharp
                     {
                         await this.OnEventDequeueAsync(lastDequeuedEvent);
                     }
-                    catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventDequeueAsync), ex))
+                    catch (Exception ex)
                     {
-                        // User handled the exception, return normally.
+                        var handled = await this.OnExceptionHandler(nameof(this.OnEventDequeueAsync), ex);
+                        if (!handled)
+                        {
+                            throw;
+                        }
+
+                        // else, the user handled the exception, return normally.
                     }
                 }
                 else if (eventHandlerStatus is EventHandlerStatus.EventHandled)
@@ -905,9 +921,15 @@ namespace Microsoft.PSharp
                     {
                         await this.OnEventHandledAsync(lastDequeuedEvent);
                     }
-                    catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventHandledAsync), ex))
+                    catch (Exception ex)
                     {
-                        // User handled the exception, return normally.
+                        var handled = await this.OnExceptionHandler(nameof(this.OnEventHandledAsync), ex);
+                        if (!handled)
+                        {
+                            throw;
+                        }
+
+                        // else, the user handled the exception, return normally.
                     }
                 }
             }
@@ -1585,11 +1607,11 @@ namespace Microsoft.PSharp
         /// <param name="methodName">The handler (outermost) that threw the exception.</param>
         /// <param name="ex">The exception thrown by the machine.</param>
         /// <returns>False if the exception should continue to get thrown, true if the machine should gracefully halt.</returns>
-        private bool OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
+        private async Task<bool> OnUnhandledEventExceptionHandler(string methodName, UnhandledEventException ex)
         {
             this.Logger.OnMachineExceptionThrown(this.Id, ex.CurrentStateName, methodName, ex);
 
-            var ret = this.OnException(methodName, ex);
+            var ret = await this.OnException(methodName, ex);
             this.OnExceptionRequestedGracefulHalt = false;
             switch (ret)
             {
@@ -1611,7 +1633,7 @@ namespace Microsoft.PSharp
         /// <param name="methodName">The handler (outermost) that threw the exception.</param>
         /// <param name="ex">The exception thrown by the machine.</param>
         /// <returns>False if the exception should continue to get thrown, true if it was handled in this method.</returns>
-        private bool OnExceptionHandler(string methodName, Exception ex)
+        private async Task<bool> OnExceptionHandler(string methodName, Exception ex)
         {
             if (ex is ExecutionCanceledException)
             {
@@ -1621,7 +1643,7 @@ namespace Microsoft.PSharp
 
             this.Logger.OnMachineExceptionThrown(this.Id, this.CurrentStateName, methodName, ex);
 
-            var ret = this.OnException(methodName, ex);
+            var ret = await this.OnException(methodName, ex);
             this.OnExceptionRequestedGracefulHalt = false;
 
             switch (ret)
@@ -1645,9 +1667,9 @@ namespace Microsoft.PSharp
         /// <param name="methodName">The handler (outermost) that threw the exception.</param>
         /// <param name="ex">The exception thrown by the machine.</param>
         /// <returns>The action that the runtime should take.</returns>
-        protected virtual OnExceptionOutcome OnException(string methodName, Exception ex)
+        protected virtual Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
         {
-            return OnExceptionOutcome.ThrowException;
+            return Task.FromResult(OnExceptionOutcome.ThrowException);
         }
 
         /// <summary>

@@ -53,14 +53,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new Ex1();
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -83,14 +83,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new Ex1();
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -114,14 +114,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new Ex1();
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -149,14 +149,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -173,14 +173,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new Ex2();
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -203,15 +203,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Assert(false);
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
                     this.Raise(new E(this.Id));
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
         }
 
@@ -234,15 +234,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Assert(false);
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 if (ex is Ex1)
                 {
                     this.Send(this.Id, new E(this.Id));
-                    return OnExceptionOutcome.HandledException;
+                    return Task.FromResult(OnExceptionOutcome.HandledException);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -278,9 +278,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new NotImplementedException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HaltMachine;
+                return Task.FromResult(OnExceptionOutcome.HaltMachine);
             }
 
             protected override void OnHalt()
@@ -301,14 +301,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 if (ex is UnhandledEventException)
                 {
-                    return OnExceptionOutcome.HaltMachine;
+                    return Task.FromResult(OnExceptionOutcome.HaltMachine);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
 
             protected override void OnHalt()
@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
             }
 
-            protected override OnExceptionOutcome OnException(string method, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string method, Exception ex)
             {
                 try
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     this.Assert(false);
                 }
 
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
         }
 

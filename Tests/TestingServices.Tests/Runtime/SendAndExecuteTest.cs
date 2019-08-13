@@ -420,10 +420,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 this.Assert(handled);
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 this.Assert(false);
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -448,9 +448,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return this.HandleException ? OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException;
+                return Task.FromResult(this.HandleException ?
+                    OnExceptionOutcome.HandledException : OnExceptionOutcome.ThrowException);
             }
         }
 

@@ -56,10 +56,10 @@ namespace Microsoft.PSharp.Core.Tests
                 this.e.Tcs.SetResult(true);
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 this.e.X++;
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
         }
 
@@ -79,10 +79,10 @@ namespace Microsoft.PSharp.Core.Tests
                 throw new NotImplementedException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 this.e.X++;
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -109,10 +109,10 @@ namespace Microsoft.PSharp.Core.Tests
                 this.e.Tcs.SetResult(true);
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 this.e.X++;
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
         }
 
@@ -133,10 +133,10 @@ namespace Microsoft.PSharp.Core.Tests
                 throw new NotImplementedException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 this.e.X++;
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
         }
 
@@ -156,9 +156,9 @@ namespace Microsoft.PSharp.Core.Tests
                 throw new NotImplementedException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HaltMachine;
+                return Task.FromResult(OnExceptionOutcome.HaltMachine);
             }
 
             protected override void OnHalt()
@@ -182,14 +182,14 @@ namespace Microsoft.PSharp.Core.Tests
                 this.e = this.ReceivedEvent as E;
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
                 if (ex is UnhandledEventException)
                 {
-                    return OnExceptionOutcome.HaltMachine;
+                    return Task.FromResult(OnExceptionOutcome.HaltMachine);
                 }
 
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
 
             protected override void OnHalt()

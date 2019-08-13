@@ -354,9 +354,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HaltMachine;
+                return Task.FromResult(OnExceptionOutcome.HaltMachine);
             }
 
             protected override void OnHalt()
@@ -394,9 +394,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
 
             protected override void OnHalt()
@@ -436,9 +436,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
 
             protected override void OnHalt()
@@ -477,9 +477,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HaltMachine;
+                return Task.FromResult(OnExceptionOutcome.HaltMachine);
             }
 
             protected override void OnHalt()
@@ -517,9 +517,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.HandledException;
+                return Task.FromResult(OnExceptionOutcome.HandledException);
             }
 
             protected override void OnHalt()
@@ -559,9 +559,9 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 throw new InvalidOperationException();
             }
 
-            protected override OnExceptionOutcome OnException(string methodName, Exception ex)
+            protected override Task<OnExceptionOutcome> OnException(string methodName, Exception ex)
             {
-                return OnExceptionOutcome.ThrowException;
+                return Task.FromResult(OnExceptionOutcome.ThrowException);
             }
 
             protected override void OnHalt()
