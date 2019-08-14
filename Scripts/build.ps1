@@ -6,13 +6,6 @@ param(
 
 Import-Module $PSScriptRoot\powershell\common.psm1
 
-# check VS is installed.
-if (-not ($ENV:VSINSTALLDIR -like "*\2019\*"))
-{
-    Write-Comment -text "Please install VS 2019 and run this from a VS 2019 Developer Command Prompt." -color "yellow"
-    exit
-}
-
 # check that dotnet sdk is installed...
 Function FindInPath() {
     param ([string]$name)
