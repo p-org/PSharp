@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
+using Microsoft.PSharp.TestingServices.Scheduling;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling
 {
@@ -312,7 +313,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             stepMapping[keyStep] = valueStep;
 
-            if (keyStep.OpType == TestingServices.Scheduling.AsyncOperationType.Create)
+            if (keyStep.OpType == AsyncOperationType.Create)
             {
                 machineIdMapping.Add(keyStep.TargetId, valueStep.TargetId);
             }
@@ -342,7 +343,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             return x != null && y != null && x.OpType == y.OpType &&
                 machineIdMapping.ContainsKey(x.SrcId) && machineIdMapping[x.SrcId] == y.SrcId && (
-                    x.OpType == TestingServices.Scheduling.AsyncOperationType.Create ||
+                    x.OpType == AsyncOperationType.Create ||
                     (machineIdMapping.ContainsKey(x.TargetId) && machineIdMapping[x.TargetId] == y.TargetId));
         }
 
@@ -553,7 +554,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if (s.CreatedStep != null)
             {
-                elements.Add(new XElement("NextMachineStepIndex", s.CreatedStep.TotalOrderingIndex));
+                elements.Add(new XElement("CreatedStepIndex", s.CreatedStep.TotalOrderingIndex));
             }
 
             if (s.NextInboxOrderingStep != null)
@@ -564,10 +565,117 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             if (s.NextMonitorSteps != null)
             {
                 elements.Add(new XElement("NextMonitorSteps", s.NextMonitorSteps.Select(
-                    x => new XElement( "NextMonitorStep", new XAttribute("MonitorType", x.Key), x.Value.TotalOrderingIndex))));
+                    x => new XElement( "NextMonitorStepIndex", new XAttribute("MonitorType", x.Key), x.Value.TotalOrderingIndex))));
             }
 
             return new XElement("Step", elements.ToArray());
+        }
+
+        /// <summary>
+        /// Deserializes a given XElement containing multiple Step elements into a partial order.
+        /// </summary>
+        /// <param name="stepListXml">The XElement</param>
+        /// <param name="assembly">The assembly of the program being described. Used for types</param>
+        /// <returns>The root of the partial order</returns>
+        public static List<ProgramStep> DeserializeStepsXmlToSchedule(XElement stepListXml, System.Reflection.Assembly assembly)
+        {
+            List<Tuple<XElement, ProgramStep>> stepList = new List<Tuple<XElement, ProgramStep>>();
+            Dictionary<int, ProgramStep> stepMap = new Dictionary<int, ProgramStep>();
+
+            foreach (XElement stepXml in stepListXml.Elements("Step"))
+            {
+                ProgramStep step = DeserializeStepBasic(stepXml);
+                stepList.Add(Tuple.Create(stepXml, step));
+                stepMap.Add(step.TotalOrderingIndex, step);
+            }
+
+            stepList.ForEach(t => DeserializeStepEdges(t.Item1, t.Item2, stepMap, assembly));
+            return stepList.Select(t => t.Item2).OrderBy( x => x.TotalOrderingIndex).ToList();
+        }
+
+        private static ProgramStep DeserializeStepBasic(XElement stepXml)
+        {
+            ProgramStep step = null;
+            if ( Enum.TryParse<ProgramStepType>(stepXml.Element("ProgramStepType").Value, out ProgramStepType stepType) &&
+                ulong.TryParse(stepXml.Element("SourceId").Value, out ulong srcId) &&
+                int.TryParse(stepXml.Element("TotalOrderingIndex").Value, out int totalOrderingIndex))
+            {
+                switch (stepType)
+                {
+                    case ProgramStepType.SchedulableStep:
+                        if (Enum.TryParse<AsyncOperationType>(stepXml.Element("OpType").Value, out AsyncOperationType opType) &&
+                            ulong.TryParse(stepXml.Element("TargetId").Value, out ulong targetId))
+                        {
+                            step = new ProgramStep(opType, srcId, targetId, null);
+                        }
+
+                        break;
+
+                    case ProgramStepType.NonDetBoolStep:
+                        if (bool.TryParse(stepXml.Element("NonDetBoolChoice").Value, out bool boolChoice))
+                        {
+                            step = new ProgramStep(srcId, boolChoice);
+                        }
+
+                        break;
+
+                    case ProgramStepType.NonDetIntStep:
+                        if (int.TryParse(stepXml.Element("NonDetIntChoice").Value, out int intChoice))
+                        {
+                            step = new ProgramStep(srcId, intChoice);
+                        }
+
+                        break;
+
+                    case ProgramStepType.SpecialProgramStepType:
+                        {
+                            step = ProgramStep.CreateSpecialProgramStep();
+                        }
+
+                        break;
+                }
+
+                step.TotalOrderingIndex = totalOrderingIndex;
+            }
+
+            return step;
+        }
+
+        private static void DeserializeStepEdges(XElement stepXml, ProgramStep step, Dictionary<int, ProgramStep> totalOrderingIndexToStep, System.Reflection.Assembly assembly)
+        {
+            XElement e = null;
+            if ( (e = stepXml.Element("NextMachineStepIndex")) != null)
+            {
+                step.NextMachineStep = totalOrderingIndexToStep[int.Parse(e.Value)];
+                totalOrderingIndexToStep[int.Parse(e.Value)].PrevMachineStep = step;
+            }
+
+            if ((e = stepXml.Element("CreatedStepIndex")) != null)
+            {
+                step.CreatedStep = totalOrderingIndexToStep[int.Parse(e.Value)];
+                totalOrderingIndexToStep[int.Parse(e.Value)].CreatorParent = step;
+            }
+
+            if ((e = stepXml.Element("NextInboxOrderingStepIndex")) != null)
+            {
+                step.NextInboxOrderingStep = totalOrderingIndexToStep[int.Parse(e.Value)];
+                totalOrderingIndexToStep[int.Parse(e.Value)].PrevInboxOrderingStep = step;
+            }
+
+            if ((e = stepXml.Element("NextMonitorSteps")) != null)
+            {
+                step.NextMonitorSteps = new Dictionary<Type, ProgramStep>();
+                foreach (XElement nmsi in e.Elements("NextMonitorStepIndex"))
+                {
+                    step.NextMonitorSteps.Add(assembly.GetType(nmsi.Attribute("MonitorType").Value), totalOrderingIndexToStep[int.Parse(nmsi.Value)]);
+                    if (totalOrderingIndexToStep[int.Parse(nmsi.Value)].PrevMonitorSteps == null)
+                    {
+                        totalOrderingIndexToStep[int.Parse(nmsi.Value)].PrevMonitorSteps = new Dictionary<Type, ProgramStep>();
+                    }
+
+                    totalOrderingIndexToStep[int.Parse(nmsi.Value)].PrevMonitorSteps.Add(assembly.GetType(nmsi.Attribute("MonitorType").Value), step);
+                }
+            }
         }
     }
 }

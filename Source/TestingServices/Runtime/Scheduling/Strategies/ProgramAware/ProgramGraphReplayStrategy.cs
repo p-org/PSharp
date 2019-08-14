@@ -26,6 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// The root of the partial order
         /// </summary>
         protected readonly ProgramStep OriginalRootStep;
+        private readonly HashSet<ProgramStep> WithHeldSends;
 
         // Is the schedule represented by the partial order fair. ( doesn't mean our replay will be )
         private readonly bool IsScheduleFair;
@@ -52,9 +53,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <param name="configuration">A configuration object</param>
         /// <param name="suffixStrategy">If the graph replay is over and we want to hit liveness violations, we may need a suffix strategy</param>
         public ProgramGraphReplayStrategy(ProgramStep rootStep, bool isScheduleFair, Configuration configuration, ISchedulingStrategy suffixStrategy = null)
-            : base()
+            : this(rootStep, null, isScheduleFair, configuration, suffixStrategy)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProgramGraphReplayStrategy"/> class.
+        /// </summary>
+        /// <param name="rootStep">The first (root) step of the program. All steps must be reachable from this to be replayed.</param>
+        /// <param name="withHeldSends">A hashset of programsteps in the partial order whose events were not enqueued</param>
+        /// <param name="isScheduleFair">Is the schedule represented by the partial order fair</param>
+        /// <param name="configuration">A configuration object</param>
+        /// <param name="suffixStrategy">If the graph replay is over and we want to hit liveness violations, we may need a suffix strategy</param>
+        public ProgramGraphReplayStrategy(ProgramStep rootStep, HashSet<ProgramStep> withHeldSends, bool isScheduleFair, Configuration configuration, ISchedulingStrategy suffixStrategy = null)
         {
             this.OriginalRootStep = rootStep;
+            this.WithHeldSends = withHeldSends;
+
             this.IsScheduleFair = isScheduleFair;
             this.ResetProgramReplayHelper(rootStep);
             this.ScheduledSteps = 0;
@@ -374,7 +389,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public override bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event e)
         {
             ProgramStep matchingStep = this.UseSuffixStrategy ? null : this.ProgramReplayHelper.GetCurrentStep();
-            return this.ShouldEnqueueEvent(senderId, targetId, e, matchingStep);
+            bool isWithHeld = this.WithHeldSends?.Contains(matchingStep) ?? false;
+            return !isWithHeld && this.ShouldEnqueueEvent(senderId, targetId, e, matchingStep);
         }
 
         /// <summary>
