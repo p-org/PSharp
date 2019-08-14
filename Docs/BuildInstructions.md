@@ -14,18 +14,25 @@ powershell -c .\Scripts\build.ps1
 ```
 
 # Building the samples
-To build the samples, run the above script with the `samples` option:
+To build the samples, first run the following to package up PSharp as
+a local nuget package:
 ```
-powershell -c .\build.ps1 -samples
+powershell -c .\Scripts\create-nuget-packages.ps1
+```
+
+Then run the above script with the `samples` option:
+```
+powershell -c .\Samples\build-framework-samples.ps1
+powershell -c .\Samples\build-language-samples.ps1
 ```
 
 # Running the tests
 To run all available tests, execute the following powershell script (available in the `Scripts` directory):
 ```
-.\Scripts\run-tests.ps1
+powershell -c .\Scripts\run-tests.ps1
 ```
 
 To run only a specific category of tests, use the `-test` option to specify the category name, for example:
 ```
-.\Scripts\run-tests.ps1 -test core
+powershell -c .\Scripts\run-tests.ps1 -test core
 ```

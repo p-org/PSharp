@@ -26,12 +26,12 @@ if ($dotnetpath -is [array]){
 $sdkpath = Join-Path -Path $dotnetpath -ChildPath "sdk"
 if (-not ("" -eq $dotnetpath))
 {
-    $versions = Get-ChildItem "$sdkpath"  -directory | Where-Object {$_ -like "2.2.4*"}
+    $versions = Get-ChildItem "$sdkpath"  -directory | Where-Object {$_ -like "2.2.1*"}
 }
 
 if ($null -eq $versions)
 {
-    Write-Comment -text "Please install dotnet sdk version 2.2.401 from https://www.microsoft.com/net/core." -color "yellow"
+    Write-Comment -text "Please install dotnet sdk version 2.2.105 from https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-2.2.105-windows-x64-installer." -color "yellow"
     exit
 }
 else
