@@ -4,6 +4,14 @@ param(
     [string]$configuration="Release"
 )
 
+
+foreach ($e in Get-ChildItem Env:)
+{
+    $key = $e.Key
+    $value = $e.Value
+    Write-Host "$key=$value"
+}
+exit
 Import-Module $PSScriptRoot\powershell\common.psm1
 
 Write-Comment -prefix "." -text "Building P#" -color "yellow"
