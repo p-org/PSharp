@@ -51,11 +51,11 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is executing action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is executing action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Work();
-            Console.WriteLine($"Machine '{this.Id}' executed action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' executed action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(default);
-            Console.WriteLine($"Machine '{this.Id}' completed action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed action on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
     }

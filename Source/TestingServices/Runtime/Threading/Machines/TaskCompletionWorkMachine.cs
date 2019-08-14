@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'");
             return Task.CompletedTask;
         }
     }
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"\n\nMachine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'\n\n");
+            IO.Debug.WriteLine($"\n\nMachine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'\n\n");
             return Task.CompletedTask;
         }
     }

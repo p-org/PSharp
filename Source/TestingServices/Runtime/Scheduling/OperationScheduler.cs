@@ -188,10 +188,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
                     }
 
-                    Debug.WriteLine($"<ScheduleDebug> Woke up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
                     if (current.Status != AsyncOperationStatus.Enabled)
                     {
-                        Debug.WriteLine($"<ScheduleDebug> Woke[2] up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
                         throw new ExecutionCanceledException();
                     }
                 }

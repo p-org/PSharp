@@ -51,12 +51,12 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             Task task = this.Work();
             this.Runtime.NotifyWaitTask(this, task);
-            Console.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(default);
-            Console.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
     }
@@ -101,11 +101,11 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             TResult result = this.Work();
-            Console.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(result);
-            Console.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
     }
@@ -150,13 +150,13 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             Task<TResult> task = this.Work();
-            Console.WriteLine($"Machine '{this.Id}' is getting result on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is getting result on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Runtime.NotifyWaitTask(this, task);
-            Console.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(task.Result);
-            Console.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
     }

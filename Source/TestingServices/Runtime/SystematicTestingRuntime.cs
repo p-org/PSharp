@@ -955,9 +955,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.MachineMap.TryAdd(machine.Id, machine);
             this.CreatedMachineIds.Add(machine.Id);
 
-            // TODO: change to custom log.
-            this.Logger.OnCreateMachine(machine.Id, null);
-
             Task task = new Task(async () =>
             {
                 // Set the executing runtime in the local asynchronous context,
@@ -1017,6 +1014,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     this.MachineMap.TryRemove(machine.Id, out AsyncMachine _);
                 }
             });
+
+            IO.Debug.WriteLine($"<CreateLog> Machine '{machine.Id}' was created to execute task '{task.Id}'.");
 
             op.OnCreated(0);
             if (parentTask != null)

@@ -45,9 +45,9 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is performing a delay on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is performing a delay on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(default);
-            Console.WriteLine($"Machine '{this.Id}' completed a delay on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed a delay on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
     }

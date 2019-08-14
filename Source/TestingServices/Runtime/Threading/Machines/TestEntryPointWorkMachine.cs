@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override async Task ExecuteAsync()
         {
-            Console.WriteLine($"Machine '{this.Id}' is executing test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' is executing test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
 
             if (this.Test is Action<IMachineRuntime> actionWithRuntime)
             {
@@ -74,9 +74,9 @@ namespace Microsoft.PSharp.TestingServices.Threading
                 throw new InvalidOperationException($"Unsupported test delegate of type '{this.Test?.GetType()}'.");
             }
 
-            Console.WriteLine($"Machine '{this.Id}' executed test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' executed test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(default);
-            Console.WriteLine($"Machine '{this.Id}' completed test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
+            IO.Debug.WriteLine($"Machine '{this.Id}' completed test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
         }
     }
 }
