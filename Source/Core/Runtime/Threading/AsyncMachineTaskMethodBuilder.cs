@@ -229,8 +229,8 @@ namespace Microsoft.PSharp.Threading
         {
             if (this.UseBuilder)
             {
-                IO.Debug.WriteLine("<AsyncBuilder> Set result '{0}' with type '{1}' of task '{2}' from task '{3}'.",
-                    result, typeof(TResult), this.MethodBuilder.Task.Id, System.Threading.Tasks.Task.CurrentId);
+                IO.Debug.WriteLine("<AsyncBuilder> Set result with type '{0}' of task '{1}' from task '{2}'.",
+                    typeof(TResult), this.MethodBuilder.Task.Id, System.Threading.Tasks.Task.CurrentId);
                 this.MethodBuilder.SetResult(result);
             }
             else

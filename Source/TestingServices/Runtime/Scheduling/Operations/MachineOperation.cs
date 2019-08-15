@@ -176,18 +176,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     return;
                 }
 
+                this.JoinDependencies.Clear();
                 this.Status = AsyncOperationStatus.Enabled;
             }
             else if (this.Status == AsyncOperationStatus.BlockedOnWaitAny)
             {
                 IO.Debug.WriteLine("<ScheduleDebug> Try enable operation '{0}'.", this.SourceId);
-                if (!this.JoinDependencies.Any(task => task.IsCompleted))
+                if (this.JoinDependencies.All(task => !task.IsCompleted))
                 {
                     IO.Debug.WriteLine("<ScheduleDebug> Operation '{0}' is waiting for at least one task to complete.",
                         this.SourceId);
                     return;
                 }
 
+                this.JoinDependencies.Clear();
                 this.Status = AsyncOperationStatus.Enabled;
             }
         }
