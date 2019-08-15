@@ -328,7 +328,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
         /// </summary>
-        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken) =>
+        internal override MachineTask CreateMachineTask(TimeSpan delay, CancellationToken cancellationToken) =>
             throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>
@@ -365,6 +365,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// Asynchronously waits for any of the specified tasks to complete.
         /// </summary>
         internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
+            throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
+
+        /// <summary>
+        /// Waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override int WaitAnyTask(Task[] tasks) =>
             throw new NotSupportedException($"Invoking this method is not supported in machine unit testing mode.");
 
         /// <summary>

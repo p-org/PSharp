@@ -106,6 +106,19 @@ namespace Microsoft.PSharp.Threading
             new MachineTask(Task.Delay(millisecondsDelay, cancellationToken));
 
         /// <summary>
+        /// Creates a <see cref="MachineTask"/> that completes after a specified time interval.
+        /// </summary>
+        /// <param name="delay">
+        /// The time span to wait before completing the returned task, or TimeSpan.FromMilliseconds(-1)
+        /// to wait indefinitely.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token that can be used to cancel the delay.</param>
+        /// <returns>Task that represents the time delay.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual MachineTask DelayAsync(TimeSpan delay, CancellationToken cancellationToken) =>
+            new MachineTask(Task.Delay(delay, cancellationToken));
+
+        /// <summary>
         /// Creates a <see cref="MachineTask"/> that will complete when all tasks
         /// in the specified array have completed.
         /// </summary>
@@ -252,6 +265,46 @@ namespace Microsoft.PSharp.Threading
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal virtual MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
             new MachineTask<Task<TResult>>(Task.WhenAny(tasks));
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete execution.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual int WaitAnyTask(params MachineTask[] tasks) =>
+            Task.WaitAny(tasks.Select(t => t.AwaiterTask).ToArray());
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual int WaitAnyTask(MachineTask[] tasks, int millisecondsTimeout) =>
+            Task.WaitAny(tasks.Select(t => t.AwaiterTask).ToArray(), millisecondsTimeout);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds or until a cancellation
+        /// token is cancelled.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual int WaitAnyTask(MachineTask[] tasks, int millisecondsTimeout, CancellationToken cancellationToken) =>
+            Task.WaitAny(tasks.Select(t => t.AwaiterTask).ToArray(), millisecondsTimeout, cancellationToken);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution unless the wait is cancelled.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual int WaitAnyTask(MachineTask[] tasks, CancellationToken cancellationToken) =>
+            Task.WaitAny(tasks.Select(t => t.AwaiterTask).ToArray(), cancellationToken);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified time interval.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal virtual int WaitAnyTask(MachineTask[] tasks, TimeSpan timeout) =>
+            Task.WaitAny(tasks.Select(t => t.AwaiterTask).ToArray(), timeout);
 
         /// <summary>
         /// Creates a <see cref="MachineTask"/> associated with a completion source.

@@ -85,7 +85,19 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <param name="cancellationToken">Cancellation token that can be used to cancel the delay.</param>
         /// <returns>Task that represents the time delay.</returns>
         internal override MachineTask DelayAsync(int millisecondsDelay, CancellationToken cancellationToken) =>
-            this.Runtime.CreateMachineTask(millisecondsDelay, cancellationToken);
+            this.Runtime.CreateMachineTask(TimeSpan.FromMilliseconds(millisecondsDelay), cancellationToken);
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that completes after a specified time interval.
+        /// </summary>
+        /// <param name="delay">
+        /// The time span to wait before completing the returned task, or TimeSpan.FromMilliseconds(-1)
+        /// to wait indefinitely.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token that can be used to cancel the delay.</param>
+        /// <returns>Task that represents the time delay.</returns>
+        internal override MachineTask DelayAsync(TimeSpan delay, CancellationToken cancellationToken) =>
+            this.Runtime.CreateMachineTask(delay, cancellationToken);
 
         /// <summary>
         /// Creates a <see cref="MachineTask"/> that will complete when all tasks
@@ -180,6 +192,41 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
             this.Runtime.WaitAnyTaskAsync(tasks);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete execution.
+        /// </summary>
+        internal override int WaitAnyTask(params MachineTask[] tasks) =>
+            this.Runtime.WaitAnyTask(tasks.Select(t => t.AwaiterTask).ToArray());
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds.
+        /// </summary>
+        internal override int WaitAnyTask(MachineTask[] tasks, int millisecondsTimeout) =>
+            this.Runtime.WaitAnyTask(tasks.Select(t => t.AwaiterTask).ToArray());
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds or until a cancellation
+        /// token is cancelled.
+        /// </summary>
+        internal override int WaitAnyTask(MachineTask[] tasks, int millisecondsTimeout, CancellationToken cancellationToken) =>
+            this.Runtime.WaitAnyTask(tasks.Select(t => t.AwaiterTask).ToArray());
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution unless the wait is cancelled.
+        /// </summary>
+        internal override int WaitAnyTask(MachineTask[] tasks, CancellationToken cancellationToken) =>
+            this.Runtime.WaitAnyTask(tasks.Select(t => t.AwaiterTask).ToArray());
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified time interval.
+        /// </summary>
+        internal override int WaitAnyTask(MachineTask[] tasks, TimeSpan timeout) =>
+            this.Runtime.WaitAnyTask(tasks.Select(t => t.AwaiterTask).ToArray());
 
         /// <summary>
         /// Creates a <see cref="MachineTask"/> associated with a completion source.

@@ -242,6 +242,31 @@ namespace Microsoft.PSharp.Threading
             MachineRuntime.CurrentScheduler.DelayAsync(millisecondsDelay, cancellationToken);
 
         /// <summary>
+        /// Creates a <see cref="MachineTask"/> that completes after a specified time interval.
+        /// </summary>
+        /// <param name="delay">
+        /// The time span to wait before completing the returned task, or TimeSpan.FromMilliseconds(-1)
+        /// to wait indefinitely.
+        /// </param>
+        /// <returns>Task that represents the time delay.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MachineTask Delay(TimeSpan delay) =>
+            MachineRuntime.CurrentScheduler.DelayAsync(delay, default);
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that completes after a specified time interval.
+        /// </summary>
+        /// <param name="delay">
+        /// The time span to wait before completing the returned task, or TimeSpan.FromMilliseconds(-1)
+        /// to wait indefinitely.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token that can be used to cancel the delay.</param>
+        /// <returns>Task that represents the time delay.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MachineTask Delay(TimeSpan delay, CancellationToken cancellationToken) =>
+            MachineRuntime.CurrentScheduler.DelayAsync(delay, cancellationToken);
+
+        /// <summary>
         /// Creates a <see cref="MachineTask"/> that will complete when all tasks
         /// in the specified array have completed.
         /// </summary>
@@ -388,6 +413,46 @@ namespace Microsoft.PSharp.Threading
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MachineTask<Task<TResult>> WhenAny<TResult>(IEnumerable<Task<TResult>> tasks) =>
             MachineRuntime.CurrentScheduler.WaitAnyTaskAsync(tasks);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete execution.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WaitAny(params MachineTask[] tasks) =>
+            MachineRuntime.CurrentScheduler.WaitAnyTask(tasks);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WaitAny(MachineTask[] tasks, int millisecondsTimeout) =>
+            MachineRuntime.CurrentScheduler.WaitAnyTask(tasks, millisecondsTimeout);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified number of milliseconds or until a cancellation
+        /// token is cancelled.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WaitAny(MachineTask[] tasks, int millisecondsTimeout, CancellationToken cancellationToken) =>
+            MachineRuntime.CurrentScheduler.WaitAnyTask(tasks, millisecondsTimeout, cancellationToken);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution unless the wait is cancelled.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WaitAny(MachineTask[] tasks, CancellationToken cancellationToken) =>
+            MachineRuntime.CurrentScheduler.WaitAnyTask(tasks, cancellationToken);
+
+        /// <summary>
+        /// Waits for any of the provided <see cref="MachineTask"/> objects to complete
+        /// execution within a specified time interval.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WaitAny(MachineTask[] tasks, TimeSpan timeout) =>
+            MachineRuntime.CurrentScheduler.WaitAnyTask(tasks, timeout);
 
         /// <summary>
         /// Creates an awaitable that asynchronously yields back to the current context when awaited.

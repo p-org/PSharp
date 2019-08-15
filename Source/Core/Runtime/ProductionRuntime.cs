@@ -404,8 +404,8 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
         /// </summary>
-        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken) =>
-            new MachineTask(Task.Delay(millisecondsDelay, cancellationToken));
+        internal override MachineTask CreateMachineTask(TimeSpan delay, CancellationToken cancellationToken) =>
+            new MachineTask(Task.Delay(delay, cancellationToken));
 
         /// <summary>
         /// Creates a new <see cref="MachineTask"/> to complete with the specified task.
@@ -441,6 +441,11 @@ namespace Microsoft.PSharp.Runtime
         /// </summary>
         internal override MachineTask<Task<TResult>> WaitAnyTaskAsync<TResult>(IEnumerable<Task<TResult>> tasks) =>
             new MachineTask<Task<TResult>>(Task.WhenAny(tasks));
+
+        /// <summary>
+        /// Waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override int WaitAnyTask(Task[] tasks) => Task.WaitAny(tasks);
 
         /// <summary>
         /// Creates a new timer that sends a <see cref="TimerElapsedEvent"/> to its owner machine.

@@ -731,9 +731,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Creates a new <see cref="MachineTask"/> to execute the specified asynchronous delay.
         /// </summary>
-        internal override MachineTask CreateMachineTask(int millisecondsDelay, CancellationToken cancellationToken)
+        internal override MachineTask CreateMachineTask(TimeSpan delay, CancellationToken cancellationToken)
         {
-            if (millisecondsDelay == 0)
+            if (delay.TotalMilliseconds == 0)
             {
                 // If the delay is 0, then complete synchronously.
                 return MachineTask.CompletedTask;
@@ -939,6 +939,49 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             return MachineTask.FromResult(result);
+        }
+
+        /// <summary>
+        /// Waits for any of the specified tasks to complete.
+        /// </summary>
+        internal override int WaitAnyTask(Task[] tasks)
+        {
+            this.Assert(tasks != null, "Cannot wait for a null array of tasks to complete.");
+            this.Assert(tasks.Count() > 0, "Cannot wait for zero tasks to complete.");
+
+            AsyncMachine caller = this.GetExecutingMachine<AsyncMachine>();
+            if (caller is null)
+            {
+                // TODO: throw an error, as a non-controlled task is awaiting?
+                return Task.WaitAny(tasks.ToArray());
+            }
+
+            MachineOperation callerOp = this.GetAsynchronousOperation(caller.Id.Value);
+            foreach (var task in tasks)
+            {
+                if (!task.IsCompleted)
+                {
+                    callerOp.OnWaitTask(task, false);
+                }
+            }
+
+            if (callerOp.Status == AsyncOperationStatus.BlockedOnWaitAny)
+            {
+                // Only schedule if the task is not already completed.
+                this.Scheduler.ScheduleNextOperation(AsyncOperationType.Join, AsyncOperationTarget.Task, caller.Id.Value);
+            }
+
+            int result = -1;
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                if (tasks[i].IsCompleted)
+                {
+                    result = i;
+                    break;
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
