@@ -36,10 +36,12 @@ namespace Microsoft.PSharp.TestingClientInterface
 
             List<ProgramStep> withHeldSends = metaXml.Element("WithHeldSendIndices").Elements("WithHeldSendIndex").Select(x => orderedSteps[int.Parse(x.Value)]).ToList();
 
+            string livenessMonitorTypeName = metaXml.Element("LivenessViolatingMonitorType")?.Value ?? string.Empty;
+            Type livenessViolatingMonitorType = string.IsNullOrEmpty(livenessMonitorTypeName) ? null : assembly.GetType(livenessMonitorTypeName);
             bool isLivenessBug = bool.Parse(metaXml.Element("IsLivenessBug").Value);
             isSchedulerFair = isLivenessBug;
 
-            summary = new ProgramModelSummary(orderedSteps[0], bugTriggeringStep, withHeldSends, orderedSteps.Count, isLivenessBug);
+            summary = new ProgramModelSummary(orderedSteps[0], bugTriggeringStep, withHeldSends, orderedSteps.Count, livenessViolatingMonitorType);
 
             if (isLivenessBug)
             {

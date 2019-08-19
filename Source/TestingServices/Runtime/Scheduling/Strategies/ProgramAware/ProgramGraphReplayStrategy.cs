@@ -20,13 +20,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
     /// </summary>
     public class ProgramGraphReplayStrategy : AbstractBaseProgramModelStrategy
     {
-        private const bool StopRecordingAfterGraphCompleted = true;
+        /// <summary>
+        /// Tells us how many replays we need to do to be reasonably sure about whether we didn't get lucky with the bug.
+        /// </summary>
+        public const int NREPLAYSFORBUGREPRODUCTION = 3;
+
+        private bool StopRecordingAfterGraphCompleted;
 
         /// <summary>
         /// The root of the partial order
         /// </summary>
-        protected readonly ProgramStep OriginalRootStep;
-        private readonly HashSet<ProgramStep> WithHeldSends;
+        protected ProgramStep GuideRootStep;
+
+        private HashSet<ProgramStep> WithHeldSends;
 
         // Is the schedule represented by the partial order fair. ( doesn't mean our replay will be )
         private readonly bool IsScheduleFair;
@@ -67,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <param name="suffixStrategy">If the graph replay is over and we want to hit liveness violations, we may need a suffix strategy</param>
         public ProgramGraphReplayStrategy(ProgramStep rootStep, HashSet<ProgramStep> withHeldSends, bool isScheduleFair, Configuration configuration, ISchedulingStrategy suffixStrategy = null)
         {
-            this.OriginalRootStep = rootStep;
+            this.GuideRootStep = rootStep;
             this.WithHeldSends = withHeldSends;
 
             this.IsScheduleFair = isScheduleFair;
@@ -78,6 +84,29 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             this.SuffixStrategy = suffixStrategy;
 
             this.HasReachedEndHard = false;
+
+            this.StopRecordingAfterGraphCompleted = true;
+        }
+
+        /// <summary>
+        /// Updates the partial order to be replayed. Don't do this mid iter.
+        /// </summary>
+        /// <param name="rootStep">The root of the new partial order</param>
+        /// <param name="withHeldSends">The withheld sends in the partial order</param>
+        public void UpdateGraphToReplay(ProgramStep rootStep, HashSet<ProgramStep> withHeldSends)
+        {
+            this.GuideRootStep = rootStep;
+            this.WithHeldSends = withHeldSends;
+        }
+
+        /// <summary>
+        /// Set the value of StopRecordingAfterGraphCompleted
+        /// If true, the program model will cease to record progress when the Graph replay is complete
+        /// </summary>
+        /// <param name="stopRecordingAfterGraphCompleted">The value to set it to</param>
+        public void SetStopRecordingAfterGraphCompleted(bool stopRecordingAfterGraphCompleted)
+        {
+            this.StopRecordingAfterGraphCompleted = stopRecordingAfterGraphCompleted;
         }
 
         /// <summary>
@@ -144,7 +173,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 if (this.ProgramReplayHelper.HasReachedEnd())
                 {
                     this.HasReachedEndHard = true;
-                    this.SwitchToSuffixStrategy(StopRecordingAfterGraphCompleted);
+                    this.SwitchToSuffixStrategy(this.StopRecordingAfterGraphCompleted);
                     return this.GetNext(out next, ops, current);
                 }
 
@@ -267,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             {
                 if (this.ProgramReplayHelper.HasReachedEnd())
                 {
-                    this.SwitchToSuffixStrategy(StopRecordingAfterGraphCompleted);
+                    this.SwitchToSuffixStrategy(this.StopRecordingAfterGraphCompleted);
                     return this.GetNextIntegerChoice(maxValue, out next);
                 }
 
@@ -336,7 +365,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public override bool PrepareForNextIteration()
         {
-            this.ResetProgramReplayHelper(this.OriginalRootStep);
+            this.ResetProgramReplayHelper(this.GuideRootStep);
             this.ScheduledSteps = 0;
             this.HasReachedEndHard = false;
             this.UseSuffixStrategy = false;
@@ -350,7 +379,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <inheritdoc/>
         public override void Reset()
         {
-            this.ResetProgramReplayHelper(this.OriginalRootStep);
+            this.ResetProgramReplayHelper(this.GuideRootStep);
             this.ScheduledSteps = 0;
             this.HasReachedEndHard = false;
             this.UseSuffixStrategy = false;

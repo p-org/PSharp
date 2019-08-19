@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             List<ProgramStep> linearizedOrder = LinearizePartialOrder(root);
             for (int i = 0; i < linearizedOrder.Count; i++)
             {
-                linearizedOrder[i].TotalOrderingIndex = i;
+                // linearizedOrder[i].TotalOrderingIndex = i;
             }
 
             return linearizedOrder;
@@ -178,14 +178,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         /// <param name="summary">The summary to be cloned</param>
         /// <returns>The cloned summary</returns>
-        public static ProgramModelSummary CloneProgramSummary(ProgramModelSummary summary)
-        {
-            List<ProgramStep> stepsToMap = new List<ProgramStep>(summary.WithHeldSends);
-            stepsToMap.Add(summary.PartialOrderRoot);
-            stepsToMap.Add(summary.BugTriggeringStep);
-            ProgramStep newRoot = ClonePartialOrder(summary.PartialOrderRoot, stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps, true);
+        public static ProgramModelSummary CloneProgramSummary(ProgramModelSummary summary) => CloneProgramSummary(summary, new List<ProgramStep>(), out Dictionary<ProgramStep, ProgramStep> d);
 
-            return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => mappedSteps[x]).ToList(), summary.NumSteps, summary.IsLivenessBug);
+        /// <summary>
+        /// Clones a ProgramSummary. Offers user requested step mapping.
+        /// </summary>
+        /// <param name="summary">The summary to be cloned</param>
+        /// <param name="stepsToMap">The extra steps to be mapped</param>
+        /// <param name="mappedSteps">Out parameter with the requested steps mapped</param>
+        /// <returns>A clone of the program summary </returns>
+        public static ProgramModelSummary CloneProgramSummary(ProgramModelSummary summary, List<ProgramStep> stepsToMap, out Dictionary<ProgramStep, ProgramStep> mappedSteps)
+        {
+            HashSet<ProgramStep> allStepsToMap = new HashSet<ProgramStep>(stepsToMap);
+            summary.WithHeldSends.ForEach( s => allStepsToMap.Add(s));
+            allStepsToMap.Add(summary.PartialOrderRoot);
+            allStepsToMap.Add(summary.BugTriggeringStep);
+
+            ProgramStep newRoot = ClonePartialOrder(summary.PartialOrderRoot, allStepsToMap.ToList(), out Dictionary<ProgramStep, ProgramStep> stepMap, true);
+            mappedSteps = stepMap;
+
+            return new ProgramModelSummary(newRoot, mappedSteps[summary.BugTriggeringStep], summary.WithHeldSends.Select(x => stepMap[x]).ToList(), summary.NumSteps, summary.LivenessViolatingMonitorType);
         }
 
         /// <summary>
@@ -247,7 +259,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             {
                 foreach (ProgramStep step in stepsToMap)
                 {
-                    mappedSteps.Add(step, oldToNew[step]);
+                    if (oldToNew.ContainsKey(step))
+                    {
+                        // TODO: Does this check hide errors?
+                        mappedSteps.Add(step, oldToNew[step]);
+                    }
                 }
             }
 
@@ -275,6 +291,41 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             return newStep;
+        }
+
+        /// <summary>
+        /// Walks up the program tree ( and then down the other ) to return the matching step in rootY
+        /// </summary>
+        /// <param name="rootX">The root of the partial order containing the step to map</param>
+        /// <param name="stepX">The step we want to map</param>
+        /// <param name="rootY">The root of the partial order to which we want to map</param>
+        /// <returns>The step in rootY corresponding to stepX in rootX</returns>
+        public static ProgramStep FindMatchingStep(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY)
+        {
+            Stack<bool> takeMachineThreadEdge = new Stack<bool>();
+            return FindMatchingStep(rootX, stepX, rootY, takeMachineThreadEdge);
+        }
+
+        private static ProgramStep FindMatchingStep(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY, Stack<bool> takeMachineThreadEdge)
+        {
+            if (stepX.PrevMachineStep != null)
+            {
+                takeMachineThreadEdge.Push(true);
+                return FindMatchingStep(rootX, stepX.PrevMachineStep, rootY, takeMachineThreadEdge).NextMachineStep;
+            }
+            else if (stepX.CreatorParent != null)
+            {
+                takeMachineThreadEdge.Push(false);
+                return FindMatchingStep(rootX, stepX.CreatorParent, rootY, takeMachineThreadEdge).CreatedStep;
+            }
+            else if (rootX == stepX)
+            {
+                return rootY;
+            }
+            else
+            {
+                throw new NotImplementedException("This was implented wrong");
+            }
         }
 
         // #region equivalence_checking
@@ -379,10 +430,18 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 {
                     root.CreatorParent.CreatedStep = null;
                 }
+
+                if (root.PrevMonitorSteps != null)
+                {
+                    foreach (KeyValuePair<Type, ProgramStep> kv in root.PrevMonitorSteps)
+                    {
+                        kv.Value.NextMonitorSteps[kv.Key] = null;
+                    }
+                }
             }
             else
             {
-                PrunePartialOrderByTotalOrderingIndex(root.NextInboxOrderingStep, indexLimit);
+                // PrunePartialOrderByTotalOrderingIndex(root.NextInboxOrderingStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.NextMachineStep, indexLimit);
                 PrunePartialOrderByTotalOrderingIndex(root.CreatedStep, indexLimit);
             }

@@ -32,9 +32,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal readonly Dictionary<ulong, Machine> MachineIdToMachine;
 
         internal ProgramStep BugTriggeringStep;
-        private bool IsLivenessBug;
-        private bool IsRecording;
         private readonly Dictionary<Monitor, ProgramStep> HotMonitors;
+        private Type LivenessViolatingMonitor;
+
+        private bool IsLivenessBug
+        {
+            get => this.LivenessViolatingMonitor != null;
+        }
+
+        private bool IsRecording;
         private static readonly HashSet<Type> IgnoredMachineHashTypes = new HashSet<Type> { typeof(AsyncMachine), typeof(Machine) };
         private readonly HashSet<ProgramStep> DroppedEventSendSteps;
 
@@ -55,7 +61,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             this.OrderedSteps = new List<ProgramStep>();
 
             this.BugTriggeringStep = null;
-            this.IsLivenessBug = false;
+            this.LivenessViolatingMonitor = null;
 
             this.Initialize(0);
 
@@ -197,12 +203,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             if (bugFound)
             {
                 // TODO: This is just to use the argument
-                this.IsLivenessBug = false;
                 foreach (KeyValuePair<Monitor, ProgramStep> kv in this.HotMonitors)
                 {
                     if (kv.Key.ExceedsLivenessTemperatureLimit())
                     {
-                        this.IsLivenessBug = true;
+                        this.LivenessViolatingMonitor = kv.Key.GetType();
                         this.BugTriggeringStep = kv.Value;
                         break;
                     }
@@ -321,7 +326,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal ProgramModelSummary GetProgramSummary()
         {
-            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.OrderedSteps.Count, this.IsLivenessBug);
+            return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.OrderedSteps.Count, this.LivenessViolatingMonitor);
         }
 
         internal string SerializeProgramTrace()

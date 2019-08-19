@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel
@@ -28,6 +29,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public readonly ProgramStep BugTriggeringStep;
 
         /// <summary>
+        /// If the triggered bug is a liveness violation, The type of the monitor which triggered it.
+        /// </summary>
+        public readonly Type LivenessViolatingMonitorType;
+
+        /// <summary>
         /// The number of steps executed
         /// </summary>
         public readonly int NumSteps;
@@ -50,7 +56,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// Tells whether or not the bug is a liveness bug
         /// </summary>
-        public readonly bool IsLivenessBug;
+        public bool IsLivenessBug
+        {
+            get => this.LivenessViolatingMonitorType != null;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramModelSummary"/> class.
@@ -59,13 +68,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <param name="bugTriggeringStep">the step which triggered the bug</param>
         /// <param name="withHeldSends">list of send steps for which the message was not enqueued</param>
         /// <param name="numSteps">The number of steps executed</param>
-        /// <param name="isLivenessBug">Tells whether or not the bug is a liveness bug</param>
-        public ProgramModelSummary(ProgramStep partialOrderRoot, ProgramStep bugTriggeringStep, List<ProgramStep> withHeldSends, int numSteps, bool isLivenessBug)
+        /// <param name="hotMonitor">If the bug is a liveness bug, the type of the monitor which triggered the bug</param>
+        public ProgramModelSummary(ProgramStep partialOrderRoot, ProgramStep bugTriggeringStep, List<ProgramStep> withHeldSends, int numSteps, Type hotMonitor)
         {
             this.PartialOrderRoot = partialOrderRoot;
             this.WithHeldSends = withHeldSends;
             this.BugTriggeringStep = bugTriggeringStep;
-            this.IsLivenessBug = isLivenessBug;
+            this.LivenessViolatingMonitorType = hotMonitor;
 
             this.NumSteps = numSteps;
         }
