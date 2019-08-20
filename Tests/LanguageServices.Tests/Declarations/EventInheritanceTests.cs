@@ -491,7 +491,7 @@ namespace Foo
 namespace Foo {
     internal event E1 assert 1;
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \";\", \":\".", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \":\", \";\".", test);
         }
 
         [Fact(Timeout = 5000)]
@@ -501,7 +501,7 @@ namespace Foo {
 namespace Foo {
     internal event E1 assume 1;
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \";\", \":\".", test);
+            LanguageTestUtilities.AssertFailedTestLog("Expected one of: \"<\", \"(\", \":\", \";\".", test);
         }
 
         [Fact(Timeout = 5000)]

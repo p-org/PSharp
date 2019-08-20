@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -240,6 +241,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     // Make sure the machine halts before trying to reuse its id.
                     r.SendEvent(m, new Halt());
                 }
+
+                // bugbug: seems to require a sleep to allow the async RunMachineEventHandler
+                // to get around to removing the halted machine.  If we don't wait we randomly
+                // get "Machine with id '' is already bound to an existing machine.".  Unfortunately
+                // there is no OnRemovedEvent for use to watch for...
+                Thread.Sleep(100);
 
                 // Trying to bring up a halted machine.
                 r.CreateMachine(m, typeof(M2));
