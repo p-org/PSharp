@@ -310,6 +310,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration: configuration,
             expectedErrors: new string[]
             {
+                "Machine with id '' is already bound to an existing machine.",
                 "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'",
                 "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M4'"
             });
