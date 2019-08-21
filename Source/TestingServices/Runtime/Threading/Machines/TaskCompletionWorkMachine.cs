@@ -43,6 +43,13 @@ namespace Microsoft.PSharp.TestingServices.Threading
             IO.Debug.WriteLine($"Machine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'");
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+        }
     }
 
     /// <summary>
@@ -76,6 +83,13 @@ namespace Microsoft.PSharp.TestingServices.Threading
         {
             IO.Debug.WriteLine($"\n\nMachine '{this.Id}' completed task '{this.AwaiterTask.Id}' on task '{MachineTask.CurrentId}'\n\n");
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
         }
     }
 }

@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskAwaitTest : BaseTest
+    public class TaskConfigureAwaitFalseTest : BaseTest
     {
-        public MachineTaskAwaitTest(ITestOutputHelper output)
+        public TaskConfigureAwaitFalseTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -29,29 +29,29 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private static async MachineTask WriteWithDelayAsync(SharedEntry entry, int value)
         {
-            await MachineTask.Delay(1);
+            await MachineTask.Delay(1).ConfigureAwait(false);
             entry.Value = value;
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitSynchronousMachineTask()
+        public void TestAwaitSynchronousTask()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await WriteAsync(entry, 5);
+                await WriteAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitSynchronousMachineTaskFailure()
+        public void TestAwaitSynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await WriteAsync(entry, 3);
+                await WriteAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -60,24 +60,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitAsynchronousMachineTask()
+        public void TestAwaitAsynchronousTask()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await WriteWithDelayAsync(entry, 5);
+                await WriteWithDelayAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitAsynchronousMachineTaskFailure()
+        public void TestAwaitAsynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await WriteWithDelayAsync(entry, 3);
+                await WriteWithDelayAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -88,34 +88,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
         private static async MachineTask NestedWriteAsync(SharedEntry entry, int value)
         {
             await MachineTask.CompletedTask;
-            await WriteAsync(entry, value);
+            await WriteAsync(entry, value).ConfigureAwait(false);
         }
 
         private static async MachineTask NestedWriteWithDelayAsync(SharedEntry entry, int value)
         {
-            await MachineTask.Delay(1);
-            await WriteWithDelayAsync(entry, value);
+            await MachineTask.Delay(1).ConfigureAwait(false);
+            await WriteWithDelayAsync(entry, value).ConfigureAwait(false);
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedSynchronousMachineTask()
+        public void TestAwaitNestedSynchronousTask()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await NestedWriteAsync(entry, 5);
+                await NestedWriteAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedSynchronousMachineTaskFailure()
+        public void TestAwaitNestedSynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await NestedWriteAsync(entry, 3);
+                await NestedWriteAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -124,24 +124,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedAsynchronousMachineTask()
+        public void TestAwaitNestedAsynchronousTask()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await NestedWriteWithDelayAsync(entry, 5);
+                await NestedWriteWithDelayAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedAsynchronousMachineTaskFailure()
+        public void TestAwaitNestedAsynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                await NestedWriteWithDelayAsync(entry, 3);
+                await NestedWriteWithDelayAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -158,30 +158,30 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
         private static async MachineTask<int> GetWriteResultWithDelayAsync(SharedEntry entry, int value)
         {
-            await MachineTask.Delay(1);
+            await MachineTask.Delay(1).ConfigureAwait(false);
             entry.Value = value;
             return entry.Value;
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitSynchronousMachineTaskResult()
+        public void TestAwaitSynchronousTaskResult()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await GetWriteResultAsync(entry, 5);
+                int value = await GetWriteResultAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitSynchronousMachineTaskResultFailure()
+        public void TestAwaitSynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await GetWriteResultAsync(entry, 3);
+                int value = await GetWriteResultAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -190,24 +190,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitAsynchronousMachineTaskResult()
+        public void TestAwaitAsynchronousTaskResult()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await GetWriteResultWithDelayAsync(entry, 5);
+                int value = await GetWriteResultWithDelayAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitAsynchronousMachineTaskResultFailure()
+        public void TestAwaitAsynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await GetWriteResultWithDelayAsync(entry, 3);
+                int value = await GetWriteResultWithDelayAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -218,34 +218,34 @@ namespace Microsoft.PSharp.TestingServices.Tests
         private static async MachineTask<int> NestedGetWriteResultAsync(SharedEntry entry, int value)
         {
             await MachineTask.CompletedTask;
-            return await GetWriteResultAsync(entry, value);
+            return await GetWriteResultAsync(entry, value).ConfigureAwait(false);
         }
 
         private static async MachineTask<int> NestedGetWriteResultWithDelayAsync(SharedEntry entry, int value)
         {
-            await MachineTask.Delay(1);
-            return await GetWriteResultWithDelayAsync(entry, value);
+            await MachineTask.Delay(1).ConfigureAwait(false);
+            return await GetWriteResultWithDelayAsync(entry, value).ConfigureAwait(false);
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedSynchronousMachineTaskResult()
+        public void TestAwaitNestedSynchronousTaskResult()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await NestedGetWriteResultAsync(entry, 5);
+                int value = await NestedGetWriteResultAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedSynchronousMachineTaskResultFailure()
+        public void TestAwaitNestedSynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await NestedGetWriteResultAsync(entry, 3);
+                int value = await NestedGetWriteResultAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),
@@ -254,24 +254,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedAsynchronousMachineTaskResult()
+        public void TestAwaitNestedAsynchronousTaskResult()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await NestedGetWriteResultWithDelayAsync(entry, 5);
+                int value = await NestedGetWriteResultWithDelayAsync(entry, 5).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000));
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedAsynchronousMachineTaskResultFailure()
+        public void TestAwaitNestedAsynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
-                int value = await NestedGetWriteResultWithDelayAsync(entry, 3);
+                int value = await NestedGetWriteResultWithDelayAsync(entry, 3).ConfigureAwait(false);
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
             configuration: GetConfiguration().WithNumberOfIterations(1000),

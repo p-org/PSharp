@@ -9,15 +9,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskYieldTest : BaseTest
+    public class TaskYieldTest : BaseTest
     {
-        public MachineTaskYieldTest(ITestOutputHelper output)
+        public TaskYieldTest(ITestOutputHelper output)
             : base(output)
         {
         }
 
         [Fact(Timeout = 5000)]
-        public void TestMachineTaskYield()
+        public void TestTaskYield()
         {
             this.Test(async () =>
             {
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAsynchronousMachineTaskYield()
+        public void TestAsynchronousTaskYield()
         {
             this.Test(async () =>
             {
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestParallelMachineTaskYield()
+        public void TestParallelTaskYield()
         {
             this.Test(async () =>
             {
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestTwoParallelMachineTasksYield()
+        public void TestTwoParallelTasksYield()
         {
             this.Test(async () =>
             {
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestTwoParallelMachineTasksWriteWithYield()
+        public void TestTwoParallelTasksWriteWithYield()
         {
             this.Test(async () =>
             {
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestTwoParallelMachineTasksWriteWithYieldFail()
+        public void TestTwoParallelTasksWriteWithYieldFail()
         {
             this.TestWithError(async () =>
             {
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestTwoAsynchronousMachineTasksWriteWithYieldFail()
+        public void TestTwoAsynchronousTasksWriteWithYieldFail()
         {
             this.TestWithError(async () =>
             {

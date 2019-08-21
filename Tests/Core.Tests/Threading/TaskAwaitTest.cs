@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class MachineTaskAwaitTest : BaseTest
+    public class TaskAwaitTest : BaseTest
     {
-        public MachineTaskAwaitTest(ITestOutputHelper output)
+        public TaskAwaitTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitSynchronousMachineTask()
+        public async Task TestAwaitSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await WriteAsync(entry, 5);
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitAsynchronousMachineTask()
+        public async Task TestAwaitAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await WriteWithDelayAsync(entry, 5);
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedSynchronousMachineTask()
+        public async Task TestAwaitNestedSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await NestedWriteAsync(entry, 5);
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedAsynchronousMachineTask()
+        public async Task TestAwaitNestedAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await NestedWriteWithDelayAsync(entry, 5);
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitSynchronousMachineTaskResult()
+        public async Task TestAwaitSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await GetWriteResultAsync(entry, 5);
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitAsynchronousMachineTaskResult()
+        public async Task TestAwaitAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await GetWriteResultWithDelayAsync(entry, 5);
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedSynchronousMachineTaskResult()
+        public async Task TestAwaitNestedSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await NestedGetWriteResultAsync(entry, 5);
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedAsynchronousMachineTaskResult()
+        public async Task TestAwaitNestedAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await NestedGetWriteResultWithDelayAsync(entry, 5);

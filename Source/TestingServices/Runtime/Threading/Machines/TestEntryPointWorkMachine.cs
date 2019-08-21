@@ -78,5 +78,15 @@ namespace Microsoft.PSharp.TestingServices.Threading
             this.Awaiter.SetResult(default);
             IO.Debug.WriteLine($"Machine '{this.Id}' completed test on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
         }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+            // The entry point of a test should always report
+            // an unhandled exception as an error.
+            throw exception;
+        }
     }
 }

@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskRunConfigureAwaitFalseTest : BaseTest
+    public class TaskRunTest : BaseTest
     {
-        public MachineTaskRunConfigureAwaitFalseTest(ITestOutputHelper output)
+        public TaskRunTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelMachineTask()
+        public void TestRunParallelTask()
         {
             this.Test(async () =>
             {
@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 await MachineTask.Run(() =>
                 {
                     entry.Value = 5;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelMachineTaskFailure()
+        public void TestRunParallelTaskFailure()
         {
             this.TestWithError(async () =>
             {
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 await MachineTask.Run(() =>
                 {
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelSynchronousMachineTask()
+        public void TestRunParallelSynchronousTask()
         {
             this.Test(async () =>
             {
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     await MachineTask.CompletedTask;
                     entry.Value = 5;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelSynchronousMachineTaskFailure()
+        public void TestRunParallelSynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     await MachineTask.CompletedTask;
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -92,16 +92,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelAsynchronousMachineTask()
+        public void TestRunParallelAsynchronousTask()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
                 await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 5;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -109,16 +109,16 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelAsynchronousMachineTaskFailure()
+        public void TestRunParallelAsynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
                 await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunNestedParallelSynchronousMachineTask()
+        public void TestRunNestedParallelSynchronousTask()
         {
             this.Test(async () =>
             {
@@ -139,10 +139,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     {
                         await MachineTask.CompletedTask;
                         entry.Value = 3;
-                    }).ConfigureAwait(false);
+                    });
 
                     entry.Value = 5;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedParallelSynchronousMachineTaskFailure()
+        public void TestAwaitNestedParallelSynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
@@ -161,10 +161,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     {
                         await MachineTask.CompletedTask;
                         entry.Value = 5;
-                    }).ConfigureAwait(false);
+                    });
 
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -174,7 +174,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedParallelAsynchronousMachineTask()
+        public void TestAwaitNestedParallelAsynchronousTask()
         {
             this.Test(async () =>
             {
@@ -183,12 +183,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     await MachineTask.Run(async () =>
                     {
-                        await MachineTask.Delay(1).ConfigureAwait(false);
+                        await MachineTask.Delay(1);
                         entry.Value = 3;
-                    }).ConfigureAwait(false);
+                    });
 
                     entry.Value = 5;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestAwaitNestedParallelAsynchronousMachineTaskFailure()
+        public void TestAwaitNestedParallelAsynchronousTaskFailure()
         {
             this.TestWithError(async () =>
             {
@@ -205,12 +205,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     await MachineTask.Run(async () =>
                     {
-                        await MachineTask.Delay(1).ConfigureAwait(false);
+                        await MachineTask.Delay(1);
                         entry.Value = 5;
-                    }).ConfigureAwait(false);
+                    });
 
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(entry.Value == 5, "Value is '{0}' instead of 5.", entry.Value);
             },
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelMachineTaskResult()
+        public void TestRunParallelTaskResult()
         {
             this.Test(async () =>
             {
@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     entry.Value = 5;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -237,7 +237,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelMachineTaskResultFailure()
+        public void TestRunParallelTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     entry.Value = 3;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -256,7 +256,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelSynchronousMachineTaskResult()
+        public void TestRunParallelSynchronousTaskResult()
         {
             this.Test(async () =>
             {
@@ -266,7 +266,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     await MachineTask.CompletedTask;
                     entry.Value = 5;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -274,7 +274,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelSynchronousMachineTaskResultFailure()
+        public void TestRunParallelSynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
@@ -284,7 +284,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     await MachineTask.CompletedTask;
                     entry.Value = 3;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -294,17 +294,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelAsynchronousMachineTaskResult()
+        public void TestRunParallelAsynchronousTaskResult()
         {
             this.Test(async () =>
             {
                 SharedEntry entry = new SharedEntry();
                 int value = await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 5;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -312,17 +312,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunParallelAsynchronousMachineTaskResultFailure()
+        public void TestRunParallelAsynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
                 SharedEntry entry = new SharedEntry();
                 int value = await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 3;
                     return entry.Value;
-                }).ConfigureAwait(false);
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunNestedParallelSynchronousMachineTaskResult()
+        public void TestRunNestedParallelSynchronousTaskResult()
         {
             this.Test(async () =>
             {
@@ -344,8 +344,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         await MachineTask.CompletedTask;
                         entry.Value = 5;
                         return entry.Value;
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    });
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -353,7 +353,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunNestedParallelSynchronousMachineTaskResultFailure()
+        public void TestRunNestedParallelSynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
@@ -365,8 +365,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         await MachineTask.CompletedTask;
                         entry.Value = 3;
                         return entry.Value;
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    });
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunNestedParallelAsynchronousMachineTaskResult()
+        public void TestRunNestedParallelAsynchronousTaskResult()
         {
             this.Test(async () =>
             {
@@ -385,11 +385,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     return await MachineTask.Run(async () =>
                     {
-                        await MachineTask.Delay(1).ConfigureAwait(false);
+                        await MachineTask.Delay(1);
                         entry.Value = 5;
                         return entry.Value;
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    });
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },
@@ -397,7 +397,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestRunNestedParallelAsynchronousMachineTaskResultFailure()
+        public void TestRunNestedParallelAsynchronousTaskResultFailure()
         {
             this.TestWithError(async () =>
             {
@@ -406,11 +406,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 {
                     return await MachineTask.Run(async () =>
                     {
-                        await MachineTask.Delay(1).ConfigureAwait(false);
+                        await MachineTask.Delay(1);
                         entry.Value = 3;
                         return entry.Value;
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    });
+                });
 
                 Specification.Assert(value == 5, "Value is '{0}' instead of 5.", value);
             },

@@ -391,8 +391,29 @@ namespace Microsoft.PSharp.Runtime
         /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.
         /// </summary>
         internal override MachineTask<TResult> CreateMachineTask<TResult>(Func<TResult> function,
-            CancellationToken cancellationToken) =>
-            new MachineTask<TResult>(Task.Run(function, cancellationToken));
+            CancellationToken cancellationToken)
+        {
+            if (function is Func<MachineTask> taskFunc)
+            {
+                var unwrappedTask = Task.Run(async () =>
+                {
+                    var task = taskFunc();
+                    await task;
+                    if (task is TResult result)
+                    {
+                        return result;
+                    }
+
+                    return default;
+                });
+
+                return new MachineTask<TResult>(unwrappedTask);
+            }
+            else
+            {
+                return new MachineTask<TResult>(Task.Run(function, cancellationToken));
+            }
+        }
 
         /// <summary>
         /// Creates a new <see cref="MachineTask{TResult}"/> to execute the specified asynchronous work.

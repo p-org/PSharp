@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskDelayTest : BaseTest
+    public class TaskDelayTest : BaseTest
     {
-        public MachineTaskDelayTest(ITestOutputHelper output)
+        public TaskDelayTest(ITestOutputHelper output)
             : base(output)
         {
         }

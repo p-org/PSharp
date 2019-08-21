@@ -78,8 +78,29 @@ namespace Microsoft.PSharp.Threading
         /// <param name="cancellationToken">Cancellation token that can be used to cancel the work.</param>
         /// <returns>Task that represents the work to be scheduled.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal virtual MachineTask<TResult> RunAsync<TResult>(Func<TResult> function, CancellationToken cancellationToken) =>
-            new MachineTask<TResult>(Task.Run(function, cancellationToken));
+        internal virtual MachineTask<TResult> RunAsync<TResult>(Func<TResult> function, CancellationToken cancellationToken)
+        {
+            if (function is Func<MachineTask> taskFunc)
+            {
+                var unwrappedTask = Task.Run(async () =>
+                {
+                    var task = taskFunc();
+                    await task;
+                    if (task is TResult result)
+                    {
+                        return result;
+                    }
+
+                    return default;
+                });
+
+                return new MachineTask<TResult>(unwrappedTask);
+            }
+            else
+            {
+                return new MachineTask<TResult>(Task.Run(function, cancellationToken));
+            }
+        }
 
         /// <summary>
         /// Schedules the specified work to execute asynchronously and returns a task handle for the work.

@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskWaitAnyTest : BaseTest
+    public class TaskWaitAnyTest : BaseTest
     {
-        public MachineTaskWaitAnyTest(ITestOutputHelper output)
+        public TaskWaitAnyTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoSynchronousMachineTasks()
+        public void TestWhenAnyWithTwoSynchronousTasks()
         {
             this.TestWithError(() =>
             {
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoAsynchronousMachineTasks()
+        public void TestWhenAnyWithTwoAsynchronousTasks()
         {
             this.TestWithError(() =>
             {
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoParallelMachineTasks()
+        public void TestWhenAnyWithTwoParallelTasks()
         {
             this.TestWithError(() =>
             {
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoSynchronousMachineTaskResults()
+        public void TestWhenAnyWithTwoSynchronousTaskResults()
         {
             this.TestWithError(() =>
             {
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoAsynchronousMachineTaskResults()
+        public void TestWhenAnyWithTwoAsynchronousTaskResults()
         {
             this.TestWithError(() =>
             {
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoParallelSynchronousMachineTaskResults()
+        public void TestWhenAnyWithTwoParallelSynchronousTaskResults()
         {
             this.TestWithError(() =>
             {
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestWhenAnyWithTwoParallelAsynchronousMachineTaskResults()
+        public void TestWhenAnyWithTwoParallelAsynchronousTaskResults()
         {
             this.TestWithError(() =>
             {

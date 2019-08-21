@@ -65,5 +65,13 @@ namespace Microsoft.PSharp.TestingServices.Threading
             IO.Debug.WriteLine($"Machine '{this.Id}' completed sync context callback on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+            this.Awaiter.SetException(exception);
+        }
     }
 }

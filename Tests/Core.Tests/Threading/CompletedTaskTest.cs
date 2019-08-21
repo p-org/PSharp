@@ -11,9 +11,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class CompletedMachineTaskTest : BaseTest
+    public class CompletedTaskTest : BaseTest
     {
-        public CompletedMachineTaskTest(ITestOutputHelper output)
+        public CompletedTaskTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestCanceledMachineTask()
+        public void TestCanceledTask()
         {
             CancellationToken token = new CancellationToken(true);
             MachineTask task = MachineTask.FromCanceled(token);
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestCanceledMachineTaskWithResult()
+        public void TestCanceledTaskWithResult()
         {
             CancellationToken token = new CancellationToken(true);
             MachineTask<int> task = MachineTask.FromCanceled<int>(token);
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestFailedMachineTask()
+        public void TestFailedTask()
         {
             MachineTask task = MachineTask.FromException(new InvalidOperationException());
             Assert.True(task.IsFaulted);
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestFailedMachineTaskWithResult()
+        public void TestFailedTaskWithResult()
         {
             MachineTask<int> task = MachineTask.FromException<int>(new InvalidOperationException());
             Assert.True(task.IsFaulted);

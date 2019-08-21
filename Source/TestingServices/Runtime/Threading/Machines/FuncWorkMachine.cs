@@ -12,7 +12,7 @@ using Microsoft.PSharp.Threading;
 namespace Microsoft.PSharp.TestingServices.Threading
 {
     /// <summary>
-    /// Implements a machine that can execute a <see cref="Func{MachineTask}"/> asynchronously.
+    /// Implements a machine that can execute a <see cref="Func{Task}"/> asynchronously.
     /// </summary>
     internal sealed class FuncWorkMachine : WorkMachine
     {
@@ -49,15 +49,23 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <summary>
         /// Executes the work asynchronously.
         /// </summary>
-        internal override Task ExecuteAsync()
+        internal override async Task ExecuteAsync()
         {
             IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             Task task = this.Work();
             this.Runtime.NotifyWaitTask(this, task);
+            await task;
             IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(default);
             IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
-            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+            this.Awaiter.SetException(exception);
         }
     }
 
@@ -99,14 +107,37 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <summary>
         /// Executes the work asynchronously.
         /// </summary>
-        internal override Task ExecuteAsync()
+        internal override async Task ExecuteAsync()
         {
             IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
-            TResult result = this.Work();
+
+            TResult result = default;
+            if (this.Work is Func<MachineTask> taskFunc)
+            {
+                var task = taskFunc();
+                this.Runtime.NotifyWaitTask(this, task.AwaiterTask);
+                await task;
+                if (task is TResult machineTask)
+                {
+                    result = machineTask;
+                }
+            }
+            else
+            {
+                result = this.Work();
+            }
+
             IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Awaiter.SetResult(result);
             IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
-            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+            this.Awaiter.SetException(exception);
         }
     }
 
@@ -148,16 +179,24 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <summary>
         /// Executes the work asynchronously.
         /// </summary>
-        internal override Task ExecuteAsync()
+        internal override async Task ExecuteAsync()
         {
             IO.Debug.WriteLine($"Machine '{this.Id}' is executing function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             Task<TResult> task = this.Work();
             IO.Debug.WriteLine($"Machine '{this.Id}' is getting result on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
             this.Runtime.NotifyWaitTask(this, task);
+            TResult result = await task;
             IO.Debug.WriteLine($"Machine '{this.Id}' executed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
-            this.Awaiter.SetResult(task.Result);
+            this.Awaiter.SetResult(result);
             IO.Debug.WriteLine($"Machine '{this.Id}' completed function on task '{MachineTask.CurrentId}' (tcs: {this.Awaiter.Task.Id})");
-            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal override void TryCompleteWithException(Exception exception)
+        {
+            this.Awaiter.SetException(exception);
         }
     }
 }

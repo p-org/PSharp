@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class MachineTaskRunConfigureAwaitFalseTest : BaseTest
+    public class TaskRunTest : BaseTest
     {
-        public MachineTaskRunConfigureAwaitFalseTest(ITestOutputHelper output)
+        public TaskRunTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -23,45 +23,45 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelMachineTask()
+        public async Task TestRunParallelTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(() =>
             {
                 entry.Value = 5;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, entry.Value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelSynchronousMachineTask()
+        public async Task TestRunParallelSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
             {
                 await MachineTask.CompletedTask;
                 entry.Value = 5;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, entry.Value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelAsynchronousMachineTask()
+        public async Task TestRunParallelAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
             {
-                await MachineTask.Delay(1).ConfigureAwait(false);
+                await MachineTask.Delay(1);
                 entry.Value = 5;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, entry.Value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelSynchronousMachineTask()
+        public async Task TestRunNestedParallelSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
@@ -70,47 +70,47 @@ namespace Microsoft.PSharp.Core.Tests
                 {
                     await MachineTask.CompletedTask;
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 entry.Value = 5;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, entry.Value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedParallelAsynchronousMachineTask()
+        public async Task TestAwaitNestedParallelAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
             {
                 await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 3;
-                }).ConfigureAwait(false);
+                });
 
                 entry.Value = 5;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, entry.Value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelMachineTaskResult()
+        public async Task TestRunParallelTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(() =>
             {
                 entry.Value = 5;
                 return entry.Value;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelSynchronousMachineTaskResult()
+        public async Task TestRunParallelSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
@@ -118,27 +118,27 @@ namespace Microsoft.PSharp.Core.Tests
                 await MachineTask.CompletedTask;
                 entry.Value = 5;
                 return entry.Value;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelAsynchronousMachineTaskResult()
+        public async Task TestRunParallelAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
             {
-                await MachineTask.Delay(1).ConfigureAwait(false);
+                await MachineTask.Delay(1);
                 entry.Value = 5;
                 return entry.Value;
-            }).ConfigureAwait(false);
+            });
 
             Assert.Equal(5, value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelSynchronousMachineTaskResult()
+        public async Task TestRunNestedParallelSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
@@ -148,25 +148,25 @@ namespace Microsoft.PSharp.Core.Tests
                     await MachineTask.CompletedTask;
                     entry.Value = 5;
                     return entry.Value;
-                }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                });
+            });
 
             Assert.Equal(5, value);
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelAsynchronousMachineTaskResult()
+        public async Task TestRunNestedParallelAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
             {
                 return await MachineTask.Run(async () =>
                 {
-                    await MachineTask.Delay(1).ConfigureAwait(false);
+                    await MachineTask.Delay(1);
                     entry.Value = 5;
                     return entry.Value;
-                }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                });
+            });
 
             Assert.Equal(5, value);
         }

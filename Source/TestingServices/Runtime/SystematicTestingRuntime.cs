@@ -1010,7 +1010,21 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 {
                     OperationScheduler.NotifyOperationStarted(op);
 
-                    await machine.ExecuteAsync();
+                    try
+                    {
+                        await machine.ExecuteAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Reports the unhandled exception.
+                        string message = string.Format(CultureInfo.InvariantCulture,
+                            $"Exception '{ex.GetType()}' was thrown in task {Task.CurrentId}, " +
+                            $"'{ex.Source}':\n" +
+                            $"   {ex.Message}\n" +
+                            $"The stack trace is:\n{ex.StackTrace}");
+                        IO.Debug.WriteLine($"<Exception> {message}");
+                        machine.TryCompleteWithException(ex);
+                    }
 
                     IO.Debug.WriteLine($"<ScheduleDebug> Completed '{machine.Id}' on task '{Task.CurrentId}'.");
                     op.OnCompleted();
@@ -1034,17 +1048,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                     if (innerException is ExecutionCanceledException)
                     {
-                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from machine '{machine.Id}'.");
+                        IO.Debug.WriteLine($"<Exception> ExecutionCanceledException was thrown from task '{Task.CurrentId}'.");
                     }
                     else if (innerException is TaskSchedulerException)
                     {
-                        IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from machine '{machine.Id}'.");
+                        IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from task '{Task.CurrentId}'.");
                     }
                     else
                     {
                         // Reports the unhandled exception.
                         string message = string.Format(CultureInfo.InvariantCulture,
-                            $"Exception '{ex.GetType()}' was thrown in machine {machine.Id}, " +
+                            $"Exception '{ex.GetType()}' was thrown in task {Task.CurrentId}, " +
                             $"'{ex.Source}':\n" +
                             $"   {ex.Message}\n" +
                             $"The stack trace is:\n{ex.StackTrace}");

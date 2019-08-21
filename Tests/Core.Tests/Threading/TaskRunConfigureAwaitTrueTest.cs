@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class MachineTaskRunConfigureAwaitTrueTest : BaseTest
+    public class TaskRunConfigureAwaitTrueTest : BaseTest
     {
-        public MachineTaskRunConfigureAwaitTrueTest(ITestOutputHelper output)
+        public TaskRunConfigureAwaitTrueTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelMachineTask()
+        public async Task TestRunParallelTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(() =>
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelSynchronousMachineTask()
+        public async Task TestRunParallelSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelAsynchronousMachineTask()
+        public async Task TestRunParallelAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelSynchronousMachineTask()
+        public async Task TestRunNestedParallelSynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestAwaitNestedParallelAsynchronousMachineTask()
+        public async Task TestAwaitNestedParallelAsynchronousTask()
         {
             SharedEntry entry = new SharedEntry();
             await MachineTask.Run(async () =>
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelMachineTaskResult()
+        public async Task TestRunParallelTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(() =>
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelSynchronousMachineTaskResult()
+        public async Task TestRunParallelSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunParallelAsynchronousMachineTaskResult()
+        public async Task TestRunParallelAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelSynchronousMachineTaskResult()
+        public async Task TestRunNestedParallelSynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>
@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestRunNestedParallelAsynchronousMachineTaskResult()
+        public async Task TestRunNestedParallelAsynchronousTaskResult()
         {
             SharedEntry entry = new SharedEntry();
             int value = await MachineTask.Run(async () =>

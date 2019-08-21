@@ -9,15 +9,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskLockTest : BaseTest
+    public class TaskLockTest : BaseTest
     {
-        public MachineTaskLockTest(ITestOutputHelper output)
+        public TaskLockTest(ITestOutputHelper output)
             : base(output)
         {
         }
 
         [Fact(Timeout = 5000)]
-        public void TestLockUnlockMachineTask()
+        public void TestLockUnlockTask()
         {
             this.Test(async () =>
             {
@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestLockTwiceMachineTask()
+        public void TestLockTwiceTask()
         {
             this.TestWithError(async () =>
             {
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestSynchronizeTwoAsynchronousMachineTasks()
+        public void TestSynchronizeTwoAsynchronousTasks()
         {
             this.Test(async () =>
             {
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestSynchronizeTwoParallelMachineTasks()
+        public void TestSynchronizeTwoParallelTasks()
         {
             this.TestWithError(async () =>
             {
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestSynchronizeTwoParallelMachineTasksWithYield()
+        public void TestSynchronizeTwoParallelTasksWithYield()
         {
             this.Test(async () =>
             {

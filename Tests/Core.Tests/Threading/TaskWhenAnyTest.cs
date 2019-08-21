@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Core.Tests
 {
-    public class MachineTaskWhenAnyTest : BaseTest
+    public class TaskWhenAnyTest : BaseTest
     {
-        public MachineTaskWhenAnyTest(ITestOutputHelper output)
+        public TaskWhenAnyTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoSynchronousMachineTasks()
+        public async Task TestWhenAllWithTwoSynchronousTasks()
         {
             SharedEntry entry = new SharedEntry();
             MachineTask task1 = WriteAsync(entry, 5);
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoAsynchronousMachineTasks()
+        public async Task TestWhenAllWithTwoAsynchronousTasks()
         {
             SharedEntry entry = new SharedEntry();
             MachineTask task1 = WriteWithDelayAsync(entry, 3);
@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoParallelMachineTasks()
+        public async Task TestWhenAllWithTwoParallelTasks()
         {
             SharedEntry entry = new SharedEntry();
 
@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoSynchronousMachineTaskResults()
+        public async Task TestWhenAllWithTwoSynchronousTaskResults()
         {
             MachineTask<int> task1 = GetWriteResultAsync(5);
             MachineTask<int> task2 = GetWriteResultAsync(3);
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoAsynchronousMachineTaskResults()
+        public async Task TestWhenAllWithTwoAsynchronousTaskResults()
         {
             MachineTask<int> task1 = GetWriteResultWithDelayAsync(5);
             MachineTask<int> task2 = GetWriteResultWithDelayAsync(3);
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoParallelSynchronousMachineTaskResults()
+        public async Task TestWhenAllWithTwoParallelSynchronousTaskResults()
         {
             MachineTask<int> task1 = MachineTask.Run(async () =>
             {
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.Core.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public async Task TestWhenAllWithTwoParallelAsynchronousMachineTaskResults()
+        public async Task TestWhenAllWithTwoParallelAsynchronousTaskResults()
         {
             MachineTask<int> task1 = MachineTask.Run(async () =>
             {

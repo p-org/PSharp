@@ -40,5 +40,10 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// Executes the work asynchronously.
         /// </summary>
         internal abstract Task ExecuteAsync();
+
+        /// <summary>
+        /// Tries to complete the machine with the specified exception.
+        /// </summary>
+        internal abstract void TryCompleteWithException(Exception exception);
     }
 }

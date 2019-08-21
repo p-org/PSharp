@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.TestingServices.Tests
 {
-    public class MachineTaskInterleavingsTest : BaseTest
+    public class TaskInterleavingsTest : BaseTest
     {
-        public MachineTaskInterleavingsTest(ITestOutputHelper output)
+        public TaskInterleavingsTest(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithOneSynchronousMachineTask()
+        public void TestInterleavingsWithOneSynchronousTask()
         {
             this.Test(async () =>
             {
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithOneAsynchronousMachineTask()
+        public void TestInterleavingsWithOneAsynchronousTask()
         {
             this.TestWithError(async () =>
             {
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithOneParallelMachineTask()
+        public void TestInterleavingsWithOneParallelTask()
         {
             this.TestWithError(async () =>
             {
@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithTwoSynchronousMachineTasks()
+        public void TestInterleavingsWithTwoSynchronousTasks()
         {
             this.Test(async () =>
             {
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithTwoAsynchronousMachineTasks()
+        public void TestInterleavingsWithTwoAsynchronousTasks()
         {
             this.TestWithError(async () =>
             {
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithTwoParallelMachineTasks()
+        public void TestInterleavingsWithTwoParallelTasks()
         {
             this.TestWithError(async () =>
             {
@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         }
 
         [Fact(Timeout = 5000)]
-        public void TestInterleavingsWithNestedParallelMachineTasks()
+        public void TestInterleavingsWithNestedParallelTasks()
         {
             this.TestWithError(async () =>
             {

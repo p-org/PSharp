@@ -34,6 +34,33 @@ namespace Microsoft.PSharp.Tests.Launcher
 
         public async Task Run()
         {
+            async MachineTask func()
+            {
+                await MachineTask.Delay(10);
+                //throw new InvalidOperationException();
+            }
+
+            var task = MachineTask.Run(func);
+
+            MachineTask innerTask = null;
+            Exception exception = null;
+            try
+            {
+#pragma warning disable IDE0067 // Dispose objects before losing scope
+                innerTask = await task;
+#pragma warning restore IDE0067 // Dispose objects before losing scope
+                await innerTask;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                Console.WriteLine("Ex>>: " + ex);
+            }
+
+            Console.WriteLine("1>>: " + exception);
+            Console.WriteLine("2>>: " + task.Status);
+            Console.WriteLine("3>>: " + innerTask.Status);
+
             await Task.CompletedTask;
         }
     }
@@ -46,8 +73,9 @@ namespace Microsoft.PSharp.Tests.Launcher
         }
 
         [Test]
-        public static async Task Execute(IMachineRuntime r)
+        public static async MachineTask Execute(IMachineRuntime r)
         {
+            throw new InvalidOperationException();
         }
     }
 
