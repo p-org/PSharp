@@ -344,6 +344,17 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                         writer.WriteLine();
                     }
 
+                    if (machineUncoveredEvents.ContainsKey(state) && machineUncoveredEvents[state].Count != 0)
+                    {
+                        writer.Write("\t\tEvents not covered: ");
+                        foreach (var e in machineUncoveredEvents[state])
+                        {
+                            writer.Write("{0} ", e);
+                        }
+
+                        writer.WriteLine();
+                    }
+
                     if (stateToIncomingStates.ContainsKey(state) && stateToIncomingStates[state].Count > 0)
                     {
                         writer.Write("\t\tPrevious States: ");
