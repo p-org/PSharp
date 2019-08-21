@@ -153,7 +153,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 // Trying to bring up a halted machine.
                 r.CreateMachine(m, typeof(M2));
             },
-            expectedError: "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'");
+            configuration: GetConfiguration(),
+            expectedErrors: new string[]
+            {
+                "Machine with id '' is already bound to an existing machine.",
+                "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'"
+            });
         }
 
         private class E2 : Event
