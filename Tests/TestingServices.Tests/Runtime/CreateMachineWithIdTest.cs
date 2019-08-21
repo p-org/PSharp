@@ -242,16 +242,17 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     r.SendEvent(m, new Halt());
                 }
 
-                // bugbug: seems to require a sleep to allow the async RunMachineEventHandler
-                // to get around to removing the halted machine.  If we don't wait we randomly
-                // get "Machine with id '' is already bound to an existing machine.".  Unfortunately
-                // there is no OnRemovedEvent for use to watch for...
-                Thread.Sleep(100);
-
                 // Trying to bring up a halted machine.
                 r.CreateMachine(m, typeof(M2));
             },
-            expectedError: "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'");
+            configuration: GetConfiguration(),
+            expectedErrors: new string[]
+            {
+                // note: because RunMachineEventHandler is async, the halted machine may or may not be removed by the time
+                // we call CreateMachine.
+                "Machine with id '' is already bound to an existing machine.",
+                "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'"
+            });
         }
 
         private class E2 : Event
@@ -293,7 +294,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
         }
 
-        [Fact(Timeout=5000)]
+        [Fact(Timeout = 5000)]
         public void TestCreateMachineWithId7()
         {
             var configuration = Configuration.Create();
@@ -307,7 +308,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.CreateMachine(m, typeof(M4));
             },
             configuration: configuration,
-            expectedError: "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M4'");
+            expectedErrors: new string[]
+            {
+                "Machine with id '' is already bound to an existing machine.",
+                "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M4'"
+            });
         }
     }
 }
