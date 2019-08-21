@@ -34,6 +34,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             protected override Task OnEventUnhandledAsync(Event e, string currentState)
             {
                 this.Assert(currentState == "S");
+                this.Assert(e is E);
                 this.Assert(false, "OnEventUnhandled called");
                 return Task.CompletedTask;
             }
