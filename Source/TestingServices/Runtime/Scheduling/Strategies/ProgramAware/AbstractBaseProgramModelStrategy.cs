@@ -271,15 +271,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             return this.ProgramModel.OrderedSteps.Count;
         }
 
-        /// <summary>
-        /// Returns a trace of the program
-        /// </summary>
-        /// <returns>A trace of the program</returns>
-        public virtual string GetProgramTrace()
-        {
-            return this.ProgramModel.SerializeProgramTrace();
-        }
-
         /// <inheritdoc/>
         public override string ToString()
         {

@@ -329,7 +329,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         }
 
         // #region equivalence_checking
-
+#if WE_DONT_LIKE_EFFICIENCY
         /// <summary>
         /// Checks if two steps (stepX and stepY) of two partial orders ( rooted at rootX and rootY, resp. ) match.
         /// </summary>
@@ -342,6 +342,43 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             MapPartialOrders(rootX, rootY, out Dictionary<ProgramStep, ProgramStep> stepMapping);
             return stepMapping.ContainsKey(stepX) && stepMapping[stepX] == stepY;
+        }
+#endif
+
+        /// <summary>
+        /// Checks if two steps (stepX and stepY) of two partial orders ( rooted at rootX and rootY, resp. ) match.
+        /// </summary>
+        /// <param name="rootX">The root of the first partial order</param>
+        /// <param name="stepX">The step in the first partial order</param>
+        /// <param name="rootY">The root of the second partial order</param>
+        /// <param name="stepY">The step in the second partial order</param>
+        /// <returns>True if the steps match</returns>
+        public static bool StepsMatch(ProgramStep rootX, ProgramStep stepX, ProgramStep rootY, ProgramStep stepY)
+        {
+            while (stepX != null && stepY != null)
+            {
+                if (stepX.PrevMachineStep != null && stepY.PrevMachineStep != null)
+                {
+                    stepX = stepX.PrevMachineStep;
+                    stepY = stepY.PrevMachineStep;
+                }
+                else if (stepX.CreatorParent != null && stepY.CreatorParent != null)
+                {
+                    stepX = stepX.CreatorParent;
+                    stepY = stepY.CreatorParent;
+                }
+                else if ( stepX == rootX && stepY == rootY )
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            // This should never be hit
+            throw new NotImplementedException("This should never be hit");
         }
 
         /// <summary>

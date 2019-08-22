@@ -141,5 +141,25 @@ namespace Microsoft.PSharp.TestingClientInterface
                     throw new ArgumentException("Unrecognized strategy: " + strategyString);
             }
         }
+
+        // Output functions
+
+        public static string CreateDirectoriesIfNotExists(string assemblyName)
+        {
+            string outerDirectory = "ProgramAware_" + Path.GetFileNameWithoutExtension(assemblyName);
+            string innerDirectory = "TraceMinimizationClient_" + DateTime.Now.Hour.ToString().PadLeft(2, '0') + DateTime.Now.Minute.ToString().PadLeft(2, '0') + DateTime.Now.Second.ToString().PadLeft(2, '0');
+            string directory = Path.Combine(outerDirectory, innerDirectory);
+
+            Directory.CreateDirectory(outerDirectory);
+            Directory.CreateDirectory(directory);
+            return directory;
+        }
+
+        public static void WriteProgramSummary(string path, ProgramModelSummary summary, int livenessTemperatureTreshold)
+        {
+            string xml = PartialOrderManipulationUtils.SerializeProgramSummaryToXml(summary, livenessTemperatureTreshold).ToString();
+            Console.WriteLine("Writing BestMinimzedSummary to " + path);
+            File.WriteAllText(path, xml);
+        }
     }
 }

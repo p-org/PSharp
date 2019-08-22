@@ -181,13 +181,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
 
             // Pray that this is right :p
-            if (sender == null && !AllowRuntimeInvokeMonitor)
+            if (sender == null)
             {
-                throw new NotImplementedException("Runtime.InvokeMonitor is disabled in ProgramModel");
+                if (!AllowRuntimeInvokeMonitor)
+                {
+                    throw new NotImplementedException("Runtime.InvokeMonitor is disabled in ProgramModel");
+                }
             }
             else if (sender.Id.Value != this.ActiveStep.SrcId)
             {
-                throw new NotImplementedException("This is wrongly implemented");
+                // Known bug - Blocking receives break this. Once we support that, uncomment.
+                // throw new NotImplementedException("This is wrongly implemented");
             }
 
             if (this.MonitorTypeToLatestSendTo.ContainsKey(monitorType))
@@ -327,47 +331,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         internal ProgramModelSummary GetProgramSummary()
         {
             return new ProgramModelSummary(this.Rootstep, this.BugTriggeringStep, new List<ProgramStep>(this.DroppedEventSendSteps), this.OrderedSteps.Count, this.LivenessViolatingMonitor);
-        }
-
-        internal string SerializeProgramTrace()
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (ProgramStep step in this.OrderedSteps)
-            {
-                sb.Append(SerializeStep(step)).Append(Environment.NewLine);
-            }
-
-            return sb.ToString();
-        }
-
-        private static string SerializeStep(ProgramStep step)
-        {
-            ProgramStep s = step;
-            return $"{s.TotalOrderingIndex}:{s.ProgramStepType}:{s.SrcId}:{s.OpType}:{s.TargetId}:{s.BooleanChoice}:{s.IntChoice}:{s.NextMachineStep?.TotalOrderingIndex ?? -1}:{s.CreatedStep?.TotalOrderingIndex ?? -1}";
-        }
-
-        // Prints tree, assuming only PrevMachineStep or CreatorStep can be parents
-        internal string HAXGetProgramTreeString()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            HAXSerializeStepProgramTree(sb, this.Rootstep, 0);
-
-            return sb.ToString();
-        }
-
-        private static void HAXSerializeStepProgramTree(StringBuilder sb, ProgramStep atNode, int depth)
-        {
-            sb.Append(new string('\t', depth) + $"*{atNode}\n");
-            if (atNode.NextMachineStep != null)
-            {
-                HAXSerializeStepProgramTree(sb, atNode.NextMachineStep, depth + 1);
-            }
-
-            if (atNode.CreatedStep != null)
-            {
-                HAXSerializeStepProgramTree(sb, atNode.CreatedStep, depth + 1);
-            }
         }
     }
 }
