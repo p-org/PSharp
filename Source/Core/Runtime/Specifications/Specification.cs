@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -25,46 +26,69 @@ namespace Microsoft.PSharp
         /// Checks if the predicate holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Assert(bool predicate, string s, object arg0)
-        {
+        public static void Assert(bool predicate, string s, object arg0) =>
             CurrentChecker.Assert(predicate, s, arg0);
-        }
 
         /// <summary>
         /// Checks if the predicate holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Assert(bool predicate, string s, object arg0, object arg1)
-        {
+        public static void Assert(bool predicate, string s, object arg0, object arg1) =>
             CurrentChecker.Assert(predicate, s, arg0, arg1);
-        }
 
         /// <summary>
         /// Checks if the predicate holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Assert(bool predicate, string s, object arg0, object arg1, object arg2)
-        {
+        public static void Assert(bool predicate, string s, object arg0, object arg1, object arg2) =>
             CurrentChecker.Assert(predicate, s, arg0, arg1, arg2);
-        }
 
         /// <summary>
         /// Checks if the predicate holds, and if not, throws an <see cref="AssertionFailureException"/> exception.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Assert(bool predicate, string s, params object[] args)
-        {
+        public static void Assert(bool predicate, string s, params object[] args) =>
             CurrentChecker.Assert(predicate, s, args);
-        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled during analysis or testing.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ChooseRandomBoolean() => CurrentChecker.GetNondeterministicBooleanChoice(1);
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled during analysis or testing.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ChooseRandomBoolean(int maxValue) => CurrentChecker.GetNondeterministicBooleanChoice(maxValue);
+
+        /// <summary>
+        /// Returns a nondeterministic integer, that can be controlled during analysis or testing.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ChooseRandomInteger(int maxValue) => CurrentChecker.GetNondeterministicIntegerChoice(maxValue);
 
         /// <summary>
         /// Injects a context switch point that can be systematically explored during testing.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void InjectContextSwitch()
-        {
-            CurrentChecker.InjectContextSwitch();
-        }
+        public static void ExploreContextSwitch() => CurrentChecker.ExploreContextSwitch();
+
+        /// <summary>
+        /// Registers a new safety or liveness monitor.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RegisterMonitor<T>()
+            where T : Monitor =>
+            CurrentChecker.RegisterMonitor<T>();
+
+        /// <summary>
+        /// Invokes the specified monitor with the given event.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Monitor<T>(Event e)
+            where T : Monitor =>
+            CurrentChecker.Monitor<T>(e);
 
         /// <summary>
         /// Checks specifications for correctness.
@@ -139,10 +163,48 @@ namespace Microsoft.PSharp
             }
 
             /// <summary>
+            /// Returns a nondeterministic boolean choice, that can be
+            /// controlled during analysis or testing.
+            /// </summary>
+            internal virtual bool GetNondeterministicBooleanChoice(int maxValue)
+            {
+                Random random = new Random(DateTime.Now.Millisecond);
+                return random.Next(maxValue) == 0 ? true : false;
+            }
+
+            /// <summary>
+            /// Returns a nondeterministic integer, that can be
+            /// controlled during analysis or testing.
+            /// </summary>
+            internal virtual int GetNondeterministicIntegerChoice(int maxValue)
+            {
+                Random random = new Random(DateTime.Now.Millisecond);
+                return random.Next(maxValue);
+            }
+
+            /// <summary>
             /// Injects a context switch point that can be systematically explored during testing.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal virtual void InjectContextSwitch()
+            internal virtual void ExploreContextSwitch()
+            {
+            }
+
+            /// <summary>
+            /// Registers a new safety or liveness monitor.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal virtual void RegisterMonitor<T>()
+                where T : Monitor
+            {
+            }
+
+            /// <summary>
+            /// Invokes the specified monitor with the given event.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal virtual void Monitor<T>(Event e)
+                where T : Monitor
             {
             }
         }

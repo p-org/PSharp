@@ -54,18 +54,18 @@ namespace Microsoft.PSharp.TestingServices.Tests
             public async MachineTask PushAsync(int index)
             {
                 // Console.WriteLine($"\nTask {Task.CurrentId} starts push {index}.\n");
-                Specification.InjectContextSwitch();
+                Specification.ExploreContextSwitch();
                 int head = this.Head;
                 // Console.WriteLine($"\nTask {Task.CurrentId} reads head {head} in push {index}.\n");
                 bool compareExchangeResult = false;
 
                 do
                 {
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     this.Array[index].Next = head;
                     // Console.WriteLine($"\nTask {Task.CurrentId} sets [{index}].next to {head} during push.\n");
 
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     using (await this.HeadLock.AcquireAsync())
                     {
                         if (this.Head == head)
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 }
                 while (!compareExchangeResult);
 
-                Specification.InjectContextSwitch();
+                Specification.ExploreContextSwitch();
                 using (await this.CountLock.AcquireAsync())
                 {
                     this.Count++;
@@ -101,12 +101,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 // Console.WriteLine($"\nTask {Task.CurrentId} starts pop.\n");
                 while (this.Count > 1)
                 {
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     int head = this.Head;
                     // Console.WriteLine($"\nTask {Task.CurrentId} reads head {head} in pop ([{head}].next is {this.Array[head].Next}).\n");
 
                     int next;
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     using (await this.ArrayLock.AcquireAsync())
                     {
                         next = this.Array[head].Next;
@@ -114,11 +114,11 @@ namespace Microsoft.PSharp.TestingServices.Tests
                         // Console.WriteLine($"\nTask {Task.CurrentId} exchanges {next} from [{head}].next with -1.\n");
                     }
 
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     int headTemp = head;
 
                     bool compareExchangeResult = false;
-                    Specification.InjectContextSwitch();
+                    Specification.ExploreContextSwitch();
                     using (await this.HeadLock.AcquireAsync())
                     {
                         if (this.Head == headTemp)
@@ -136,13 +136,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
                     if (compareExchangeResult)
                     {
-                        Specification.InjectContextSwitch();
+                        Specification.ExploreContextSwitch();
                         using (await this.CountLock.AcquireAsync())
                         {
                             this.Count--;
                         }
 
-                        Specification.InjectContextSwitch();
+                        Specification.ExploreContextSwitch();
                         // Console.WriteLine($"\nTask {Task.CurrentId} pops {head} (head = {this.Head}, count = {this.Count}).");
                         // Console.WriteLine($"   [0] = {this.Array[0]} | next = {this.Array[0].Next}");
                         // Console.WriteLine($"   [1] = {this.Array[1]} | next = {this.Array[1].Next}");
@@ -152,13 +152,13 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     }
                     else
                     {
-                        Specification.InjectContextSwitch();
+                        Specification.ExploreContextSwitch();
                         using (await this.ArrayLock.AcquireAsync())
                         {
                             this.Array[head].Next = next;
                         }
 
-                        Specification.InjectContextSwitch();
+                        Specification.ExploreContextSwitch();
                     }
                 }
 
@@ -191,12 +191,12 @@ namespace Microsoft.PSharp.TestingServices.Tests
                                     break;
                                 }
 
-                                Specification.InjectContextSwitch();
+                                Specification.ExploreContextSwitch();
                             }
 
                             stack.Array[elem].Value = Task.CurrentId.Value;
                             // Console.WriteLine($"\nTask {Task.CurrentId} writes value {Task.CurrentId.Value} to [{elem}].");
-                            Specification.InjectContextSwitch();
+                            Specification.ExploreContextSwitch();
                             Specification.Assert(stack.Array[elem].Value == Task.CurrentId.Value, "Assertion failed.");
 
                             await stack.PushAsync(elem);

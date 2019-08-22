@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -53,9 +54,23 @@ namespace Microsoft.PSharp.TestingServices.Specifications
             this.Runtime.Assert(predicate, s, args);
 
         /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        internal override bool GetNondeterministicBooleanChoice(int maxValue) =>
+            this.Runtime.GetNondeterministicBooleanChoice(null, maxValue);
+
+        /// <summary>
+        /// Returns a nondeterministic integer, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        internal override int GetNondeterministicIntegerChoice(int maxValue) =>
+            this.Runtime.GetNondeterministicIntegerChoice(null, maxValue);
+
+        /// <summary>
         /// Injects a context switch point that can be systematically explored during testing.
         /// </summary>
-        internal override void InjectContextSwitch()
+        internal override void ExploreContextSwitch()
         {
             AsyncMachine caller = this.Runtime.GetExecutingMachine<AsyncMachine>();
             if (caller != null)
@@ -64,5 +79,15 @@ namespace Microsoft.PSharp.TestingServices.Specifications
                     AsyncOperationTarget.Task, caller.Id.Value);
             }
         }
+
+        /// <summary>
+        /// Registers a new safety or liveness monitor.
+        /// </summary>
+        internal override void RegisterMonitor<T>() => this.Runtime.RegisterMonitor(typeof(T));
+
+        /// <summary>
+        /// Invokes the specified monitor with the given event.
+        /// </summary>
+        internal override void Monitor<T>(Event e) => this.Runtime.Monitor(typeof(T), null, e);
     }
 }
