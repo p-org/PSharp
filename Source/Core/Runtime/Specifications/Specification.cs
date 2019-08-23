@@ -54,7 +54,7 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be controlled during analysis or testing.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ChooseRandomBoolean() => CurrentChecker.GetNondeterministicBooleanChoice(1);
+        public static bool ChooseRandomBoolean() => CurrentChecker.GetNondeterministicBooleanChoice(2);
 
         /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled during analysis or testing.
