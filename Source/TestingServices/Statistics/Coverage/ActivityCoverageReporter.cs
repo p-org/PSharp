@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
                     if (stateToIncomingEvents.ContainsKey(state) && stateToIncomingEvents[state].Count > 0)
                     {
-                        writer.Write("\t\tEvents Received: ");
+                        writer.Write("\t\tEvents received: ");
                         foreach (var e in stateToIncomingEvents[state])
                         {
                             writer.Write("{0} ", e);
@@ -335,7 +335,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
                     if (stateToOutgoingEvents.ContainsKey(state) && stateToOutgoingEvents[state].Count > 0)
                     {
-                        writer.Write("\t\tEvents Sent: ");
+                        writer.Write("\t\tEvents sent: ");
                         foreach (var e in stateToOutgoingEvents[state])
                         {
                             writer.Write("{0} ", e);
@@ -344,7 +344,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
                         writer.WriteLine();
                     }
 
-                    if (machineUncoveredEvents.ContainsKey(state) && machineUncoveredEvents[state].Count != 0)
+                    if (machineUncoveredEvents.ContainsKey(state) && machineUncoveredEvents[state].Count > 0)
                     {
                         writer.Write("\t\tEvents not covered: ");
                         foreach (var e in machineUncoveredEvents[state])
@@ -357,7 +357,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
                     if (stateToIncomingStates.ContainsKey(state) && stateToIncomingStates[state].Count > 0)
                     {
-                        writer.Write("\t\tPrevious States: ");
+                        writer.Write("\t\tPrevious states: ");
                         foreach (var s in stateToIncomingStates[state])
                         {
                             writer.Write("{0} ", s);
@@ -368,7 +368,7 @@ namespace Microsoft.PSharp.TestingServices.Coverage
 
                     if (stateToOutgoingStates.ContainsKey(state) && stateToOutgoingStates[state].Count > 0)
                     {
-                        writer.Write("\t\tNext States: ");
+                        writer.Write("\t\tNext states: ");
                         foreach (var s in stateToOutgoingStates[state])
                         {
                             writer.Write("{0} ", s);

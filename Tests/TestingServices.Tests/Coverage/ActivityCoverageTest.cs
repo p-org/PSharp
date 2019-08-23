@@ -76,10 +76,10 @@ Machine: M1
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Next States: Done
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -132,10 +132,10 @@ Machine: M2
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Next States: Done
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -203,18 +203,18 @@ Machine: M3A
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Events Received: E
-                Next States: Done
+                Events received: E
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 
 Machine: M3B
 ***************
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Events Sent: E
+                Events sent: E
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -338,13 +338,13 @@ Machine event coverage: 50.0%
 
 	State: Init
 		State event coverage: 50.0%
-		Events Received: E1 
+		Events received: E1 
 		Events not covered: E2 
-		Next States: Done 
+		Next states: Done 
 
 	State: Done
 		State event coverage: 100.0%
-		Previous States: Init 
+		Previous states: Init 
 
 Machine: Env
 ***************
@@ -352,7 +352,7 @@ Machine event coverage: 100.0%
 
 	State: Env
 		State event coverage: 100.0%
-		Events Sent: E1 
+		Events sent: E1 
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
