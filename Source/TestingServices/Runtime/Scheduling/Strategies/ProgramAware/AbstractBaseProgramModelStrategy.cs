@@ -158,11 +158,25 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
-        public virtual void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex)
+        public virtual void RecordReceiveCalled(Machine machine)
+        {
+            this.ProgramModel.RecordReceiveCalled(machine);
+        }
+
+        /// <inheritdoc/>
+        public virtual void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex, bool wasExplicitReceiveCall)
         {
             ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, 0, sendStepIndex);
-            ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
-            this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
+            if (wasExplicitReceiveCall)
+            {
+                this.ProgramModel.RecordExplicitReceive(machine, pEventInfo);
+            }
+            else
+            {
+                ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
+                // Also notify a send step, since we know it's coming.
+                this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
+            }
         }
 
         /// <inheritdoc/>

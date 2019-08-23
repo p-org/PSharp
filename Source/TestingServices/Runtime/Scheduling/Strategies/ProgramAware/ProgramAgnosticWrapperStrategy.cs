@@ -91,7 +91,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
-        public void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex)
+        public void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex, bool wasExplicitReceiveCall)
+        {
+        }
+
+        public void RecordReceiveCalled(Machine machine)
         {
         }
 

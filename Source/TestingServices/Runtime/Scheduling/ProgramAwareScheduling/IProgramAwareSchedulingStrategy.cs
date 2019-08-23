@@ -54,6 +54,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         bool ShouldEnqueueEvent(MachineId senderId, MachineId targetId, Event evt);
 
         /// <summary>
+        /// Called when a machine explicitly calls receive
+        /// </summary>
+        /// <param name="machine">The machine that called receive</param>
+        void RecordReceiveCalled(Machine machine);
+
+        /// <summary>
         /// Records a executing a Send operation
         /// </summary>
         /// <param name="sender">The sender machine</param>
@@ -64,12 +70,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqeueued);
 
         /// <summary>
-        /// Records a executing a Send operation
+        /// Records an executing a Send operation
         /// </summary>
         /// <param name="machine">The machine receiving the event</param>
         /// <param name="e">The event</param>
         /// <param name="sendStepIndex">The stepIndex of the send step</param>
-        void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex);
+        /// <param name="wasExplicitReceiveCall">Whether this was received by an explicit receive call</param>
+        void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex, bool wasExplicitReceiveCall);
 
         // Non-det choices
 

@@ -15,13 +15,19 @@ namespace Microsoft.PSharp.TestingServices.Runtime
     {
         internal IProgramAwareSchedulingStrategy ProgramAwareStrategy;
         private readonly bool EnableEventDropping;
+        private readonly HashSet<Machine> ReceivingMachines;
+        private Tuple<Machine, Event, int> SpeculativeSendForBlockedReceive;
+        // Used by the EnqueueEvent and NotifyReceivedEvent to record the Send before the Receive.
+        private AsyncMachine ContextEnqueueSenderMachine;
 
         internal ProgramAwareTestingRuntime(Configuration configuration, IProgramAwareSchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration, strategy, reporter)
         {
             this.ProgramAwareStrategy = strategy;
             this.EnableEventDropping = true;
-    }
+            this.ContextEnqueueSenderMachine = null;
+            this.ReceivingMachines = new HashSet<Machine>();
+        }
 
         protected override Machine CreateMachine(MachineId mid, Type type, string machineName, Machine creator, Guid opGroupId)
         {
@@ -41,20 +47,83 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.ProgramAwareStrategy.RecordMonitorStateChange(monitor, monitor.IsInHotState());
         }
 
-        // (MachineId targetId, Event e, AsyncMachine sender, Guid opGroupId, SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
+        // Regular dequeue (?)
+        internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
+        {
+            base.NotifyDequeuedEvent(machine, e, eventInfo);
+            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo?.SendStep ?? 0, false);
+        }
+
+        // Receive was explicitly called. Do we need this, or shall we just hook on to wait?
+        internal override void NotifyReceiveCalled(Machine machine)
+        {
+            base.NotifyReceiveCalled(machine);
+            this.ReceivingMachines.Add(machine);
+            this.ProgramAwareStrategy.RecordReceiveCalled(machine);
+        }
+
+        internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
+        {
+            base.NotifyReceivedEventWithoutWaiting(machine, e, eventInfo);
+            if (this.ReceivingMachines.Contains(machine))
+            {
+                this.ReceivingMachines.Remove(machine);
+                this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo.SendStep, true);
+            }
+
+            // else Dequeue event will handle it.
+        }
+
+        // Receive called and got one finally. The send will be called soon after this.
+        internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
+        {
+            base.NotifyReceivedEvent(machine, e, eventInfo);
+            this.ReceivingMachines.Remove(machine);
+
+            this.SpeculativeSendForBlockedReceive = Tuple.Create(machine, e, eventInfo.SendStep);
+            this.ProgramAwareStrategy.RecordSendEvent(this.ContextEnqueueSenderMachine, machine, e, eventInfo.SendStep, true);
+            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo.SendStep, true);
+        }
+
+        // Called for any send
+        // Called before the enqueue happens. Can also be a blocking receive.
         protected override EnqueueStatus EnqueueEvent(Machine targetMachine, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out EventInfo eventInfo)
         {
-            eventInfo = null;
-            bool enqueueEvent = this.EnableEventDropping && this.ProgramAwareStrategy.ShouldEnqueueEvent(sender?.Id ?? null, targetMachine.Id, e);
-            EnqueueStatus enqueueStatus = enqueueEvent ?
-                base.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo) :
-                enqueueStatus = EnqueueStatus.Dropped;
+            EnqueueStatus enqueueStatus;
+            bool enqueueEvent = this.EnableEventDropping &&
+                    this.ProgramAwareStrategy.ShouldEnqueueEvent(sender?.Id ?? null, targetMachine.Id, e);
 
-            // Record the Send.
-            // What do we do if eventInfo is null? Right now, Ask the ProgramAwareStrategy?
+            eventInfo = null;
+            {
+                // Braces just for the ContextEnqueueSenderMachine stuff to be explicitly seen
+                this.ContextEnqueueSenderMachine = sender;
+                enqueueStatus = enqueueEvent ?
+                    base.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo) :
+                    enqueueStatus = EnqueueStatus.Dropped;
+                this.ContextEnqueueSenderMachine = null;
+            }
+
             int sendStepIndex = eventInfo?.SendStep ?? this.ProgramAwareStrategy.GetScheduledSteps();
-            this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, enqueueEvent);
+
+            if (this.SpeculativeSendForBlockedReceive == null)
+            {
+                this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, enqueueEvent);
+            }
+            else
+            {
+                // Just verify we fed the right stuff.
+                if (this.SpeculativeSendForBlockedReceive.Item1 == targetMachine &&
+                    this.SpeculativeSendForBlockedReceive.Item2 == e &&
+                    this.SpeculativeSendForBlockedReceive.Item3 == sendStepIndex)
+                {
+                    this.SpeculativeSendForBlockedReceive = null; // Well done.
+                }
+                else
+                {
+                    throw new NotImplementedException("This is not implemented right");
+                }
+            }
 
             return enqueueStatus;
         }
@@ -73,12 +142,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             base.Monitor(type, sender, e);
             // Now do your thing.
             this.ProgramAwareStrategy.RecordMonitorEvent(type, sender, e);
-        }
-
-        internal override void NotifyDequeuedEvent(Machine machine, Event e, EventInfo eventInfo)
-        {
-            base.NotifyDequeuedEvent(machine, e, eventInfo);
-            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo?.SendStep ?? 0);
         }
 
         // Non-det choices

@@ -3,6 +3,12 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+// Appends a SpecialProgramStep as the NextMachineStep of the operation which called receive
+// The actual receive step is a SpecialProgramStep with
+//    the SendStep as CreatorParent and
+//    the original handler as PrevInboxOrderingStep
+#define CREATE_EXPLICIT_RECEIVE_CALLED_STEP
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -76,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public void Initialize(ulong testHarnessMachineId)
         {
             // TODO: Come up with a logical, consistent, common first step.
-            ProgramStep firstStep = ProgramStep.CreateSpecialProgramStep();
+            ProgramStep firstStep = ProgramStep.CreateSpecialProgramStep(0, null, null, AsyncOperationType.Start);
 
             this.Rootstep = firstStep;
             this.ActiveStep = this.Rootstep;
@@ -161,6 +167,35 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             {
                 programStep.MachineHash = HashMachine(machineInstance);
             }
+        }
+
+        internal void RecordReceiveCalled(Machine machine)
+        {
+#if CREATE_EXPLICIT_RECEIVE_CALLED_STEP
+            ProgramStep lastStep = this.MachineIdToLastStep[machine.Id.Value];
+            ProgramStep explicitReceiveCalledStep = ProgramStep.CreateSpecialProgramStep(machine.Id.Value, null, null, AsyncOperationType.Receive);
+            SetMachineThreadRelation(lastStep, explicitReceiveCalledStep);
+            this.MachineIdToLastStep[machine.Id.Value] = explicitReceiveCalledStep;
+#endif
+        }
+
+        internal void RecordExplicitReceive(Machine receiverMachine, ProgramStepEventInfo pEventInfo)
+        {
+            // The send step should exist
+            ulong receiverId = receiverMachine.Id.Value;
+            ProgramStep receiveStep = ProgramStep.CreateSpecialProgramStep(receiverId, null, null, AsyncOperationType.Receive);
+            receiveStep.EventInfo = pEventInfo;
+            ProgramStep sendStep = this.FindSendStep(receiveStep);
+            SetCreatedRelation(sendStep, receiveStep);
+
+            // Do not do this. It breaks the tree. Model it as a new handler for now.
+            // SetMachineThreadRelation(lastMachineStep, receiveStep);
+            ProgramStep lastReceiveStep = this.MachineIdToLatestReceive[receiverId];
+            SetInboxOrderingRelation(lastReceiveStep, receiveStep);
+
+            this.AppendStepToTotalOrdering(receiveStep);
+            this.MachineIdToLastStep[receiverId] = receiveStep;
+            this.MachineIdToLatestReceive[receiverId] = receiveStep;
         }
 
         internal void RecordMachineCreation(ulong machineId, Machine machine)

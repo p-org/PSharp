@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// For Send/Receive/Create(?) the EventInfo of the event being sent.
         /// </summary>
-        public ProgramStepEventInfo EventInfo { get; }
+        public ProgramStepEventInfo EventInfo { get; internal set; }
 
         /// <summary>
         /// A Signature which can be compared to other Signatures.
@@ -199,23 +199,28 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Initializes a new instance of the <see cref="ProgramStep"/> class.
         /// For those special steps
         /// </summary>
-        private ProgramStep(ulong srcId, bool? boolChoice, int? intChoice)
+        private ProgramStep(ulong srcId, bool? boolChoice, int? intChoice, AsyncOperationType? opType)
         {
             this.ProgramStepType = ProgramStepType.SpecialProgramStepType;
             // this.Operation = null;
             this.SrcId = srcId;
             this.BooleanChoice = boolChoice;
             this.IntChoice = intChoice;
+
+            if (opType != null)
+            {
+                this.OpType = (AsyncOperationType)opType;
+            }
         }
 
         internal static ProgramStep CreateSpecialProgramStep()
         {
-            return new ProgramStep(0, null, null);
+            return new ProgramStep(0, null, null, null);
         }
 
-        internal static ProgramStep CreateSpecialProgramStep(ulong srcId, bool? boolChoice, int? intChoice )
+        internal static ProgramStep CreateSpecialProgramStep(ulong srcId, bool? boolChoice, int? intChoice, AsyncOperationType? opType)
         {
-            ProgramStep step = new ProgramStep(srcId, boolChoice, intChoice);
+            ProgramStep step = new ProgramStep(srcId, boolChoice, intChoice, opType);
             return step;
         }
 
@@ -254,7 +259,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     newStep = new ProgramStep(this.SrcId, (int)this.IntChoice);
                     break;
                 case ProgramStepType.SpecialProgramStepType:
-                    newStep = CreateSpecialProgramStep(this.SrcId, this.BooleanChoice, this.IntChoice);
+                    newStep = CreateSpecialProgramStep(this.SrcId, this.BooleanChoice, this.IntChoice, this.OpType);
                     break;
             }
 

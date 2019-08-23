@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.PSharp;
 
 namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
@@ -83,6 +84,43 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
             {
                 MachineId targetId = (eWrap.TargetId == null) ? createdId : eWrap.TargetId;
                 this.Send(targetId, eWrap.Event);
+            }
+        }
+    }
+
+    internal class NaturallyReceivedEvent : Event
+    {
+    }
+
+    internal class BreakLoopEvent : Event
+    {
+    }
+
+    internal class ExplicitReceiverMachine : Machine
+    {
+        [Start]
+        [DeferEvents(typeof(ForwarderEvent))]
+        [OnEventDoAction(typeof(NaturallyReceivedEvent), nameof(DoExplicitReceive))]
+        internal class Init : MachineState
+        {
+        }
+
+        private async Task DoExplicitReceive()
+        {
+            while (true)
+            {
+                ForwarderEvent evt = await this.Receive(typeof(ForwarderEvent)) as ForwarderEvent;
+                foreach (EventWrapper eWrap in evt.ForwardList)
+                {
+                    if (eWrap.Event is BreakLoopEvent)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        this.Send(eWrap.TargetId, eWrap.Event);
+                    }
+                }
             }
         }
     }
