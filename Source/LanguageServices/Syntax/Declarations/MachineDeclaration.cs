@@ -136,6 +136,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             foreach (var node in this.EventDeclarations)
             {
+                this.ProjectionNode.AddChild(node.ProjectionNode);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -146,6 +147,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.StateDeclarations)
             {
+                this.ProjectionNode.AddChild(node.ProjectionNode);
                 node.Rewrite(indentLevel + 1);
             }
 
@@ -182,13 +184,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 newLine = "\n";
             }
 
-            text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine);
+            text += this.GetRewrittenStateOnEntryAndExitActions(indentLevel + 1, ref newLine, text.Length);
             text += this.GetRewrittenWithActions(indentLevel + 1, ref newLine);
 
-            text += indent + this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            text += $"{indent}{this.RightCurlyBracketToken.TextUnit.Text}\n";
 
-            this.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+            this.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
+            // ProjectionNode is updated as part of TypeofRewriter actions on this.
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
 
@@ -270,7 +273,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "abstract ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text;
+            text += $"class {this.Identifier.TextUnit.Text}";
 
             foreach (var node in this.TemplateParameters)
             {
@@ -286,16 +289,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += node.TextUnit.Text;
                 }
             }
-            else if (!this.IsMonitor)
-            {
-                text += "Machine";
-            }
             else
             {
-                text += "Monitor";
+                text += this.IsMonitor ? "Monitor" : "Machine";
             }
 
-            text += "\n" + indent + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            this.ProjectionNode.SetHeaderInfo(this.HeaderTokenRange, indent.Length, text);
+
+            text += $"\n{indent}{this.LeftCurlyBracketToken.TextUnit.Text}\n";
 
             foreach (var node in this.EventDeclarations)
             {
@@ -323,7 +324,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             foreach (var node in this.StateDeclarations)
             {
-                text += newLine + node.TextUnit.Text;
+                text += newLine;
+                node.ProjectionNode.SetOffsetInParent(text.Length);
+                text += node.TextUnit.Text;
                 newLine = "\n";
             }
 
@@ -345,27 +348,36 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Returns the rewritten state on-entry and on-exit actions.
         /// </summary>
-        private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine)
+        private string GetRewrittenStateOnEntryAndExitActions(int indentLevel, ref string newLine, int offset)
         {
             string text = string.Empty;
             foreach (var state in this.GetAllStateDeclarations())
             {
-                if (state.EntryDeclaration != null)
-                {
-                    state.EntryDeclaration.Rewrite(indentLevel);
-                    text += newLine + state.EntryDeclaration.TextUnit.Text;
-                    newLine = "\n";
-                }
-
-                if (state.ExitDeclaration != null)
-                {
-                    state.ExitDeclaration.Rewrite(indentLevel);
-                    text += newLine + state.ExitDeclaration.TextUnit.Text;
-                    newLine = "\n";
-                }
+                this.ProcessEntryOrExitDeclaration(state, state.EntryDeclaration, ref text, indentLevel, ref newLine, offset);
+                this.ProcessEntryOrExitDeclaration(state, state.ExitDeclaration, ref text, indentLevel, ref newLine, offset);
             }
 
             return text;
+        }
+
+        private void ProcessEntryOrExitDeclaration<T>(StateDeclaration state, T declaration, ref string text,
+            int indentLevel, ref string newLine, int offset)
+            where T : PSharpSyntaxNode
+        {
+            // This should be a local function, but it cannot because of the ref parameter.
+            if (declaration != null)
+            {
+                // For the C# rewriting here, the parent is actually the machine instance.
+                // on which the rewritten method resides.
+                state.ProjectionNode.AddChild(declaration.ProjectionNode, this.ProjectionNode);
+                declaration.Rewrite(indentLevel);
+                text += newLine;
+
+                // The rewritten offset is relative to the machine, which is the C# parent.
+                declaration.ProjectionNode.SetOffsetInParent(offset + text.Length);
+                text += declaration.TextUnit.Text;
+                newLine = "\n";
+            }
         }
 
         /// <summary>

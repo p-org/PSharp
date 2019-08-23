@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -192,8 +190,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             this.TestWithError(r =>
             {
-                var m3 = r.CreateMachineId(typeof(M3));
-                r.CreateMachine(m3, typeof(M2));
+                MachineId mid = r.CreateMachineId(typeof(M3));
+                r.CreateMachine(mid, typeof(M2));
             },
             expectedError: "Cannot bind machine id '' of type 'M3' to a machine of type 'M2'.",
             replay: true);
@@ -204,8 +202,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             this.TestWithError(r =>
             {
-                var m2 = r.CreateMachine(typeof(M2));
-                r.CreateMachine(m2, typeof(M2));
+                MachineId mid = r.CreateMachine(typeof(M2));
+                r.CreateMachine(mid, typeof(M2));
             },
             expectedError: "Machine with id '' is already bound to an existing machine.",
             replay: true);
@@ -216,8 +214,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             this.TestWithError(r =>
             {
-                var m = r.CreateMachineId(typeof(M2));
-                r.SendEvent(m, new E());
+                MachineId mid = r.CreateMachineId(typeof(M2));
+                r.SendEvent(mid, new E());
             },
             expectedError: "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M2'",
             replay: true);
@@ -234,17 +232,24 @@ namespace Microsoft.PSharp.TestingServices.Tests
                     isEventDropped = true;
                 };
 
-                var m = r.CreateMachine(typeof(M2));
+                MachineId mid = r.CreateMachine(typeof(M2));
                 while (!isEventDropped)
                 {
                     // Make sure the machine halts before trying to reuse its id.
-                    r.SendEvent(m, new Halt());
+                    r.SendEvent(mid, new Halt());
                 }
 
                 // Trying to bring up a halted machine.
-                r.CreateMachine(m, typeof(M2));
+                r.CreateMachine(mid, typeof(M2));
             },
-            expectedError: "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'");
+            configuration: GetConfiguration(),
+            expectedErrors: new string[]
+            {
+                // Note: because RunMachineEventHandler is async, the halted machine
+                // may or may not be removed by the time we call CreateMachine.
+                "Machine with id '' is already bound to an existing machine.",
+                "Machine id '' of a previously halted machine cannot be reused to create a new machine of type 'M2'"
+            });
         }
 
         private class E2 : Event
@@ -281,7 +286,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             private void InitOnEntry()
             {
-                var mid = (this.ReceivedEvent as E2).Mid;
+                MachineId mid = (this.ReceivedEvent as E2).Mid;
                 this.Send(mid, new E());
             }
         }
@@ -289,18 +294,15 @@ namespace Microsoft.PSharp.TestingServices.Tests
         [Fact(Timeout=5000)]
         public void TestCreateMachineWithId7()
         {
-            var configuration = Configuration.Create();
-            configuration.SchedulingIterations = 100;
-            configuration.ReductionStrategy = Utilities.ReductionStrategy.None;
-
             this.TestWithError(r =>
             {
-                var m = r.CreateMachineId(typeof(M4));
-                r.CreateMachine(typeof(M5), new E2(m));
-                r.CreateMachine(m, typeof(M4));
+                MachineId mid = r.CreateMachineId(typeof(M4));
+                r.CreateMachine(typeof(M5), new E2(mid));
+                r.CreateMachine(mid, typeof(M4));
             },
-            configuration: configuration,
-            expectedError: "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M4'");
+            configuration: Configuration.Create().WithNumberOfIterations(100),
+            expectedError: "Cannot send event 'E' to machine id '' that was never previously bound to a machine of type 'M4'",
+            replay: true);
         }
     }
 }

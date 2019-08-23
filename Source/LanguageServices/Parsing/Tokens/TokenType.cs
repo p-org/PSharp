@@ -498,7 +498,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Monitor token.
         /// </summary>
-        Monitor,
+        MonitorDecl,
 
         /// <summary>
         /// State token.
@@ -539,6 +539,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Machine identifier token.
         /// </summary>
         MachineIdentifier,
+
+        /// <summary>
+        /// <see cref="MachineId"/> token.
+        /// </summary>
+        MachineIdDecl,
 
         /// <summary>
         /// State identifier token.
@@ -596,11 +601,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         Assume,
 
         /// <summary>
-        /// Pop token.
-        /// </summary>
-        Pop,
-
-        /// <summary>
         /// On action token.
         /// </summary>
         OnAction,
@@ -619,6 +619,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Push state token.
         /// </summary>
         PushState,
+
+        /// <summary>
+        /// Pop state token.
+        /// </summary>
+        PopState,
 
         /// <summary>
         /// With exit token.
@@ -666,8 +671,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         NonDeterministic,
 
         /// <summary>
-        /// "extern" declaration token
+        /// Extern declaration token.
         /// </summary>
-        ExternDecl
+        ExternDecl,
+
+        /// <summary>
+        /// Quoted string token.
+        /// </summary>
+        QuotedString
     }
 }

@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -49,13 +49,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the statement with a pop statement.
         /// </summary>
-        private static SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
+        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var text = "this.Pop();";
-
-            var rewritten = SyntaxFactory.ParseStatement(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            this.Program.AddRewrittenTerm(node, text);
+            var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }
     }

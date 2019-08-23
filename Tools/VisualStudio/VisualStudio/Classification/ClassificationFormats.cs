@@ -46,4 +46,16 @@ namespace Microsoft.PSharp.VisualStudio
             this.ForegroundColor = Colors.SeaGreen;
         }
     }
+
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = "PSharp.QuotedString")]
+    [Name("PSharp.QuotedString")]
+    [UserVisible(true)]
+    internal sealed class PSharpQuotedStringFormat : ClassificationFormatDefinition
+    {
+        public PSharpQuotedStringFormat()
+        {
+            this.ForegroundColor = Colors.Brown;
+        }
+    }
 }

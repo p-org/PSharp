@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         protected TokenStream TokenStream;
 
         /// <summary>
-        /// The expected token types at end of parsing.
+        /// The expected token types at the end of parsing.
         /// </summary>
         protected TokenType[] ExpectedTokenTypes;
 
@@ -42,19 +42,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
         public TokenParser(ParsingOptions options)
-            : base(options)
-        {
+            : base(options) =>
             this.ErrorLog = new StringBuilder();
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
         internal TokenParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
-            : base(project, tree, options)
-        {
+            : base(project, tree, options) =>
             this.ErrorLog = new StringBuilder();
-        }
 
         /// <summary>
         /// Returns a P# program.
@@ -72,14 +68,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
             catch (ParsingException ex)
             {
-                this.ErrorLog.Append(ex.Message);
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
+                if (this.Options.IsParsingForVsLanguageService)
+                {
+                    // Rethrow the exception to the language service to be processed for its error info.
+                    throw;
+                }
+
+                this.ErrorLog.Append(ex.Message);
                 this.ReportParsingError();
 
-                if (this.Options.ThrowParsingException &&
-                    this.ErrorLog.Length > 0)
+                if (this.Options.ThrowParsingException && this.ErrorLog.Length > 0)
                 {
-                    throw new ParsingException(this.ErrorLog.ToString(), ex, ex.ExpectedTokenTypes);
+                    throw new ParsingException(this.ErrorLog.ToString(), ex, ex.FailingToken, ex.ExpectedTokenTypes);
                 }
             }
 
@@ -89,18 +90,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns the expected token types at the end of parsing.
         /// </summary>
-        public TokenType[] GetExpectedTokenTypes()
-        {
-            return this.ExpectedTokenTypes;
-        }
+        public TokenType[] GetExpectedTokenTypes() => this.ExpectedTokenTypes;
 
         /// <summary>
         /// Returns the parsing error log.
         /// </summary>
-        public string GetParsingErrorLog()
-        {
-            return this.ErrorLog.ToString();
-        }
+        public string GetParsingErrorLog() => this.ErrorLog.ToString();
 
         /// <summary>
         /// Parses the tokens.
@@ -112,9 +107,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected void ReportParsingError()
         {
-            if ((!this.Options.ExitOnError &&
-                !this.Options.ThrowParsingException) ||
-                this.ErrorLog.Length == 0)
+            if ((!this.Options.ExitOnError && !this.Options.ThrowParsingException)
+                || this.ErrorLog.Length == 0)
             {
                 return;
             }

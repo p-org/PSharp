@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Machine.Identifier.TextUnit.Text);
             }
 
-            this.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            this.TextUnit = this.TypeIdentifier.TextUnit.WithText(text);
         }
 
         /// <summary>

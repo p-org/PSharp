@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite(int indentLevel)
         {
             var text = GetIndent(indentLevel) + this.GetRewrittenUsingDeclaration();
-            this.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
+            this.TextUnit = this.UsingKeyword.TextUnit.WithText(text);
         }
 
         /// <summary>

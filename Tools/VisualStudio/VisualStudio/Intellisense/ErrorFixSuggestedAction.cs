@@ -10,103 +10,64 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Media;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.PSharp.VisualStudio
 {
+#if false // TODO: Requires NotYetImplemented ProjectionTree for performance
     internal class ErrorFixSuggestedAction : ISuggestedAction
     {
-        private ITrackingSpan Span;
-        private ITextSnapshot Snapshot;
+        private ITrackingSpan trackingSpan;
+        private ITextSnapshot snapshot;
+        private string word;
+        private KeyValuePair<string, string> replacement;
 
-        private bool IsDisposed;
+        private bool isDisposed;
 
-        public string DisplayText
-        {
-            get
-            {
-                return "TEST";
-            }
-        }
+        public string DisplayText => $"Change '{this.word}' to '{this.replacement.Key}'.";
 
-        public bool HasActionSets
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool HasActionSets => false;
 
-        public bool HasPreview
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool HasPreview => true;
 
-        public string IconAutomationText
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public string IconAutomationText => null;
 
-        public ImageMoniker IconMoniker
-        {
-            get
-            {
-                return new ImageMoniker();
-            }
-        }
+        public ImageMoniker IconMoniker => new ImageMoniker();
 
-        public string InputGestureText
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public string InputGestureText => null;
 
         public void Dispose()
         {
-            if (!this.IsDisposed)
+            if (!this.isDisposed)
             {
                 GC.SuppressFinalize(this);
-                this.IsDisposed = true;
+                this.isDisposed = true;
             }
         }
 
-        public ErrorFixSuggestedAction(ITrackingSpan span)
+        public ErrorFixSuggestedAction(string word, KeyValuePair<string, string> replacement, ITrackingSpan trackingSpan)
         {
-            this.Span = span;
-            this.Snapshot = span.TextBuffer.CurrentSnapshot;
-            this.IsDisposed = false;
-            //m_upper = span.GetText(m_snapshot).ToUpper();
-            //m_display = string.Format("Convert '{0}' to lower case", span.GetText(m_snapshot));
+            this.word = word;
+            this.replacement = replacement;
+            this.trackingSpan = trackingSpan;
+            this.snapshot = trackingSpan.TextBuffer.CurrentSnapshot;
+            this.isDisposed = false;
         }
 
         public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
-            var textBlock = new TextBlock();
-            textBlock.Padding = new Thickness(5);
-            textBlock.Inlines.Add(new Run() { Text = "test" });
+            var textBlock = new TextBlock { Padding = new Thickness(5) };
+            textBlock.Inlines.Add(new Run() { Text = this.replacement.Value });
             return Task.FromResult<object>(textBlock);
         }
 
         public void Invoke(CancellationToken cancellationToken)
-        {
-            this.Span.TextBuffer.Replace(this.Span.GetSpan(this.Snapshot), "X");
-        }
+            => this.trackingSpan.TextBuffer.Replace(this.trackingSpan.GetSpan(this.snapshot), this.replacement.Key);
 
         public bool TryGetTelemetryId(out Guid telemetryId)
         {
@@ -114,5 +75,5 @@ namespace Microsoft.PSharp.VisualStudio
             return false;
         }
     }
-
+#endif
 }

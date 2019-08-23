@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SnippetCollection>
+    <Language Lang="PSharp" Guid="{DEE9105E-DD6A-4950-87B9-1435A6668226}">
+        <SnippetDir>
+            <OnOff>On</OnOff>
+            <Installed>true</Installed>
+            <Locale>1033</Locale>
+            <DirPath>%PackageFolder%\Snippets\%LCID%\PSharp\</DirPath>	
+            <LocalizedName>PSharp</LocalizedName>
+        </SnippetDir>
+    </Language>
+</SnippetCollection>

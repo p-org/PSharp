@@ -8,8 +8,10 @@ using System;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.TextManager.Interop;
 
-using Microsoft.PSharp.LanguageServices.Parsing;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Microsoft.PSharp.VisualStudio
 {
@@ -18,94 +20,97 @@ namespace Microsoft.PSharp.VisualStudio
     /// </summary>
     internal sealed class Indent : ISmartIndent
     {
-        private readonly ITextView TextView;
-        private bool IsDisposed;
+        private readonly ITextView textView;
+        private bool isDisposed;
+
+        private RegionParser RegionParser = new RegionParser(RegionParser.BoundaryChar.CurlyBrace);
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="textView">ITextView</param>
-        public Indent(ITextView textView)
-        {
-            this.TextView = textView;
-            this.IsDisposed = false;
-        }
+        public Indent(ITextView textView) => this.textView = textView;
 
-        public int? GetDesiredIndentation(ITextSnapshotLine line)
-        {
-            return this.GetLineIndentation(line);
-        }
+        public int? GetDesiredIndentation(ITextSnapshotLine line) => this.GetLineIndentation(line);
 
         internal int GetLineIndentation(ITextSnapshotLine line)
         {
-            var options = this.TextView.Options;
-            var tabSize = options.GetIndentSize();
+            var tabSize = this.textView.Options.GetIndentSize();
 
-            var indent = 0;
+            // Get the nearest non-blank preceding line, if any.
+            var currentLineText = line.GetText();
+            string precedingLineText = string.Empty;
+            while (line.LineNumber > 0 && string.IsNullOrWhiteSpace(precedingLineText))
+            {
+                line = line.Snapshot.GetLineFromLineNumber(line.LineNumber - 1);
+                precedingLineText = line.GetText();
+            }
             if (line.LineNumber == 0)
             {
-                return indent;
+                return 0;
             }
 
-            var currentLine = line;
+            // Get existing indent from the preceding line and trim any extraneous whitespace
+            var indent = (int)(precedingLineText.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => (c == '\t') ? tabSize : 1).Sum() / tabSize) * tabSize;
 
-            do
+            // Increase the indent if the preceding line ended with an openBracket
+            if (this.RegionParser.GetBoundaryChar(precedingLineText) != RegionParser.BoundaryChar.None)
             {
-                currentLine = line.Snapshot.GetLineFromLineNumber(currentLine.LineNumber - 1);
+                indent += tabSize;
             }
-            while (currentLine.LineNumber > 0 && currentLine.Length == 0);
-            if (line.LineNumber == 0)
+
+            // Decrease the indent if a closeBracket is the first non-blank character on the current line.
+            return currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace
+                ? indent -= tabSize
+                : indent;
+        }
+
+        internal IEnumerable<IndentReplacement> GetSpanIndents(TextSpan span, int tabSize)
+        {
+            IndentReplacement indentLine(string lineString, int desiredIndentSize, out bool hasTrailingBrace)
             {
-                return indent;
+                var existingIndentSize = lineString.TakeWhile(c => char.IsWhiteSpace(c)).Select(c => 1).Sum();
+                var desiredIndent = string.Empty.PadLeft(desiredIndentSize);
+
+                // Due to potentially mixing tabs and spaces, just replace the existing indent.
+                hasTrailingBrace = this.RegionParser.GetBoundaryChar(lineString) != RegionParser.BoundaryChar.None;
+                return new IndentReplacement(existingIndentSize, desiredIndent);
             }
 
-            var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
+            // The first line becomes the preceding line after we get its indent
+            var precedingLine = this.textView.TextSnapshot.GetLineFromLineNumber(span.iStartLine);
+            var indent = this.GetLineIndentation(precedingLine);
+            yield return indentLine(precedingLine.GetText(), indent, out bool prevHasTrailingBrace);
 
-            bool codeFound = false;
-            foreach (var token in tokens)
+            for (var lineNum = span.iStartLine + 1; lineNum <= span.iEndLine; ++lineNum)
             {
-                if (token.Type == TokenType.WhiteSpace && !codeFound)
-                {
-                    foreach (var c in token.Text)
-                    {
-                        if (c == '\t')
-                        {
-                            indent += tabSize;
-                        }
-                        else
-                        {
-                            indent++;
-                        }
-                    }
-                }
-                else if (token.Type == TokenType.LeftCurlyBracket ||
-                    token.Type == TokenType.MachineLeftCurlyBracket ||
-                    token.Type == TokenType.StateLeftCurlyBracket)
-                {
-                    indent += tabSize;
-                    break;
-                }
-                else if (!codeFound)
-                {
-                    codeFound = true;
-                }
+                var currentLineText = this.textView.TextSnapshot.GetLineFromLineNumber(lineNum).GetText();
+                var fnbcIsCloseBrace = currentLineText.FirstOrDefault(c => !char.IsWhiteSpace(c)) == RegionParser.CloseCurlyBrace;
+                indent = fnbcIsCloseBrace ? indent - tabSize
+                        : prevHasTrailingBrace ? indent + tabSize : indent;
+                yield return indentLine(currentLineText, indent, out prevHasTrailingBrace);
             }
-
-            if (indent < 0)
-            {
-                indent = 0;
-            }
-
-            return indent;
         }
 
         public void Dispose()
         {
-            if (!this.IsDisposed)
+            if (!this.isDisposed)
             {
                 GC.SuppressFinalize(this);
-                this.IsDisposed = true;
+                this.isDisposed = true;
             }
+        }
+    }
+
+    internal class IndentReplacement
+    {
+        internal int ExistingIndentLength { get; }
+        internal string NewIndent { get; }
+
+        internal IndentReplacement(int existingLen, string newIndent)
+        {
+            this.ExistingIndentLength = existingLen;
+            this.NewIndent = newIndent;
         }
     }
 }

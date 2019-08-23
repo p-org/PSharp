@@ -25,89 +25,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="PSharpRewriter"/> class.
         /// </summary>
-        protected PSharpRewriter(IPSharpProgram program)
-        {
-            this.Program = program;
-        }
-
-        /// <summary>
-        /// Returns the next statement.
-        /// </summary>
-        protected SyntaxNode GetNextStatement(SyntaxNode node)
-        {
-            SyntaxNode next = null;
-            var relatives = node.Parent.ChildNodes().ToList();
-            for (int idx = 0; idx < relatives.Count; idx++)
-            {
-                if (relatives[idx].Equals(node) &&
-                    idx < relatives.Count - 1)
-                {
-                    next = relatives[idx + 1];
-                    break;
-                }
-            }
-
-            return next;
-        }
-
-        /// <summary>
-        /// True if the given syntax node is a machine field.
-        /// </summary>
-        protected bool IsMachineField(SyntaxNode node)
-        {
-            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
-            {
-                return machine.FieldDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// True if the given syntax node is a machine method.
-        /// </summary>
-        protected bool IsMachineMethod(SyntaxNode node)
-        {
-            if (this.TryGetParentMachine(node, out MachineDeclaration machine))
-            {
-                return machine.MethodDeclarations.Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Tries to return the parent machine identifier, if any.
-        /// </summary>
-        protected bool TryGetParentMachine(SyntaxNode node, out MachineDeclaration machine)
-        {
-            var result = false;
-            machine = null;
-
-            var ancestors = node.Ancestors().OfType<ClassDeclarationSyntax>().ToList();
-            foreach (var ancestor in ancestors)
-            {
-                machine = this.Program.GetProject().PSharpPrograms.
-                    SelectMany(p => p.NamespaceDeclarations).
-                    SelectMany(n => n.MachineDeclarations).
-                    FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(ancestor.Identifier.ValueText));
-
-                if (machine != null)
-                {
-                    result = true;
-                    break;
-                }
-            }
-
-            return result;
-        }
+        protected PSharpRewriter(IPSharpProgram program) => this.Program = program;
 
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        protected void UpdateSyntaxTree(string text)
-        {
-            this.Program.UpdateSyntaxTree(text);
-        }
+        protected void UpdateSyntaxTree(string text) => this.Program.UpdateSyntaxTree(text);
     }
 }

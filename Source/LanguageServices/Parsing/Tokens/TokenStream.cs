@@ -26,18 +26,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// The length of the stream.
         /// </summary>
-        public int Length
-        {
-            get => this.Tokens.Count;
-        }
+        public int Length => this.Tokens.Count;
 
         /// <summary>
         /// True if no tokens remaining in the stream.
         /// </summary>
-        public bool Done
-        {
-            get => this.Index == this.Length;
-        }
+        /// <remarks>
+        /// Use >= because in some cases of early end of string (e.g. VS language
+        /// service parsing) we may increment this twice.
+        /// </remarks>
+        public bool Done => this.Index >= this.Length;
 
         /// <summary>
         /// The program this token stream belongs to.
@@ -57,58 +55,69 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Returns the next token in the stream and progresses by one token,
         /// or null if the stream is empty.
         /// </summary>
-        public Token Next()
-        {
-            if (this.Index == this.Tokens.Count)
-            {
-                return null;
-            }
-
-            var token = this.Tokens[this.Index];
-            this.Index++;
-
-            return token;
-        }
+        public Token Next() => this.Done ? null : this.Tokens[this.Index++];
 
         /// <summary>
         /// Returns the next token in the stream without progressing to the next token,
         /// or null if the stream is empty.
         /// </summary>
-        public Token Peek()
+        public Token Peek() => this.Done ? null : this.Tokens[this.Index];
+
+        /// <summary>
+        /// Returns the type of the most recent non-whitespace token, to help refine the
+        /// list of expected tokens in the event of error.
+        /// </summary>
+        public TokenType PrevNonWhitespaceType()
         {
-            if (this.Index == this.Tokens.Count)
+            for (var i = this.Index - 1; i >= 0; --i)
             {
-                return null;
+                var tokType = this.Tokens[i].Type;
+                switch (tokType)
+                {
+                    case TokenType.WhiteSpace:
+                    case TokenType.NewLine:
+                        continue;
+
+                    default:
+                        return tokType;
+                }
             }
 
-            return this.Tokens[this.Index];
+            return TokenType.None;
         }
 
         /// <summary>
         /// Swaps the current token with the new token, or does nothing if the stream is empty.
         /// </summary>
-        public void Swap(Token token)
+        public void Swap(TextUnit updatedText, TokenType updatedType = Token.DefaultTokenType)
         {
-            if (this.Index == this.Tokens.Count)
+            if (!this.Done)
             {
-                return;
+                this.Tokens[this.Index] = new Token(updatedText, updatedType);
             }
+        }
 
-            this.Tokens[this.Index] = token;
+        /// <summary>
+        /// Swaps the current token with a new token containing updated type.
+        /// Does nothing if the stream is empty or the current index is past the end of the stream.
+        /// </summary>
+        public void Swap(TokenType updatedType)
+        {
+            if (!this.Done)
+            {
+                this.Tokens[this.Index] = this.Peek().WithType(updatedType);
+            }
         }
 
         /// <summary>
         /// Returns the token in the given index of the stream, or null if the index is out of bounds.
         /// </summary>
-        public Token GetAt(int index)
-        {
-            if (index >= this.Tokens.Count || index < 0)
-            {
-                return null;
-            }
+        public Token GetAt(int index) => (index >= this.Tokens.Count || index < 0) ? null : this.Tokens[index];
 
-            return this.Tokens[index];
-        }
+        /// <summary>
+        /// Returns the last token in the stream, or null if there are no tokens.
+        /// </summary>
+        public Token Last() => this.Tokens.Count == 0 ? null : this.Tokens[this.Tokens.Count - 1];
 
         /// <summary>
         /// Skips whitespace and comment tokens.
@@ -153,12 +162,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void Consume()
         {
-            if (this.Index == this.Tokens.Count)
+            if (!this.Done)
             {
-                return;
+                this.Tokens.RemoveAt(this.Index);
             }
-
-            this.Tokens.RemoveAt(this.Index);
         }
 
         /// <summary>
@@ -219,8 +226,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
 
             this.Consume();
-
             return true;
+        }
+
+        /// <summary>
+        /// Returns a string representation of the TokenStream's token count, current index, and current token.
+        /// </summary>
+        public override string ToString()
+        {
+            var token = this.Done ? "<done>" : this.Peek().ToString();
+            return $"{this.Length}[{this.Index}] {token}";
         }
     }
 }

@@ -11,14 +11,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     public sealed class Token
     {
         /// <summary>
-        /// The text unit that this token represents.
+        /// The text unit that this token represents in the rewritten buffer.
         /// </summary>
         public readonly TextUnit TextUnit;
 
         /// <summary>
         /// The text that this token represents.
         /// </summary>
-        public readonly string Text;
+        public string Text => this.TextUnit.Text;
 
         /// <summary>
         /// The type of this token.
@@ -26,43 +26,27 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public readonly TokenType Type;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// By default, the token is <see cref="TokenType.None"/>.
+        /// The default type of a token.
         /// </summary>
-        public Token(string text)
-        {
-            this.Text = text;
-            this.Type = TokenType.None;
-        }
+        public const TokenType DefaultTokenType = TokenType.None;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Token"/> class.
-        /// By default, the token is <see cref="TokenType.None"/>.
         /// </summary>
-        public Token(TextUnit unit)
+        public Token(TextUnit unit, TokenType type = DefaultTokenType)
         {
             this.TextUnit = unit;
-            this.Text = unit.Text;
-            this.Type = TokenType.None;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// </summary>
-        public Token(string text, TokenType type)
-        {
-            this.Text = text;
             this.Type = type;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
+        /// Creates a new instance of the <see cref="Token"/> class with an updated type.
         /// </summary>
-        public Token(TextUnit unit, TokenType type)
-        {
-            this.TextUnit = unit;
-            this.Text = unit.Text;
-            this.Type = type;
-        }
+        public Token WithType(TokenType updatedType) => new Token(this.TextUnit, updatedType);
+
+        /// <summary>
+        /// Returns a string representing the Token.
+        /// </summary>
+        public override string ToString() => $"{this.Text} {this.Type} ({this.TextUnit})";
     }
 }

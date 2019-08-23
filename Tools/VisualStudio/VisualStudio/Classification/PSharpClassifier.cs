@@ -48,9 +48,8 @@ namespace Microsoft.PSharp.VisualStudio
             foreach (var tagSpan in this.Aggregator.GetTags(spans))
             {
                 var tagSpans = tagSpan.Span.GetSpans(spans[0].Snapshot);
-                yield return
-                    new TagSpan<ClassificationTag>(tagSpans[0],
-                    new ClassificationTag(this.GetClassificationType(tagSpan.Tag.Type)));
+                yield return new TagSpan<ClassificationTag>(tagSpans[0],
+                                                            new ClassificationTag(this.GetClassificationType(tagSpan.Tag.Type)));
             }
         }
 
@@ -74,6 +73,10 @@ namespace Microsoft.PSharp.VisualStudio
 
                 case TokenType.WhiteSpace:
                     classification = "PSharp.WhiteSpace";
+                    break;
+
+                case TokenType.QuotedString:
+                    classification = "PSharp.QuotedString";
                     break;
 
                 case TokenType.Comment:
@@ -200,7 +203,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Using:
 
                 case TokenType.MachineDecl:
-                case TokenType.Monitor:
+                case TokenType.MonitorDecl:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
 
@@ -241,7 +244,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Break:
                 case TokenType.Continue:
                 case TokenType.Return:
-                case TokenType.Pop:
+                case TokenType.PopState:
                 case TokenType.Lock:
                 case TokenType.Try:
                 case TokenType.Catch:

@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudio", "VisualStudio\VisualStudio.csproj", "{390D602E-3C83-4A35-9915-A5D646262BDB}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{797E6212-BF3F-42DE-8482-EE3D6155861F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\..\Source\Core\Core.csproj", "{2E330C40-60EA-4A94-8813-9747B93A1795}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudio", "VisualStudio\VisualStudio.csproj", "{390D602E-3C83-4A35-9915-A5D646262BDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageServices", "..\..\Source\LanguageServices\LanguageServices.csproj", "{06CCBE95-2E41-4188-BB97-AEE702C1BD25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\..\Source\Core\Core.csproj", "{2E330C40-60EA-4A94-8813-9747B93A1795}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "..\Compilation\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageServices", "..\..\Source\LanguageServices\LanguageServices.csproj", "{06CCBE95-2E41-4188-BB97-AEE702C1BD25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyntaxRewriter", "..\Compilation\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryProjectTemplate", "ClassLibraryProjectTemplate\ClassLibraryProjectTemplate.csproj", "{89C8962C-DB1B-42F5-92D8-B724DA3B0FCE}"
 EndProject
@@ -84,5 +84,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2E330C40-60EA-4A94-8813-9747B93A1795} = {797E6212-BF3F-42DE-8482-EE3D6155861F}
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25} = {797E6212-BF3F-42DE-8482-EE3D6155861F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FDD45DD1-297D-4570-BCCF-646D10281F10}
 	EndGlobalSection
 EndGlobal

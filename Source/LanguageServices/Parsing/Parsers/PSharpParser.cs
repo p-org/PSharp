@@ -52,6 +52,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 switch (token.Type)
                 {
                     case TokenType.WhiteSpace:
+                    case TokenType.QuotedString:
                     case TokenType.Comment:
                     case TokenType.NewLine:
                         this.TokenStream.Index++;
@@ -79,14 +80,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     case TokenType.Abstract:
                     case TokenType.Virtual:
                     case TokenType.MachineDecl:
-                        throw new ParsingException("Must be declared inside a namespace.");
+                        throw new ParsingException("Must be declared inside a namespace.", token);
 
-                    case TokenType.ExternDecl:
                     case TokenType.EventDecl:
-                        throw new ParsingException("Must be declared inside a namespace or machine.");
+                    case TokenType.ExternDecl:
+                        throw new ParsingException("Must be declared inside a namespace or machine.", token);
 
                     default:
-                        throw new ParsingException("Unexpected token.");
+                        throw new ParsingException("Unexpected token.", token);
                 }
             }
         }
@@ -105,7 +106,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected identifier.", TokenType.Identifier);
+                throw new ParsingException("Expected identifier.", this.TokenStream.Peek(), TokenType.Identifier);
             }
 
             while (!this.TokenStream.Done &&
@@ -115,7 +116,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.TokenStream.Peek().Type != TokenType.Dot &&
                     this.TokenStream.Peek().Type != TokenType.NewLine)
                 {
-                    throw new ParsingException("Expected identifier.", TokenType.Identifier, TokenType.Dot);
+                    throw new ParsingException("Expected identifier.", this.TokenStream.Peek(), TokenType.Identifier, TokenType.Dot);
                 }
                 else
                 {
@@ -129,7 +130,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \";\".", TokenType.Semicolon);
+                throw new ParsingException("Expected \";\".", this.TokenStream.Peek(), TokenType.Semicolon);
             }
 
             node.SemicolonToken = this.TokenStream.Peek();
@@ -153,7 +154,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.Identifier)
             {
-                throw new ParsingException("Expected namespace identifier.", TokenType.Identifier);
+                throw new ParsingException("Expected namespace identifier.", this.TokenStream.Peek(), TokenType.Identifier);
             }
 
             while (!this.TokenStream.Done &&
@@ -163,7 +164,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.TokenStream.Peek().Type != TokenType.Dot &&
                     this.TokenStream.Peek().Type != TokenType.NewLine)
                 {
-                    throw new ParsingException("Expected namespace identifier.", TokenType.Identifier, TokenType.Dot);
+                    throw new ParsingException("Expected namespace identifier.", this.TokenStream.Peek(), TokenType.Identifier, TokenType.Dot);
                 }
                 else
                 {
@@ -177,7 +178,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (this.TokenStream.Done ||
                 this.TokenStream.Peek().Type != TokenType.LeftCurlyBracket)
             {
-                throw new ParsingException("Expected \"{\".", TokenType.LeftCurlyBracket);
+                throw new ParsingException("Expected \"{\".", this.TokenStream.Peek(), TokenType.LeftCurlyBracket);
             }
 
             node.LeftCurlyBracketToken = this.TokenStream.Peek();
@@ -196,10 +197,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <param name="node">Node</param>
         private void VisitNextIntraNamespaceDeclaration(NamespaceDeclaration node)
         {
+            var tokenRange = new TokenRange(this.TokenStream);
             if (this.TokenStream.Done)
             {
-                throw new ParsingException(
-                    "Expected \"}\".",
+                throw new ParsingException("Expected \"}\".", this.TokenStream.Last(),
                     TokenType.Internal,
                     TokenType.Public,
                     TokenType.Partial,
@@ -208,7 +209,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     TokenType.ExternDecl,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.Monitor,
+                    TokenType.MonitorDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket);
             }
@@ -239,7 +240,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.EventDecl:
                 case TokenType.MachineDecl:
-                case TokenType.Monitor:
+                case TokenType.MonitorDecl:
                 case TokenType.Internal:
                 case TokenType.Public:
                 case TokenType.Private:
@@ -247,7 +248,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
-                    this.VisitEventOrMachineDeclaration(node);
+                    this.VisitEventOrMachineDeclaration(node, tokenRange.Start());
                     this.TokenStream.Index++;
                     break;
 
@@ -265,7 +266,17 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     break;
 
                 default:
-                    throw new ParsingException("Unexpected token.");
+                    throw new ParsingException("Unexpected token.", token,
+                            TokenType.EventDecl,
+                            TokenType.MachineDecl,
+                            TokenType.MonitorDecl,
+                            TokenType.Internal,
+                            TokenType.Public,
+                            TokenType.Private,
+                            TokenType.Protected,
+                            TokenType.Partial,
+                            TokenType.Abstract,
+                            TokenType.Virtual);
             }
 
             if (!fixpoint)
@@ -278,14 +289,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Visits an event or machine declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode)
+        /// <param name="tokenRange">The range of accumulated tokens</param>
+        private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode, TokenRange tokenRange)
         {
             ModifierSet modSet = ModifierSet.CreateDefault();
 
             while (!this.TokenStream.Done &&
                 this.TokenStream.Peek().Type != TokenType.EventDecl &&
                 this.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                this.TokenStream.Peek().Type != TokenType.Monitor)
+                this.TokenStream.Peek().Type != TokenType.MonitorDecl)
             {
                 new ModifierVisitor(this.TokenStream).Visit(modSet);
 
@@ -296,13 +308,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (this.TokenStream.Done ||
                 (this.TokenStream.Peek().Type != TokenType.EventDecl &&
                 this.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                this.TokenStream.Peek().Type != TokenType.Monitor))
+                this.TokenStream.Peek().Type != TokenType.MonitorDecl))
             {
-                throw new ParsingException(
-                    "Expected event, machine or monitor declaration.",
+                throw new ParsingException("Expected event, machine or monitor declaration.", this.TokenStream.Peek(),
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.Monitor);
+                    TokenType.MonitorDecl);
             }
 
             if (this.TokenStream.Peek().Type == TokenType.EventDecl)
@@ -311,11 +322,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
             else if (this.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                new MachineDeclarationVisitor(this.TokenStream).Visit(parentNode, false, modSet);
+                new MachineDeclarationVisitor(this.TokenStream).Visit(parentNode, false, modSet, tokenRange.Start());
             }
-            else if (this.TokenStream.Peek().Type == TokenType.Monitor)
+            else if (this.TokenStream.Peek().Type == TokenType.MonitorDecl)
             {
-                new MachineDeclarationVisitor(this.TokenStream).Visit(parentNode, true, modSet);
+                new MachineDeclarationVisitor(this.TokenStream).Visit(parentNode, true, modSet, tokenRange.Start());
             }
         }
     }

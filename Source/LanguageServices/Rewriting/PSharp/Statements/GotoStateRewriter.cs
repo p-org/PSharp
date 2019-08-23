@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
-                computeReplacementNode: (node, rewritten) => RewriteStatement(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -52,12 +52,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the jump(StateType) statement with a goto&lt;StateType&gt;() statement.
         /// </summary>
-        private static SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
+        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var invocation = node.Expression as InvocationExpressionSyntax;
 
             var arg = invocation.ArgumentList.Arguments[0].ToString();
             var text = node.WithExpression(SyntaxFactory.ParseExpression($"this.Goto<{arg}>()")).ToString();
+            this.Program.AddRewrittenTerm(node, text);
 
             var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;

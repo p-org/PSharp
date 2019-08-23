@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
-                computeReplacementNode: (node, rewritten) => RewriteExpression(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the expression with a this expression.
         /// </summary>
-        private static SyntaxNode RewriteExpression(ThisExpressionSyntax node)
+        private SyntaxNode RewriteExpression(ThisExpressionSyntax node)
         {
             SyntaxNode rewritten = node;
 
@@ -56,9 +56,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 (rewritten.Parent as AssignmentExpressionSyntax).Right.IsEquivalentTo(node)))
             {
                 var text = "this.Id";
-
-                rewritten = SyntaxFactory.ParseExpression(text);
-                rewritten = rewritten.WithTriviaFrom(node);
+                this.Program.AddRewrittenTerm(node, text);
+                rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             }
 
             return rewritten;

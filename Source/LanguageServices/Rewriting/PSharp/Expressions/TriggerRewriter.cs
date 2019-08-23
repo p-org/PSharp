@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
-                computeReplacementNode: (node, rewritten) => RewriteExpression(rewritten));
+                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
 
             this.UpdateSyntaxTree(root.ToString());
         }
@@ -48,12 +48,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Rewrites the expression with a trigger expression.
         /// </summary>
-        private static SyntaxNode RewriteExpression(IdentifierNameSyntax node)
+        private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
         {
             var text = "this.ReceivedEvent";
-            var rewritten = SyntaxFactory.ParseExpression(text);
-            rewritten = rewritten.WithTriviaFrom(node);
-
+            this.Program.AddRewrittenTerm(node, text);
+            var rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             return rewritten;
         }
     }

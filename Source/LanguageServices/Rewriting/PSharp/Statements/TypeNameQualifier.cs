@@ -131,25 +131,5 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             return state;
         }
-
-        /// <summary>
-        /// Tokenizes a qualified name.
-        /// </summary>
-        /// <param name="state">Qualified name</param>
-        /// <returns>Tokenized name</returns>
-        private List<string> ToTokens(string state)
-        {
-            return state.Split('.').ToList();
-        }
-
-        /// <summary>
-        /// Collapses a tokenized qualified name.
-        /// </summary>
-        /// <param name="state">Tokenized qualified name</param>
-        /// <returns>Qualified name</returns>
-        private string FromTokens(List<string> state)
-        {
-            return state.Aggregate(string.Empty, (acc, name) => string.IsNullOrEmpty(acc) ? name : acc + "." + name);
-        }
     }
 }

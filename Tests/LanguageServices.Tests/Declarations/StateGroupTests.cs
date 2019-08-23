@@ -1622,7 +1622,7 @@ start state S
 group G { }
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token: group.", test);
         }
 
         [Fact(Timeout=5000)]
@@ -1897,7 +1897,7 @@ group G { }
 }
 }
 }";
-            LanguageTestUtilities.AssertFailedTestLog("Unexpected token.", test);
+            LanguageTestUtilities.AssertFailedTestLog("Unexpected token: group.", test);
         }
 
         [Fact(Timeout=5000)]

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.PSharp.LanguageServices.Parsing.Framework;
 
@@ -124,7 +123,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             if (errors.Count > 0 || warnings.Count > 0)
             {
-                throw new ParsingException(errors, warnings);
+                throw new ParsingException(errors.ToArray(), warnings.ToArray());
             }
         }
 

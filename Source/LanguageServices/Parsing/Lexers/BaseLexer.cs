@@ -45,25 +45,22 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             using (StringReader sr = new StringReader(text))
             {
-                int position = 0;
                 int line = 1;
                 string lineText;
                 while ((lineText = sr.ReadLine()) != null)
                 {
+                    int position = 0;
                     var split = this.SplitText(lineText);
                     foreach (var token in split)
                     {
-                        if (string.IsNullOrEmpty(token))
+                        if (token.Length > 0)
                         {
-                            continue;
+                            this.TextUnits.Add(new TextUnit(token, line, position));
+                            position += token.Length;
                         }
-
-                        this.TextUnits.Add(new TextUnit(token, line));
-                        position += token.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", line));
-                    position++;
+                    this.TextUnits.Add(new TextUnit("\n", line, position));
                     line++;
                 }
             }
