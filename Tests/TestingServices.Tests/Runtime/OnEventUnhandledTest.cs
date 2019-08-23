@@ -6,8 +6,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR;
-using Microsoft.PSharp.TestingServices.StateCaching;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -35,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             {
                 this.Assert(currentState == "S");
                 this.Assert(e is E);
-                this.Assert(false, "OnEventUnhandled called");
+                this.Assert(false, "The 'OnEventUnhandled' callback was called.");
                 return Task.CompletedTask;
             }
 
@@ -53,7 +51,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var m = r.CreateMachine(typeof(M1));
                 r.SendEvent(m, new E());
             },
-            expectedError: "OnEventUnhandled called");
+            expectedError: "The 'OnEventUnhandled' callback was called.");
         }
 
         private class M2 : Machine
@@ -67,20 +65,20 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             protected override Task OnEventUnhandledAsync(Event e, string currentState)
             {
-                this.Assert(this.x == 0);
+                this.Assert(this.x == 0, "The 'OnEventUnhandled' callback was not called first.");
                 this.x++;
                 return Task.CompletedTask;
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                this.Assert(this.x == 1);
+                this.Assert(this.x == 1, "The 'OnException' callback was not called second.");
                 return OnExceptionOutcome.HaltMachine;
             }
         }
 
         [Fact(Timeout = 5000)]
-        public void TestOnExceptionCalledSecond()
+        public void TestOnExceptionCalledAfterOnEventUnhandled()
         {
             this.Test(r =>
             {
@@ -100,14 +98,14 @@ namespace Microsoft.PSharp.TestingServices.Tests
 
             protected override Task OnEventUnhandledAsync(Event e, string currentState)
             {
-                this.Assert(this.x == 0, "OnEventUnhandledAsync not called first");
+                this.Assert(this.x == 0, "The 'OnEventUnhandled' callback was not called first.");
                 this.x++;
                 return Task.CompletedTask;
             }
 
             protected override OnExceptionOutcome OnException(string methodName, Exception ex)
             {
-                this.Assert(this.x == 1, "OnException not called second");
+                this.Assert(this.x == 1, "The 'OnException' callback was not called second.");
                 return OnExceptionOutcome.ThrowException;
             }
         }
@@ -126,19 +124,19 @@ namespace Microsoft.PSharp.TestingServices.Tests
         private class M4 : Machine
         {
             [Start]
-            [OnEventDoAction(typeof(E), nameof(Foo))]
+            [OnEventDoAction(typeof(E), nameof(HandleE))]
             private class S : MachineState
             {
             }
 
-            private void Foo()
+            private void HandleE()
             {
                 throw new Exception();
             }
 
             protected override Task OnEventUnhandledAsync(Event e, string currentState)
             {
-                this.Assert(false, "OnEventUnhandledAsync called");
+                this.Assert(false, "The 'OnEventUnhandled' callback was called.");
                 return Task.CompletedTask;
             }
 
