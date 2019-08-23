@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {

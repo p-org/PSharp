@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.IO;
+﻿using System.IO;
 using Microsoft.PSharp.TestingServices.Coverage;
 using Xunit;
 using Xunit.Abstractions;

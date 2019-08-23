@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using Microsoft.PSharp.Timers;
 using Xunit;
 using Xunit.Abstractions;

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Runtime;

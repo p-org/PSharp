@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.Monitoring;
+﻿using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.ComponentModel;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;

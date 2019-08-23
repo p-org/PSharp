@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 // Tools
 [assembly: InternalsVisibleTo("PSharpCompiler,PublicKey=" +

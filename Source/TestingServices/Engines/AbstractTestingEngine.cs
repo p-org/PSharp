@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 #if NET46
 using System.Configuration;

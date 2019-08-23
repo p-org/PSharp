@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.ComponentModel;
+﻿using Microsoft.ExtendedReflection.ComponentModel;
 
 namespace Microsoft.PSharp.Monitoring.ComponentModel
 {

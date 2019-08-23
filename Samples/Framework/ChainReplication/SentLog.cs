@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp;
+﻿using Microsoft.PSharp;
 
 namespace ChainReplication
 {

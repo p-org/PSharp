@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.Timers;
+﻿using Microsoft.PSharp.Timers;
 
 namespace Microsoft.PSharp.TestingServices.Timers
 {

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.PSharp.Runtime;
 using Xunit;
 using Xunit.Abstractions;

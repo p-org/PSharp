@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.Collections;
+﻿using Microsoft.ExtendedReflection.Collections;
 using Microsoft.ExtendedReflection.Logging;
 using Microsoft.ExtendedReflection.Metadata;
 using Microsoft.ExtendedReflection.Monitoring;

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using Microsoft.PSharp.Benchmarking.Creation;
 using Microsoft.PSharp.Benchmarking.Messaging;
 

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.TestingServices.StateCaching;
+﻿using Microsoft.PSharp.TestingServices.StateCaching;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {

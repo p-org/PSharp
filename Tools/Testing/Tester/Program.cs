@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;

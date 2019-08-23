@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.ExtendedReflection.ComponentModel;
 using Microsoft.ExtendedReflection.Monitoring;

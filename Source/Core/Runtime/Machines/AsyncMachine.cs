@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.ComponentModel;
 
 using Microsoft.PSharp.IO;

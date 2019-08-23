@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.Monitoring;
+﻿using Microsoft.ExtendedReflection.Monitoring;
 using System;
 using System.Collections.Specialized;
 using System.Diagnostics;

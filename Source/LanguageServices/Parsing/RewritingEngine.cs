@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.LanguageServices.Compilation;
+﻿using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

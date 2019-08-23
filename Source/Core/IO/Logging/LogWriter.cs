@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace Microsoft.PSharp.IO

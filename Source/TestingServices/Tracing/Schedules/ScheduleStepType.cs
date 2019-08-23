@@ -1,5 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
+﻿using
 namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {
     /// <summary>

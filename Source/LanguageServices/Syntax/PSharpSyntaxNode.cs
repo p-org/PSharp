@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.LanguageServices.Parsing;
+﻿using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax

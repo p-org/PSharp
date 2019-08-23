@@ -1,5 +1,3 @@
-// ------------------------------------------------------------------------------------------------
-
 using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis

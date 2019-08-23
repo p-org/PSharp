@@ -1,5 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
+﻿using
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>

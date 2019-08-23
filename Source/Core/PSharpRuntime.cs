@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.Runtime;
+﻿using Microsoft.PSharp.Runtime;
 
 namespace Microsoft.PSharp
 {

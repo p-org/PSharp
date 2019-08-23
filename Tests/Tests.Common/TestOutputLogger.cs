@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.IO;
+﻿using Microsoft.PSharp.IO;
 using Xunit.Abstractions;
 
 namespace Microsoft.PSharp.Tests.Common

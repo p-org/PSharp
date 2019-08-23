@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.ComponentModel;

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 
 using Microsoft.PSharp.Timers;
 using Microsoft.PSharp.Utilities;

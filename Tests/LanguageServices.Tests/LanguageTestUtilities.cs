@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.PSharp.LanguageServices.Compilation;

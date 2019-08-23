@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.Collections;
+﻿using Microsoft.ExtendedReflection.Collections;
 
 namespace Microsoft.PSharp.Monitoring.CallsOnly
 {

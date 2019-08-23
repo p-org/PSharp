@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;

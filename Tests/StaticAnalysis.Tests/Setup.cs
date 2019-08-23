@@ -1,5 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
+﻿using
 namespace Microsoft.PSharp.StaticAnalysis.Tests
 {
     internal static class Setup

@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.ExtendedReflection.Collections;
+﻿using Microsoft.ExtendedReflection.Collections;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices;
 using System;

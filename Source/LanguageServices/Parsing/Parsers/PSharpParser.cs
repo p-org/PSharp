@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 using Microsoft.PSharp.LanguageServices.Parsing.Syntax;
 using Microsoft.PSharp.LanguageServices.Syntax;

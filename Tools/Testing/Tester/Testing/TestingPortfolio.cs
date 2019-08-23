@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.Utilities;
+﻿using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
 {

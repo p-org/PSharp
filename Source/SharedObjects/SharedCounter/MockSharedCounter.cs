@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.TestingServices.Runtime;
+﻿using Microsoft.PSharp.TestingServices.Runtime;
 
 namespace Microsoft.PSharp.SharedObjects
 {

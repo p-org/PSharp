@@ -1,5 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
+﻿using
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
 {
     /// <summary>

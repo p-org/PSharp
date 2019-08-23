@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.IO;
+﻿using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 using static System.Diagnostics.Debug;
 

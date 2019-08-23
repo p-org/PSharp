@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Threading;
+﻿using System.Threading;
 
 namespace Microsoft.PSharp.SharedObjects
 {

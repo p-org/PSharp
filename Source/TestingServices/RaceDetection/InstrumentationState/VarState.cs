@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.RaceDetection.Util;
 
 namespace Microsoft.PSharp.TestingServices.RaceDetection.InstrumentationState

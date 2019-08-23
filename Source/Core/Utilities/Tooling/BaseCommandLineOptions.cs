@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using Microsoft.PSharp.IO;
 

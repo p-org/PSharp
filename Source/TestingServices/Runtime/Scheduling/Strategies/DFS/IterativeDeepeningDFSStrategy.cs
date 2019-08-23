@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.IO;
+﻿using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {

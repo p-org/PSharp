@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using Microsoft.PSharp.Utilities;
 using Xunit;
 using Xunit.Abstractions;

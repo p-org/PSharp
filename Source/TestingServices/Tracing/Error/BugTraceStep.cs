@@ -1,6 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
