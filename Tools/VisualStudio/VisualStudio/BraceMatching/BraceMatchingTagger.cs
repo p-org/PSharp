@@ -142,13 +142,4 @@ namespace Microsoft.PSharp.VisualStudio
         public static readonly TextMarkerTag BraceHighlightTag = new TextMarkerTag(ClassificationTypeDefinitions.BraceMatchingName);
     }
 
-    internal sealed class ClassificationTypeDefinitions
-    {
-        public const string BraceMatchingName = "brace matching";
-
-        [Export]
-        [Name(BraceMatchingName)]
-        [BaseDefinition("formal language")]
-        internal readonly ClassificationTypeDefinition BraceMatching;
-    }
 }
