@@ -1,11 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-#if NET46
+﻿#if NET46
 using System.ServiceModel;
-
 using Microsoft.PSharp.TestingServices.Coverage;
 #endif
 

@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-namespace Microsoft.PSharp.SharedObjects
+﻿namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
     /// A shared counter modeled using a state-machine for testing.

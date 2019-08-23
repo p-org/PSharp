@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-namespace Microsoft.PSharp.StaticAnalysis
+﻿namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// Class implementing an error trace step.

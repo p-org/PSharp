@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-using Microsoft.PSharp.Tests.Common;
+﻿using Microsoft.PSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 

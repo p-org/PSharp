@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-namespace Microsoft.PSharp.TestingServices.Scheduling
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Interface of an asynchronous operation that can be scheduled during testing.

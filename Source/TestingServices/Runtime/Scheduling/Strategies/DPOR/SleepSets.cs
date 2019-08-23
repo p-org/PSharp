@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------------------------------------------
-
-namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
 {
     /// <summary>
     /// Sleep sets is a reduction technique that can be in addition to DPOR or on its own.

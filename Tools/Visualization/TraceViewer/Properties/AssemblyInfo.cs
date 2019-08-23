@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft Corporation")]
 [assembly: AssemblyProduct("PSharpTraceViewer")]
-[assembly: AssemblyCopyright("Copyright © 2018 Microsoft Corporation")]
+[assembly: AssemblyCopyright("Copyright © Microsoft Corporation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
