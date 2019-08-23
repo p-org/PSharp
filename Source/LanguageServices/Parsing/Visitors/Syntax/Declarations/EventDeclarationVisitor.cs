@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         internal void Visit(NamespaceDeclaration namespaceNode, MachineDeclaration machineNode, ModifierSet modSet)
         {
             this.CheckEventModifierSet(modSet, machineNode != null);
-            _ = this.VisitEventDeclaration(namespaceNode, machineNode, modSet, isExtern: false);
+            this.VisitEventDeclaration(namespaceNode, machineNode, modSet, isExtern: false);
         }
 
         private EventDeclaration VisitEventDeclaration(NamespaceDeclaration namespaceNode, MachineDeclaration machineNode, ModifierSet modSet, bool isExtern)
@@ -39,8 +39,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 EventKeyword = this.TokenStream.Peek()
             };
+
             this.TokenStream.Index++;
-            _ = this.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             if (this.TokenStream.Done ||
                 (this.TokenStream.Peek().Type != TokenType.Identifier &&
@@ -48,7 +49,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.TokenStream.Peek().Type != TokenType.DefaultEvent))
             {
                 throw new ParsingException("Expected event identifier.", this.TokenStream.Peek(),
-                                           TokenType.Identifier, TokenType.HaltEvent, TokenType.DefaultEvent);
+                    TokenType.Identifier, TokenType.HaltEvent, TokenType.DefaultEvent);
             }
 
             node.Identifier = NameVisitor.VisitSimpleQualifiedName(this.TokenStream, TokenType.EventIdentifier);

@@ -27,13 +27,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected static string OneIndent = new string(' ', SpacesPerIndent);
 
         /// <summary>
-        /// The range of accumulated header tokens
+        /// The range of accumulated header tokens.
         /// </summary>
         internal TokenRange HeaderTokenRange;
 
         /// <summary>
-        /// Offset and other information that will be used to create the VS Language Service
-        /// Projection Buffers for the rewritten form of this declaration.
+        /// Offset and other information that will be used to create the VS language service
+        /// projection buffers for the rewritten form of this declaration.
         /// </summary>
         internal ProjectionNode ProjectionNode;
 
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Get the Configuration object.
+        /// Get the configuration.
         /// </summary>
         protected Configuration Configuration => this.Program.GetProject().CompilationContext.Configuration;
 

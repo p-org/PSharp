@@ -42,13 +42,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
         public TokenParser(ParsingOptions options)
-            : base(options) => this.ErrorLog = new StringBuilder();
+            : base(options) =>
+            this.ErrorLog = new StringBuilder();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TokenParser"/> class.
         /// </summary>
         internal TokenParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
-            : base(project, tree, options) => this.ErrorLog = new StringBuilder();
+            : base(project, tree, options) =>
+            this.ErrorLog = new StringBuilder();
 
         /// <summary>
         /// Returns a P# program.
@@ -67,9 +69,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             catch (ParsingException ex)
             {
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
-                if (this.Options.ForVsLanguageService)
+                if (this.Options.IsParsingForVsLanguageService)
                 {
-                    // Rethrow the exception to the language service to be processed for its error info
+                    // Rethrow the exception to the language service to be processed for its error info.
                     throw;
                 }
 

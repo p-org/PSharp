@@ -9,9 +9,8 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
-    /// Manages the collection of ProjectionNodes mapping to offsets in the rewritten C# file.
+    /// Manages the collection of projection nodes mapping to offsets in the rewritten C# file.
     /// </summary>
-    /// <remarks>TODO: Currently stubbed out and expanded in a separate branch</remarks>
     public class ProjectionTree
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "Temporary stub")]

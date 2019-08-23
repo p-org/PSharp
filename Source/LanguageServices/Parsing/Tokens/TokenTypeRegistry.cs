@@ -241,6 +241,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "push";
                     break;
 
+                case TokenType.PopState:
+                    text = "pop";
+                    break;
+
                 case TokenType.WithExit:
                     text = "with";
                     break;
@@ -335,10 +339,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.Return:
                     text = "return";
-                    break;
-
-                case TokenType.PopState:
-                    text = "pop";
                     break;
 
                 case TokenType.Lock:

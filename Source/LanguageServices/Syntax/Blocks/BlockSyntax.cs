@@ -60,9 +60,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite(int indentLevel)
         {
-            if (this.Configuration.ForVsLanguageService)
+            if (this.Configuration.IsRewritingForVsLanguageService)
             {
-                // Do not change formatting
+                // Do not change formatting.
                 this.TextUnit = this.OpenBraceToken.TextUnit.WithText(this.Block.ToString());
                 return;
             }

@@ -53,7 +53,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var text = "this.Pop();";
             this.Program.AddRewrittenTerm(node, text);
-
             var rewritten = SyntaxFactory.ParseStatement(text).WithTriviaFrom(node);
             return rewritten;
         }

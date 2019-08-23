@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Assert(result, "Machine with id '{0}' is already bound to an existing machine.", mid.Value);
 
             this.Assert(!this.CreatedMachineIds.Contains(mid),
-                "MachineId '{0}' of a previously halted machine cannot be reused to create a new machine of type '{1}'",
+                "Machine id '{0}' of a previously halted machine cannot be reused to create a new machine of type '{1}'",
                 mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
 

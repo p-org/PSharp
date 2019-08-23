@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -156,8 +155,10 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration: GetConfiguration(),
             expectedErrors: new string[]
             {
+                // Note: because RunMachineEventHandler is async, the halted machine
+                // may or may not be removed by the time we call CreateMachine.
                 "Machine with id '' is already bound to an existing machine.",
-                "MachineId '' of a previously halted machine cannot be reused to create a new machine of type 'M2'"
+                "Machine id '' of a previously halted machine cannot be reused to create a new machine of type 'M2'"
             });
         }
 

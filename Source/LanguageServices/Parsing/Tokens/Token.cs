@@ -40,17 +40,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="Token"/> class with updated type
+        /// Creates a new instance of the <see cref="Token"/> class with an updated type.
         /// </summary>
         public Token WithType(TokenType updatedType) => new Token(this.TextUnit, updatedType);
 
         /// <summary>
         /// Returns a string representing the Token.
         /// </summary>
-        /// <returns>A string representing the TextUnit.</returns>
-        public override string ToString()
-        {
-            return $"{this.Text} {this.Type} ({this.TextUnit})";
-        }
+        public override string ToString() => $"{this.Text} {this.Type} ({this.TextUnit})";
     }
 }

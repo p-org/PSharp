@@ -38,8 +38,8 @@ namespace Microsoft.PSharp.LanguageServices
         private RewrittenTermBatch RewrittenCodeTermBatch;
 
         /// <summary>
-        /// The Projection Buffer information for mapping between the original P# buffer and the rewritten
-        /// C# buffer in this program.
+        /// The projection buffer information for mapping between the original
+        /// P# buffer and the rewritten C# buffer in this program.
         /// </summary>
         public ProjectionTree ProjectionTree { get; private set; }
 

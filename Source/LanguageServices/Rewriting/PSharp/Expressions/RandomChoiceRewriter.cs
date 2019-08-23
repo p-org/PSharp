@@ -54,8 +54,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var text = "this.Random()";
             this.Program.AddRewrittenTerm(node, text);
-
-            var rewritten = SyntaxFactory.ParseExpression(text);    // TODO: .WithTriviaFrom(node); ?
+            var rewritten = SyntaxFactory.ParseExpression(text); // TODO: .WithTriviaFrom(node); ?
             return rewritten;
         }
     }

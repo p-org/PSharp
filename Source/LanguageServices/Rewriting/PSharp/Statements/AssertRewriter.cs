@@ -53,7 +53,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var text = "this.Assert";
             this.Program.AddRewrittenTerm(node, text);
-
             var rewritten = node.WithExpression(SyntaxFactory.IdentifierName(text)).WithTriviaFrom(node);
             return rewritten;
         }

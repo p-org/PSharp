@@ -4,15 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
-    /// This class represents a list of instances of rewriting SyntaxNodes from P# terms to C# replacements.
+    /// This class represents a list of instances of rewriting syntax nodes from P# terms to C# replacements.
     /// </summary>
-    /// <remarks>TODO: Currently stubbed out and expanded in a separate branch</remarks>
     public class RewrittenTermBatch
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1801:ReviewUnusedParameters", Justification = "Temporary stub")]

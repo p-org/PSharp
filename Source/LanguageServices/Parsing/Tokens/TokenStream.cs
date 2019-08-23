@@ -32,7 +32,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// True if no tokens remaining in the stream.
         /// </summary>
         /// <remarks>
-        /// Use >= because in some cases of early end of string (e.g. VS Lang Service parsing) we may increment this twice.
+        /// Use >= because in some cases of early end of string (e.g. VS language
+        /// service parsing) we may increment this twice.
         /// </remarks>
         public bool Done => this.Index >= this.Length;
 
@@ -68,14 +69,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public TokenType PrevNonWhitespaceType()
         {
-            for (var ii = this.Index - 1; ii >= 0; --ii)
+            for (var i = this.Index - 1; i >= 0; --i)
             {
-                var tokType = this.Tokens[ii].Type;
+                var tokType = this.Tokens[i].Type;
                 switch (tokType)
                 {
                     case TokenType.WhiteSpace:
                     case TokenType.NewLine:
                         continue;
+
                     default:
                         return tokType;
                 }

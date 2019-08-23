@@ -52,7 +52,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var text = "this.ReceivedEvent";
             this.Program.AddRewrittenTerm(node, text);
-
             var rewritten = SyntaxFactory.ParseExpression(text).WithTriviaFrom(node);
             return rewritten;
         }

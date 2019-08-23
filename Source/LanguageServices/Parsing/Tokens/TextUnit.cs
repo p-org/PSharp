@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public int Length => this.Text.Length;
 
         /// <summary>
-        /// Sometimes we replace text so need this value
+        /// Sometimes we replace text so need this value.
         /// </summary>
         public int OriginalLength { get; private set; }
 

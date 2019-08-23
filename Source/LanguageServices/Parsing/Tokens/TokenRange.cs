@@ -8,34 +8,40 @@ using System.Linq;
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
-    /// Represents a range of tokens
+    /// Represents a range of tokens.
     /// </summary>
     public class TokenRange
     {
-        // The token stream being parsed
-        private readonly TokenStream tokenStream;
+        /// <summary>
+        /// The token stream being parsed.
+        /// </summary>
+        private readonly TokenStream TokenStream;
 
-        // The initial token index
-        private int startIndex;
+        /// <summary>
+        /// The initial token index.
+        /// </summary>
+        private int StartIndex;
 
-        // The final token index
-        private int stopIndex;
+        /// <summary>
+        /// The final token index.
+        /// </summary>
+        private int StopIndex;
 
         private const int NoStart = -1;
         private const int NoStop = -2;
         private const int PendingStop = -3;
 
-        internal TokenRange(TokenStream tokenStream) => this.tokenStream = tokenStream;
+        internal TokenRange(TokenStream tokenStream) => this.TokenStream = tokenStream;
 
         /// <summary>
-        /// Start recording if not already doing so
+        /// Start recording if not already doing so.
         /// </summary>
         internal TokenRange Start()
         {
             if (!this.IsStarted)
             {
-                this.startIndex = this.tokenStream.Index;
-                this.stopIndex = PendingStop;
+                this.StartIndex = this.TokenStream.Index;
+                this.StopIndex = PendingStop;
             }
 
             return this;
@@ -48,26 +54,25 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             if (!this.IsStarted)
             {
-                throw new InvalidOperationException("TokenRange not started");
+                throw new InvalidOperationException("TokenRange is not started.");
             }
 
-            this.stopIndex = this.tokenStream.Index;
+            this.StopIndex = this.TokenStream.Index;
             return this;
         }
 
         /// <summary>
         /// Return the string of the token range.
         /// </summary>
-        /// <returns>The string of the token range</returns>
         public string GetString()
         {
             if (!this.IsComplete)
             {
-                throw new InvalidOperationException("TokenRange not complete");
+                throw new InvalidOperationException("TokenRange is not complete.");
             }
 
-            return string.Concat(Enumerable.Range(this.startIndex, this.stopIndex - this.startIndex + 1)
-                                           .Select(index => this.tokenStream.GetAt(index).TextUnit.Text));
+            return string.Concat(Enumerable.Range(this.StartIndex, this.StopIndex - this.StartIndex + 1)
+                .Select(index => this.TokenStream.GetAt(index).TextUnit.Text));
         }
 
         /// <summary>
@@ -75,8 +80,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public void Clear()
         {
-            this.startIndex = NoStart;
-            this.stopIndex = NoStop;
+            this.StartIndex = NoStart;
+            this.StopIndex = NoStop;
         }
 
         /// <summary>
@@ -86,15 +91,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             if (!this.IsStarted)
             {
-                throw new InvalidOperationException("TokenRange not started");
+                throw new InvalidOperationException("TokenRange is not started.");
             }
 
             this.Stop();
-            var result = new TokenRange(this.tokenStream)
+            var result = new TokenRange(this.TokenStream)
             {
-                startIndex = this.startIndex,
-                stopIndex = this.stopIndex
+                StartIndex = this.StartIndex,
+                StopIndex = this.StopIndex
             };
+
             this.Clear();
             return result;
         }
@@ -102,40 +108,40 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// In some cases it is easier to increment this token-by-token.
         /// </summary>
-        internal void ExtendStop() => this.stopIndex = this.tokenStream.Index;
+        internal void ExtendStop() => this.StopIndex = this.TokenStream.Index;
 
         /// <summary>
         /// Verify that the token range is empty.
         /// </summary>
         internal void VerifyIsEmpty()
         {
-            // Note: We use this method rather than creating new TokenRange objects at lower levels to
+            // Note: we use this method rather than creating new TokenRange objects at lower levels to
             // provide another level of verification that Stop() is called correctly.
             if (!this.IsEmpty)
             {
-                throw new InvalidOperationException("TokenRange is not empty");
+                throw new InvalidOperationException("TokenRange is not empty.");
             }
         }
 
         /// <summary>
-        /// True if no range has been specified
+        /// True if no range has been specified.
         /// </summary>
-        internal bool IsEmpty => this.startIndex == NoStart && this.stopIndex == NoStop;
+        internal bool IsEmpty => this.StartIndex == NoStart && this.StopIndex == NoStop;
 
         /// <summary>
         /// True if range recording is started and waiting for a stop.
         /// </summary>
-        public bool IsStarted => this.stopIndex == PendingStop;
+        public bool IsStarted => this.StopIndex == PendingStop;
 
         /// <summary>
-        /// True if a complete range (start and stop index) is specified
+        /// True if a complete range (start and stop index) is specified.
         /// </summary>
-        public bool IsComplete => this.startIndex >= 0 && this.stopIndex >= 0;
+        public bool IsComplete => this.StartIndex >= 0 && this.StopIndex >= 0;
 
         /// <summary>
         /// The starting position of the token sequence in the original P# buffer.
         /// </summary>
-        public int StartPosition => this.tokenStream.GetAt(this.startIndex).TextUnit.Start;
+        public int StartPosition => this.TokenStream.GetAt(this.StartIndex).TextUnit.Start;
 
         /// <summary>
         /// Compute the length of the string cheaply.
@@ -144,7 +150,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             get
             {
-                var endToken = this.tokenStream.GetAt(this.stopIndex);
+                var endToken = this.TokenStream.GetAt(this.StopIndex);
                 return endToken.TextUnit.Start + endToken.TextUnit.Length - this.StartPosition;
             }
         }
@@ -152,16 +158,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Returns a string representation of the object.
         /// </summary>
-        /// <returns>A string representation of the object.</returns>
         public override string ToString()
         {
-            var startIndexString = this.startIndex == NoStart ? nameof(NoStart) : this.startIndex.ToString();
-            var stopIndexString = this.stopIndex == PendingStop
+            var startIndexString = this.StartIndex == NoStart ? nameof(NoStart) : this.StartIndex.ToString();
+            var stopIndexString = this.StopIndex == PendingStop
                 ? nameof(PendingStop)
-                : this.stopIndex == NoStop ? nameof(NoStop) : this.stopIndex.ToString();
+                : this.StopIndex == NoStop ? nameof(NoStop) : this.StopIndex.ToString();
             var resultString = this.IsComplete
                 ? this.GetString()
-                : this.startIndex >= 0 ? $"{this.tokenStream.GetAt(this.startIndex).TextUnit.ToString()}..." : "<not started>";
+                : this.StartIndex >= 0 ? $"{this.TokenStream.GetAt(this.StartIndex).TextUnit.ToString()}..." : "<not started>";
             return $"[{startIndexString} - {stopIndexString}] {resultString}";
         }
     }

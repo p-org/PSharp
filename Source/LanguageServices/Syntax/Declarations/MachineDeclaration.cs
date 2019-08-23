@@ -191,7 +191,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             this.TextUnit = this.MachineKeyword.TextUnit.WithText(text);
 
-            // ProjectionNode is updated as part of TypeofRewriter actions on this
+            // ProjectionNode is updated as part of TypeofRewriter actions on this.
             this.PopulateRewrittenMethodsWithStateQualifiedNames();
         }
 
@@ -360,14 +360,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             return text;
         }
 
-        private void ProcessEntryOrExitDeclaration<T>(StateDeclaration state, T declaration, ref string text, int indentLevel,
-                                                      ref string newLine, int offset)
-                                                      where T : PSharpSyntaxNode
+        private void ProcessEntryOrExitDeclaration<T>(StateDeclaration state, T declaration, ref string text,
+            int indentLevel, ref string newLine, int offset)
+            where T : PSharpSyntaxNode
         {
-            // This should be a local function but can't because of the ref parameter
+            // This should be a local function, but it cannot because of the ref parameter.
             if (declaration != null)
             {
-                // For the C# rewriting here, the parent is actually the machine instance
+                // For the C# rewriting here, the parent is actually the machine instance.
                 // on which the rewritten method resides.
                 state.ProjectionNode.AddChild(declaration.ProjectionNode, this.ProjectionNode);
                 declaration.Rewrite(indentLevel);

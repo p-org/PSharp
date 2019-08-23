@@ -17,12 +17,12 @@ namespace Microsoft.PSharp.LanguageServices
     internal class ParsingException : Exception
     {
         /// <summary>
-        /// List of errors.
+        /// Errors contained in the exception.
         /// </summary>
         internal string[] Errors { get; private set; }
 
         /// <summary>
-        /// List of warnings.
+        /// Warnings contained in the exception.
         /// </summary>
         internal string[] Warnings { get; private set; }
 

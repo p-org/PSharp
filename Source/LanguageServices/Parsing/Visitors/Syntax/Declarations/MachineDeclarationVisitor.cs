@@ -74,7 +74,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     this.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     var baseNameTokensVisitor = new NameVisitor(this.TokenStream, node.HeaderTokenRange);
-
                     node.BaseNameTokens = baseNameTokensVisitor.ConsumeGenericName(TokenType.MachineIdentifier);
                 }
             }

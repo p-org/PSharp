@@ -85,45 +85,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             return new Token(textUnit, replacementType);
         }
 
-#if false // TODO: Remove if not used
-        /// <summary>
-        /// Consumes a qualified event name from the tokenstream.
-        /// QEN = halt || default || * || QN
-        /// </summary>
-        internal List<Token> ConsumeQualifiedEventName(TokenType replacementType)
-        {
-            var qualifiedName = new List<Token>();
-
-            if (this.TokenStream.Done ||
-                (this.TokenStream.Peek().Type != TokenType.Identifier &&
-                this.TokenStream.Peek().Type != TokenType.MulOp &&
-                this.TokenStream.Peek().Type != TokenType.HaltEvent &&
-                this.TokenStream.Peek().Type != TokenType.DefaultEvent))
-            {
-                throw new ParsingException("Expected event identifier.", this.TokenStream.Peek(),
-                    TokenType.Identifier,
-                    TokenType.MulOp,
-                    TokenType.HaltEvent,
-                    TokenType.DefaultEvent);
-            }
-
-            if (this.TokenStream.Peek().Type == TokenType.MulOp ||
-                this.TokenStream.Peek().Type == TokenType.HaltEvent ||
-                this.TokenStream.Peek().Type == TokenType.DefaultEvent)
-            {
-                qualifiedName.Add(this.TokenStream.Peek());
-                this.TokenStream.Index++;
-                this.TokenStream.SkipWhiteSpaceAndCommentTokens();
-            }
-            else
-            {
-                qualifiedName = this.ConsumeQualifiedName(replacementType);
-            }
-
-            return qualifiedName;
-        }
-#endif // not used
-
         /// <summary>
         /// Consumes comma-separated names from the tokenstream.
         /// </summary>
@@ -156,7 +117,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             // Consumes qualified name.
             var qualifiedName = this.ConsumeQualifiedName(replacement);
 
-            // Consumes template parameters
+            // Consumes template parameters.
             qualifiedName.AddRange(this.ConsumeTemplateParams());
 
             return qualifiedName;

@@ -16,9 +16,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         protected override void TokenizeNext()
         {
             var unit = this.TextUnits[this.Index++];
-
             bool isQuotedString() => unit.Text.Length >= 2 && (unit.Text[0] == '"' || unit.Text[0] == '$') && unit.Text[unit.Text.Length - 1] == '"';
-
             this.Tokens.Add(isQuotedString() ? new Token(unit, TokenType.QuotedString) : this.GetFixedLengthToken(unit));
         }
 
