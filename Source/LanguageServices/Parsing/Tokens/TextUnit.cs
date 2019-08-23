@@ -1,4 +1,4 @@
-﻿usingusing System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

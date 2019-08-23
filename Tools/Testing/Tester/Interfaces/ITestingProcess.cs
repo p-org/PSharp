@@ -1,7 +1,5 @@
-﻿using
-#if NET46
+﻿#if NET46
 using System.ServiceModel;
-
 using Microsoft.PSharp.TestingServices.Coverage;
 #endif
 
