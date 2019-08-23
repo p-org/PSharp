@@ -2,7 +2,7 @@ Building P# from source
 =======================
 
 # Prerequisites
-Install [Visual Studio 2019](https://www.visualstudio.com/downloads/) and [.NET Core](https://www.microsoft.com/net/core) version "2.2.401" from [here](https://www.microsoft.com/net/core). Also install all the SDK versions of the .NET Framework that P# currently supports (4.5 and 4.6) from [here](https://www.microsoft.com/net/download/archives).
+Install [Visual Studio 2019](https://www.visualstudio.com/downloads/) and if necessary a version of [.NET Core](https://dotnet.microsoft.com/download/dotnet-core) that matches the version specified in the [global.json](../global.json) file. See [version matching rules](https://docs.microsoft.com/en-us/dotnet/core/tools/global-json).  Also install all the SDK versions of the .NET Framework that P# currently supports (4.5 and 4.6) from [here](https://www.microsoft.com/net/download/archives).
 
 Optional: Get the [Visual Studio 2019 SDK](https://docs.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2019
 ) to be able to compile the P# visual studio extension (syntax highlighting). Only for the high-level P# language.

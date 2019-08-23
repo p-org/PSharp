@@ -17,6 +17,9 @@ Function FindInPath() {
     return $null
 }
 
+$json = Get-Content '$PSScriptRoot\..\global.json' | Out-String | ConvertFrom-Json
+$pattern = $json.sdk.version.Trim("0") + "*"
+
 $dotnet=$dotnet.Replace(".exe","")
 $versions = $null
 $dotnetpath=FindInPath "$dotnet.exe"
@@ -26,12 +29,13 @@ if ($dotnetpath -is [array]){
 $sdkpath = Join-Path -Path $dotnetpath -ChildPath "sdk"
 if (-not ("" -eq $dotnetpath))
 {
-    $versions = Get-ChildItem "$sdkpath"  -directory | Where-Object {$_ -like "2.2.1*"}
+    $versions = Get-ChildItem "$sdkpath"  -directory | Where-Object {$_ -like $pattern}
 }
 
 if ($null -eq $versions)
 {
-    Write-Comment -text "Please install dotnet sdk version 2.2.105 from https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-2.2.105-windows-x64-installer." -color "yellow"
+    Write-Comment -text "The global.json file is pointing to version: $pattern but no matching version was found in $sdkpath." -color "yellow"
+    Write-Comment -text "Please install dotnet sdk version $pattern from https://dotnet.microsoft.com/download/dotnet-core." -color "yellow"
     exit
 }
 else
