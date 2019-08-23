@@ -18,6 +18,11 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The machine has handled an event.
         /// </summary>
-        EventHandled
+        EventHandled,
+
+        /// <summary>
+        /// The machine has dequeued an event that cannot be handled.
+        /// </summary>
+        EventUnhandled
     }
 }

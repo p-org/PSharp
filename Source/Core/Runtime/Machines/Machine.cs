@@ -621,7 +621,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private async Task HandleEvent(Event e)
         {
-            var currentState = this.CurrentStateName;
+            Type currentState = this.CurrentState;
 
             while (true)
             {
@@ -635,7 +635,15 @@ namespace Microsoft.PSharp
                         return;
                     }
 
-                    var unhandledEx = new UnhandledEventException(currentState, e, "Unhandled Event");
+                    string currentStateName = NameResolver.GetQualifiedStateName(currentState);
+                    await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventUnhandled, e, currentStateName);
+                    if (this.IsHalted)
+                    {
+                        // Invoking a user callback caused the machine to halt.
+                        return;
+                    }
+
+                    var unhandledEx = new UnhandledEventException(currentStateName, e, "Unhandled Event");
                     if (this.OnUnhandledEventExceptionHandler(nameof(this.HandleEvent), unhandledEx))
                     {
                         this.HaltMachine();
@@ -884,7 +892,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the specified event handler user callback.
         /// </summary>
-        private async Task ExecuteUserCallbackAsync(EventHandlerStatus eventHandlerStatus, Event lastDequeuedEvent)
+        private Task ExecuteUserCallbackAsync(EventHandlerStatus eventHandlerStatus, Event lastDequeuedEvent, string currentState = default)
         {
             try
             {
@@ -892,7 +900,7 @@ namespace Microsoft.PSharp
                 {
                     try
                     {
-                        await this.OnEventDequeueAsync(lastDequeuedEvent);
+                        return this.OnEventDequeueAsync(lastDequeuedEvent);
                     }
                     catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventDequeueAsync), ex))
                     {
@@ -903,9 +911,20 @@ namespace Microsoft.PSharp
                 {
                     try
                     {
-                        await this.OnEventHandledAsync(lastDequeuedEvent);
+                        return this.OnEventHandledAsync(lastDequeuedEvent);
                     }
                     catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventHandledAsync), ex))
+                    {
+                        // User handled the exception, return normally.
+                    }
+                }
+                else if (eventHandlerStatus is EventHandlerStatus.EventUnhandled)
+                {
+                    try
+                    {
+                        return this.OnEventUnhandledAsync(lastDequeuedEvent, currentState);
+                    }
+                    catch (Exception ex) when (this.OnExceptionHandler(nameof(this.OnEventUnhandledAsync), ex))
                     {
                         // User handled the exception, return normally.
                     }
@@ -950,8 +969,14 @@ namespace Microsoft.PSharp
                     {
                         this.ReportUnhandledException(innerException, nameof(this.OnEventHandledAsync));
                     }
+                    else if (eventHandlerStatus is EventHandlerStatus.EventUnhandled)
+                    {
+                        this.ReportUnhandledException(innerException, nameof(this.OnEventUnhandledAsync));
+                    }
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -1655,6 +1680,7 @@ namespace Microsoft.PSharp
         /// an event from its inbox. This method is not called when the dequeue
         /// happens via a Receive statement.
         /// </summary>
+        /// <param name="e">The event that was dequeued.</param>
         protected virtual Task OnEventDequeueAsync(Event e) => Task.CompletedTask;
 
         /// <summary>
@@ -1663,7 +1689,17 @@ namespace Microsoft.PSharp
         /// halt (either normally or due to an exception). Unless this callback raises an event,
         /// the machine will either become idle or dequeue the next event from its inbox.
         /// </summary>
+        /// <param name="e">The event that was handled.</param>
         protected virtual Task OnEventHandledAsync(Event e) => Task.CompletedTask;
+
+        /// <summary>
+        /// User callback that is invoked when the machine receives an event that it is not prepared
+        /// to handle. The callback is invoked first, after which the machine will necessarily throw
+        /// an <see cref="UnhandledEventException"/>
+        /// </summary>
+        /// <param name="e">The event that was unhandled.</param>
+        /// <param name="currentState">The state of the machine when the event was dequeued.</param>
+        protected virtual Task OnEventUnhandledAsync(Event e, string currentState) => Task.CompletedTask;
 
         /// <summary>
         /// User callback that is invoked when a machine halts.
