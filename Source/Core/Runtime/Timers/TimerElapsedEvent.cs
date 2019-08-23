@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Timers
+﻿namespace Microsoft.PSharp.Timers
 {
     /// <summary>
     /// Defines a timer elapsed event that is sent from a timer to the machine that owns the timer.

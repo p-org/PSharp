@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong
+﻿namespace PingPong
 {
     /// <summary>
     /// This machine acts as a test harness. It models a network environment,

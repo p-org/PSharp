@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Interface for random number generators.

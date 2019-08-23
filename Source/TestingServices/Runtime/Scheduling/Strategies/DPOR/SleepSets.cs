@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
 {
     /// <summary>
     /// Sleep sets is a reduction technique that can be in addition to DPOR or on its own.

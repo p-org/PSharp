@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Runtime
+﻿namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The exception that is thrown in a P# machine upon cancellation

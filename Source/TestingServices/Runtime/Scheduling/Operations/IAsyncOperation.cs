@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// Interface of an asynchronous operation that can be scheduled during testing.

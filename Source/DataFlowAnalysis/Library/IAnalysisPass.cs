@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.DataFlowAnalysis
+﻿namespace Microsoft.PSharp.DataFlowAnalysis
 {
     /// <summary>
     /// Interface of a generic analysis pass.

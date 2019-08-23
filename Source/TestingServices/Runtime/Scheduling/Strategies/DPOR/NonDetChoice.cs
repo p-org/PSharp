@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
 {
     /// <summary>
     /// Stores the outcome of a nondetereminstic (nondet) choice.

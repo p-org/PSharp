@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.SharedObjects
+﻿namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
     /// Event containing the value of a shared register.

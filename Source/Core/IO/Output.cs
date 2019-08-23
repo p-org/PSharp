@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.IO
+﻿namespace Microsoft.PSharp.IO
 {
     /// <summary>
     /// Static class implementing output methods.

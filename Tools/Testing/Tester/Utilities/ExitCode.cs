@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices
+﻿namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
     /// The exit code returned by the tester.

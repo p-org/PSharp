@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
+﻿namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {
     /// <summary>
     /// The schedule step type.

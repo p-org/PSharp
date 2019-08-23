@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.SharedObjects
+﻿namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
     /// Interface of a shared counter.

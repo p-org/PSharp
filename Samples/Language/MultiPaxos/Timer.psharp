@@ -1,5 +1,4 @@
-﻿using
-namespace MultiPaxos
+﻿namespace MultiPaxos
 {
     machine Timer
     {

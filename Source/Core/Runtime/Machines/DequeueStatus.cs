@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Runtime
+﻿namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// The status returned as the result of a dequeue operation.

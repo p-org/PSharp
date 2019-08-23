@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Runtime
+﻿namespace Microsoft.PSharp.Runtime
 {
     /// <summary>
     /// Defines an action binding.

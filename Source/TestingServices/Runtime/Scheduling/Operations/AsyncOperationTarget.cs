@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
     /// The target of an operation performed by an asynchronous task.

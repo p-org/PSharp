@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Visualization
+﻿namespace Microsoft.PSharp.Visualization
 {
     /// <summary>
     /// Class implementing a bug trace object.

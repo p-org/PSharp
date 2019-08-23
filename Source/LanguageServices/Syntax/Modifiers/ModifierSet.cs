@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.LanguageServices.Syntax
+﻿namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// The set of modifiers for a P# declaration.

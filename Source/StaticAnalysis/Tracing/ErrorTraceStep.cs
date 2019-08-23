@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.StaticAnalysis
+﻿namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// Class implementing an error trace step.

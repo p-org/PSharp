@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.DataFlowAnalysis
+﻿namespace Microsoft.PSharp.DataFlowAnalysis
 {
     /// <summary>
     /// Interface for a node.

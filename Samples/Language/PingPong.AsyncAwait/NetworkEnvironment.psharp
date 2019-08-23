@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong.AsyncAwait
+﻿namespace PingPong.AsyncAwait
 {
     /// <summary>
     /// This machine acts as a test harness. It models a network environment,

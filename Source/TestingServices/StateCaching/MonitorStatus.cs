@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.StateCaching
+﻿namespace Microsoft.PSharp.TestingServices.StateCaching
 {
     /// <summary>
     /// Monitor status.

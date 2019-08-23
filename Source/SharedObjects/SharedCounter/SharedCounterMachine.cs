@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.SharedObjects
+﻿namespace Microsoft.PSharp.SharedObjects
 {
     /// <summary>
     /// A shared counter modeled using a state-machine for testing.

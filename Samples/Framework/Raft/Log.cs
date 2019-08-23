@@ -1,5 +1,4 @@
-﻿using
-namespace Raft
+﻿namespace Raft
 {
     internal class Log
     {

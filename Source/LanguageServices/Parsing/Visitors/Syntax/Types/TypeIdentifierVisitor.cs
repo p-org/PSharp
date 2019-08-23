@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+﻿namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
     /// The P# type identifier parsing visitor.

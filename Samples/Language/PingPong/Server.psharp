@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong
+﻿namespace PingPong
 {
     /// <summary>
     /// A P# machine that models a simple server.

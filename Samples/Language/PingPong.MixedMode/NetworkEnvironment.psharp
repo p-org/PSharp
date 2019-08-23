@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong.MixedMode
+﻿namespace PingPong.MixedMode
 {
     internal machine NetworkEnvironment
     {

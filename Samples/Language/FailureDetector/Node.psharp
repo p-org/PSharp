@@ -1,5 +1,4 @@
-﻿using
-namespace FailureDetector
+﻿namespace FailureDetector
 {
 	/// <summary>
     /// Implementation of a simple node.

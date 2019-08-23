@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp
+﻿namespace Microsoft.PSharp
 {
     /// <summary>
     /// Represents a send event configuration that is used during testing.

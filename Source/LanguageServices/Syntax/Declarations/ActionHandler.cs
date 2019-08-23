@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.LanguageServices.Syntax
+﻿namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Anonymous action handler syntax node.

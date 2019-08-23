@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
+﻿namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies.DPOR
 {
     /// <summary>
     /// Represents a race (two visible operation that are concurrent but dependent)

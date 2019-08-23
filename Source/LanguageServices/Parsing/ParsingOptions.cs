@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.LanguageServices.Parsing
+﻿namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
     /// The P# parsing options.

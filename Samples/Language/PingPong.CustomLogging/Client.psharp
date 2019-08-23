@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong.CustomLogging
+﻿namespace PingPong.CustomLogging
 {
     internal machine Client
     {

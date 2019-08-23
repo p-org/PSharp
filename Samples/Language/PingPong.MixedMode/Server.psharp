@@ -1,5 +1,4 @@
-﻿using
-namespace PingPong.MixedMode
+﻿namespace PingPong.MixedMode
 {
     /// <summary>
     /// We use the partial keyword to declare the high-level state-machine

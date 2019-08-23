@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.LanguageServices.Syntax
+﻿namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// P# access modifiers.

@@ -1,5 +1,4 @@
-﻿using
-namespace Microsoft.PSharp.Utilities
+﻿namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// P# compilation target.
