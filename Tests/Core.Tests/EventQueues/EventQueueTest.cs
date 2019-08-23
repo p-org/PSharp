@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
 
             // Small delay to force ordering.
-            await Task.Delay(100);
+            await Task.Delay(300);
 
             var enqueueStatus = queue.Enqueue(new E1(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
 
             // Small delay to force ordering.
-            await Task.Delay(100);
+            await Task.Delay(300);
 
             var enqueueStatus = queue.Enqueue(new E4(false), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
@@ -345,7 +345,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
 
             // Small delay to force ordering.
-            await Task.Delay(100);
+            await Task.Delay(300);
 
             var enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.Received, enqueueStatus);
@@ -388,7 +388,7 @@ namespace Microsoft.PSharp.Core.Tests
             });
 
             // Small delay to force ordering.
-            await Task.Delay(100);
+            await Task.Delay(300);
 
             var enqueueStatus = queue.Enqueue(new E2(), Guid.Empty, null);
             Assert.Equal(EnqueueStatus.EventHandlerRunning, enqueueStatus);
