@@ -76,10 +76,10 @@ Machine: M1
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Next States: Done
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -132,10 +132,10 @@ Machine: M2
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Next States: Done
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -203,18 +203,18 @@ Machine: M3A
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Events Received: E
-                Next States: Done
+                Events received: E
+                Next states: Done
         State: Done
                 State event coverage: 100.0%
-                Previous States: Init
+                Previous states: Init
 
 Machine: M3B
 ***************
 Machine event coverage: 100.0%
         State: Init
                 State event coverage: 100.0%
-                Events Sent: E
+                Events sent: E
 ";
 
             expected = RemoveExcessiveEmptySpaceFromReport(expected);
@@ -285,6 +285,78 @@ Machine event coverage: 100.0%
             }
 
             Assert.Equal(coverageReport1, coverageReport2);
+        }
+
+        private class E1 : Event
+        {
+        }
+
+        private class E2 : Event
+        {
+        }
+
+        internal class M5 : Machine
+        {
+            [Start]
+            [OnEventGotoState(typeof(E1), typeof(Done))]
+            [OnEventGotoState(typeof(E2), typeof(Done))]
+            internal class Init : MachineState
+            {
+            }
+
+            internal class Done : MachineState
+            {
+            }
+        }
+
+        [Fact(Timeout = 5000)]
+        public void TestUncoveredEvents()
+        {
+            var configuration = Configuration.Create().WithVerbosityEnabled();
+            configuration.ReportActivityCoverage = true;
+
+            ITestingEngine testingEngine = this.Test(r =>
+            {
+                var m = r.CreateMachine(typeof(M5));
+                r.SendEvent(m, new E1());
+            },
+            configuration);
+
+            string result;
+            var activityCoverageReporter = new ActivityCoverageReporter(testingEngine.TestReport.CoverageInfo);
+            using (var writer = new StringWriter())
+            {
+                activityCoverageReporter.WriteCoverageText(writer);
+                result = RemoveNamespaceReferencesFromReport(writer.ToString());
+                result = RemoveExcessiveEmptySpaceFromReport(result);
+            }
+
+            var expected = @"Total event coverage: 50.0%
+Machine: M5
+***************
+Machine event coverage: 50.0%
+
+	State: Init
+		State event coverage: 50.0%
+		Events received: E1 
+		Events not covered: E2 
+		Next states: Done 
+
+	State: Done
+		State event coverage: 100.0%
+		Previous states: Init 
+
+Machine: Env
+***************
+Machine event coverage: 100.0%
+
+	State: Env
+		State event coverage: 100.0%
+		Events sent: E1 
+";
+
+            expected = RemoveExcessiveEmptySpaceFromReport(expected);
+            Assert.Equal(expected, result);
         }
     }
 }
