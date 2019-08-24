@@ -42,9 +42,14 @@ namespace Microsoft.PSharp.Runtime
         protected readonly ConcurrentDictionary<MachineId, AsyncMachine> MachineMap;
 
         /// <summary>
+        /// The log writer.
+        /// </summary>
+        protected internal RuntimeLogWriter LogWriter { get; private set; }
+
+        /// <summary>
         /// The installed logger.
         /// </summary>
-        public ILogger Logger { get; private set; }
+        public ILogger Logger => this.LogWriter.Logger;
 
         /// <summary>
         /// Callback that is fired when the P# program throws an exception.
@@ -64,8 +69,11 @@ namespace Microsoft.PSharp.Runtime
             this.Configuration = configuration;
             this.MachineMap = new ConcurrentDictionary<MachineId, AsyncMachine>();
             this.MachineIdCounter = 0;
-            this.Logger = configuration.IsVerbose ?
-                (ILogger)new ConsoleLogger(true) : new DisposingLogger();
+            this.LogWriter = new RuntimeLogWriter
+            {
+                Logger = configuration.IsVerbose ? (ILogger)new ConsoleLogger() : new DisposingLogger()
+            };
+
             this.IsRunning = true;
         }
 
@@ -589,11 +597,49 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Installs the specified <see cref="ILogger"/>.
+        /// Use this method to override the <see cref="RuntimeLogWriter"/> for writing
+        /// and formatting log messages. The log writer uses the default or previously
+        /// installed <see cref="ILogger"/> and <see cref="IRuntimeLogFormatter"/>. To
+        /// set a new logger use <see cref="IMachineRuntime.SetLogger"/>, and to set a
+        /// new formatter use <see cref="IMachineRuntime.SetLogFormatter"/>.
+        /// </summary>
+        public void SetLogWriter(RuntimeLogWriter logWriter)
+        {
+            var logger = this.LogWriter.Logger;
+            var formatter = this.LogWriter.Formatter;
+            this.LogWriter = logWriter ?? throw new InvalidOperationException("Cannot install a null log writer.");
+            this.SetLogger(logger);
+            this.SetLogFormatter(formatter);
+        }
+
+        /// <summary>
+        /// Use this method to override the default <see cref="ILogger"/> for logging messages.
         /// </summary>
         public void SetLogger(ILogger logger)
         {
-            this.Logger = logger ?? throw new InvalidOperationException("Cannot install a null logger.");
+            if (this.LogWriter != null)
+            {
+                this.LogWriter.Logger = logger ?? throw new InvalidOperationException("Cannot install a null logger.");
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot install a logger on a null log writer.");
+            }
+        }
+
+        /// <summary>
+        /// Use this method to override the default <see cref="IRuntimeLogFormatter"/> for formatting log messages.
+        /// </summary>
+        public void SetLogFormatter(IRuntimeLogFormatter logFormatter)
+        {
+            if (this.LogWriter != null)
+            {
+                this.LogWriter.Formatter = logFormatter ?? throw new InvalidOperationException("Cannot install a null log formatter.");
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot install a log formatter on a null log writer.");
+            }
         }
 
         /// <summary>

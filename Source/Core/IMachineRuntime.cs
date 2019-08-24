@@ -312,10 +312,23 @@ namespace Microsoft.PSharp
         Guid GetCurrentOperationGroupId(MachineId currentMachineId);
 
         /// <summary>
-        /// Installs the specified <see cref="ILogger"/>.
+        /// Use this method to override the <see cref="RuntimeLogWriter"/> for writing
+        /// and formatting log messages. The log writer uses the default or previously
+        /// installed <see cref="ILogger"/> and <see cref="IRuntimeLogFormatter"/>. To
+        /// set a new logger use <see cref="IMachineRuntime.SetLogger"/>, and to set a
+        /// new formatter use <see cref="IMachineRuntime.SetLogFormatter"/>.
         /// </summary>
-        /// <param name="logger">The logger to install.</param>
+        void SetLogWriter(RuntimeLogWriter logWriter);
+
+        /// <summary>
+        /// Use this method to override the default <see cref="ILogger"/> for logging messages.
+        /// </summary>
         void SetLogger(ILogger logger);
+
+        /// <summary>
+        /// Use this method to override the default <see cref="IRuntimeLogFormatter"/> for formatting log messages.
+        /// </summary>
+        void SetLogFormatter(IRuntimeLogFormatter logFormatter);
 
         /// <summary>
         /// Terminates the runtime and notifies each active machine to halt execution.

@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
 
         internal static void Succeeded(Configuration configuration, string test, bool isPSharpProgram = true)
         {
-            InMemoryLogger logger = new InMemoryLogger(true);
+            InMemoryLogger logger = new InMemoryLogger();
 
             try
             {
@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
 
         internal static void Failed(Configuration configuration, string test, int numExpectedErrors, string expectedOutput, bool isPSharpProgram = true)
         {
-            InMemoryLogger logger = new InMemoryLogger(true);
+            InMemoryLogger logger = new InMemoryLogger();
 
             try
             {
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests
 
         internal static void FailedAndWarning(Configuration configuration, string test, int numExpectedErrors, int numExpectedWarnings, string expectedOutput, bool isPSharpProgram = true)
         {
-            InMemoryLogger logger = new InMemoryLogger(true);
+            InMemoryLogger logger = new InMemoryLogger();
             configuration.ShowWarnings = true;
 
             try

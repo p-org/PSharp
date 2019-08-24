@@ -13,7 +13,7 @@ namespace Microsoft.PSharp.IO
         /// <summary>
         /// The underlying logger.
         /// </summary>
-        internal static ILogger Logger = new ConsoleLogger(true);
+        internal static ILogger Logger = new ConsoleLogger();
 
         /// <summary>
         ///  Writes the specified string value to the output stream.
