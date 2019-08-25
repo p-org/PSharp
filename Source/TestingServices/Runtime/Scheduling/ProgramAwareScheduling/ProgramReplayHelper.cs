@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         // Would ideally have been a priority queue on the totalOrderingIndex field
         private readonly HashSet<ProgramStep> EnabledSteps;
 
-        private readonly Dictionary<ProgramStep, ulong> MatchingSendIndices;
+        internal readonly Dictionary<ProgramStep, ulong> MatchingSendIndices;
         // Maps a MachineId in our partial order to the actual one in the run
         private readonly Dictionary<ulong, ulong> MachineIdRemap;
         private readonly HashSet<ProgramStep> DroppedSteps;
@@ -68,14 +68,26 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         }
 
         /// <summary>
-        /// Writtens the list of steps which can be scheduled, while respecting the partial order.
+        /// Returns the list of operations which can be scheduled, while respecting the partial order.
         /// </summary>
-        /// <returns>The list of candidate steps ( or the first )</returns>
-        public List<ProgramStep> GetNextSchedulableSteps()
+        /// <returns>The list of candidate operations</returns>
+        public List<ProgramStep> GetNextEnabledOperations()
         {
             return this.EnabledSteps.Where( step =>
-                    step.ProgramStepType == ProgramStepType.SchedulableStep &&
+                    (step.ProgramStepType == ProgramStepType.SchedulableStep || step.ProgramStepType == ProgramStepType.ExplicitReceiveComplete) &&
                     this.NullOrSeen(step.PrevInboxOrderingStep) && this.NullOrSeenAll(step.PrevMonitorSteps)).ToList();
+        }
+
+        /// <summary>
+        /// Writtens the list of steps which have all dependencies satisfied, but are not of type Schedulable.
+        /// For example, Explicit Receive wait/receives steps, NonDet choices.
+        /// </summary>
+        /// <returns>The list of candidate steps ( or the first )</returns>
+        public List<ProgramStep> GetNextNonSchedulableSteps()
+        {
+            return this.EnabledSteps.Where(step =>
+                   step.ProgramStepType != ProgramStepType.SchedulableStep &&
+                   this.NullOrSeen(step.PrevInboxOrderingStep) && this.NullOrSeenAll(step.PrevMonitorSteps)).ToList();
         }
 
         /// <summary>
@@ -84,15 +96,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <returns>the boolean choice that was taken at this point</returns>
         public ProgramStep GetNextBooleanStep()
         {
-            // List<ProgramStep> candidateSteps = this.EnabledSteps.Where(s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetBoolStep).ToList();
-            // return candidateSteps.Count > 0 ? candidateSteps[0] : null;
             return this.EnabledSteps.FirstOrDefault(s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetBoolStep);
         }
 
         internal Dictionary<ProgramStep, IAsyncOperation> GetEnabledSteps(List<IAsyncOperation> enabledOpsList)
         {
             Dictionary<ulong, IAsyncOperation> enabledOps = enabledOpsList.ToDictionary(x => x.SourceId);
-            IEnumerable<ProgramStep> enabled = this.GetNextSchedulableSteps().Where( s => enabledOps.ContainsKey( this.MachineIdRemap[s.SrcId] ) && s.OpType == enabledOps[this.MachineIdRemap[s.SrcId]].Type).ToList();
+            IEnumerable<ProgramStep> enabled = this.GetNextEnabledOperations().Where( s => enabledOps.ContainsKey( this.MachineIdRemap[s.SrcId] ) && s.OpType == enabledOps[this.MachineIdRemap[s.SrcId]].Type).ToList();
             IEnumerable<ProgramStep> badReceives = enabled.Where(s => s.OpType == AsyncOperationType.Receive && this.MatchingSendIndices[s.CreatorParent] != enabledOps[this.MachineIdRemap[s.SrcId]].MatchingSendIndex).ToList();
             return enabled.Except(badReceives).ToDictionary( x => x, x => enabledOps[this.MachineIdRemap[x.SrcId]]);
         }
@@ -104,8 +114,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public ProgramStep GetNextIntegerStep()
         {
             return this.EnabledSteps.FirstOrDefault(s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetIntStep);
-            // List<ProgramStep> candidateSteps = this.EnabledSteps.Where(s => s.SrcId == this.CurrentStep.SrcId && s.ProgramStepType == ProgramStepType.NonDetIntStep).ToList();
-            // return candidateSteps.Count > 0 ? candidateSteps[0] : null;
         }
 
         /// <summary>
@@ -137,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             if ( step.OpType == AsyncOperationType.Send )
             {
-                this.MatchingSendIndices[step] = (ulong)scheduleIndex;
+                this.MatchingSendIndices.Add(step, (ulong)scheduleIndex);
             }
 
             if (step.OpType == AsyncOperationType.Receive)
@@ -212,6 +220,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         public ProgramStep GetCurrentStep()
         {
             return this.CurrentStep;
+        }
+
+        /// <summary>
+        /// Maps the provided machineId in the original program
+        /// to the new machineId in the program now executing
+        /// </summary>
+        /// <param name="oldMachineId">The machineId in the previous program</param>
+        /// <returns>The machineId in the new program</returns>
+        public ulong MapOldToNewMachineId(ulong oldMachineId)
+        {
+            return this.MachineIdRemap[oldMachineId];
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp.TestingClientInterface.SimpleImplementation;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.ProgramAware;
@@ -14,13 +15,18 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
     public class TestingReporter : IMetricReporter
     {
         public readonly ISchedulingStrategy Strategy;
-        public ProgramModelSummary ProgramSummary;
 
-        public bool BugFound { get; private set; }
+        public List<ProgramModelSummary> ProgramSummaries { get; private set; }
+
+        public ProgramModelSummary ProgramSummary
+            => this.ProgramSummaries.Count > 0 ?
+                    this.ProgramSummaries[this.ProgramSummaries.Count - 1] :
+                    null;
 
         public TestingReporter(ISchedulingStrategy strategy)
         {
             this.Strategy = strategy;
+            this.ProgramSummaries = new List<ProgramModelSummary>();
         }
 
         public string GetReport()
@@ -30,8 +36,7 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
 
         public void RecordIteration(ISchedulingStrategy strategy, bool bugFound)
         {
-            this.BugFound = bugFound;
-            this.ProgramSummary = (strategy as AbstractBaseProgramModelStrategy).GetProgramSummary();
+            this.ProgramSummaries.Add((strategy as AbstractBaseProgramModelStrategy).GetProgramSummary());
         }
     }
 }

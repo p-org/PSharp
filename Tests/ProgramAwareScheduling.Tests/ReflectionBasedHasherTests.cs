@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareScheduling.ProgramModel;
 using Xunit;
 
-namespace Microsoft.PSharp.TestingServices.Tests.ProgramAware
+namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
 {
     public class ReflectionBasedHasherTests
     {

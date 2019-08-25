@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
                 {
                                 Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Create),
                                 Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send),
-                                Tuple.Create(TreeEdgeType.Created, ProgramStepType.SpecialProgramStepType, AsyncOperationType.Receive)
+                                Tuple.Create(TreeEdgeType.Created, ProgramStepType.ExplicitReceiveComplete, AsyncOperationType.Receive)
                 }),
                 "The tree was not as expected - CreatedStep between send and explicit receive");
 
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send),
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send),
                     Tuple.Create(TreeEdgeType.Created, ProgramStepType.SchedulableStep, AsyncOperationType.Receive),
-                    Tuple.Create(TreeEdgeType.Inbox, ProgramStepType.SpecialProgramStepType, AsyncOperationType.Receive),
+                    Tuple.Create(TreeEdgeType.Inbox, ProgramStepType.ExplicitReceiveComplete, AsyncOperationType.Receive),
                 }),
                 "The tree was not as expected - InboxOrdering between natural & explicit receives is not set");
         }
@@ -100,11 +100,11 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Create),
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Create),
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // runtime.send(receiver, fwdEvent)
-                    Tuple.Create(TreeEdgeType.Created, ProgramStepType.SpecialProgramStepType, AsyncOperationType.Receive), // receiver.receive(fwdEvent)
+                    Tuple.Create(TreeEdgeType.Created, ProgramStepType.ExplicitReceiveComplete, AsyncOperationType.Receive), // receiver.receive(fwdEvent)
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // receiver.send(forwarder, fwdEvent)
                     Tuple.Create(TreeEdgeType.Created, ProgramStepType.SchedulableStep, AsyncOperationType.Receive), // forwarder.receive(fwdEvent)
                     Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // forwarder.send(receiver, fwdEvent)
-                    Tuple.Create(TreeEdgeType.Created, ProgramStepType.SpecialProgramStepType, AsyncOperationType.Receive), // receiver.receive(fwdEvent) - This is with waiting
+                    Tuple.Create(TreeEdgeType.Created, ProgramStepType.ExplicitReceiveComplete, AsyncOperationType.Receive), // receiver.receive(fwdEvent) - This is with waiting
                 }),
                 "The tree was not as expected - Created step for explicit receive is not set");
         }

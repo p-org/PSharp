@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
             => this.ChildStrategy.ForceNextIntegerChoice(maxValue, next);
 
         /// <inheritdoc/>
-        public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public override bool GetNextOperation(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
             // TODO
             return this.ChildStrategy.GetNext(out next, ops, current);

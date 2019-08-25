@@ -42,25 +42,6 @@ namespace Microsoft.PSharp.TestingClientInterface
 
         public abstract void StrategyReset();
 
-#if THIS_WAS_A_GOOD_IDEA
-        // Can't touch this :p
-        public bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configurationForNextIter)
-        {
-            // Noooope. Let's not give a Configuration object to the programmer.
-            if (this.StrategyPrepareForNextIteration(out nextStrategy, out int maxSteps))
-            {
-                this.ActiveStrategy = nextStrategy;
-                this.Configuration.MaxUnfairSchedulingSteps = maxSteps;
-                this.UpdateConfiguration();
-                return true;
-            }
-            else
-            {
-                this.ActiveStrategy = null;
-                return false;
-            }
-        }
-#endif
         public bool StrategyPrepareForNextIteration(out ISchedulingStrategy nextStrategy, Configuration configurationForNextIter)
         {
             // Noooope. Let's not give a Configuration object to the programmer.

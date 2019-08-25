@@ -44,13 +44,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// </summary>
         public readonly ProgramStep CriticalTransition;
         /// <param name="criticalTransition">the critical transition step</param>
-        
-        /// <summary>
-        /// if this is a safety bug - 0
-        /// If this is a liveness bug, the temperature above which hot states are considered liveness violations.
-        /// </summary>
-        public readonly int LivenessTemperatureTreshold;
-        /// <param name="livenessTemperatureTreshold">The liveness temperature treshold</param>
 #endif
 
         /// <summary>

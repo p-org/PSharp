@@ -57,14 +57,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
             return objectHash;
         }
-#if NOPE_NOPE_NOPE
-        /// <summary>
-        /// Attribute to mark that this field should be skipped while computing the hash for this object.
-        /// </summary>
-        [AttributeUsage(AttributeTargets.Field, Inherited = false)]
-        public sealed class ExcludeFromFingerprintAttribute : Attribute
-        {
-        }
-#endif
     }
 }

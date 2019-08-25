@@ -19,6 +19,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 {
     internal class ProgramModel
     {
+        /// <summary>
+        /// If true, the program model appends a ExplicitReceiveCalled step
+        /// as NextMachineStep of the step which called the explicit Receive
+        /// </summary>
+        public const bool MustCreateExplicitReceiveCalledStep = true;
+
         private const bool ConnectSuccessiveHandlers = false;
         // if true, check if the monitor was indeed invoked by the machine executing CurrentStep
         private const bool AllowRuntimeInvokeMonitor = true;
@@ -99,7 +105,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 return;
             }
 
-            if (programStep.ProgramStepType == ProgramStepType.SchedulableStep)
+            if (programStep.ProgramStepType == ProgramStepType.SchedulableStep ||
+                programStep.ProgramStepType == ProgramStepType.ExplicitReceiveComplete)
             {
                 switch (programStep.OpType)
                 {
@@ -171,31 +178,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal void RecordReceiveCalled(Machine machine)
         {
-#if CREATE_EXPLICIT_RECEIVE_CALLED_STEP
-            ProgramStep lastStep = this.MachineIdToLastStep[machine.Id.Value];
-            ProgramStep explicitReceiveCalledStep = ProgramStep.CreateSpecialProgramStep(machine.Id.Value, null, null, AsyncOperationType.Receive);
-            SetMachineThreadRelation(lastStep, explicitReceiveCalledStep);
-            this.MachineIdToLastStep[machine.Id.Value] = explicitReceiveCalledStep;
-#endif
-        }
-
-        internal void RecordExplicitReceive(Machine receiverMachine, ProgramStepEventInfo pEventInfo)
-        {
-            // The send step should exist
-            ulong receiverId = receiverMachine.Id.Value;
-            ProgramStep receiveStep = ProgramStep.CreateSpecialProgramStep(receiverId, null, null, AsyncOperationType.Receive);
-            receiveStep.EventInfo = pEventInfo;
-            ProgramStep sendStep = this.FindSendStep(receiveStep);
-            SetCreatedRelation(sendStep, receiveStep);
-
-            // Do not do this. It breaks the tree. Model it as a new handler for now.
-            // SetMachineThreadRelation(lastMachineStep, receiveStep);
-            ProgramStep lastReceiveStep = this.MachineIdToLatestReceive[receiverId];
-            SetInboxOrderingRelation(lastReceiveStep, receiveStep);
-
-            this.AppendStepToTotalOrdering(receiveStep);
-            this.MachineIdToLastStep[receiverId] = receiveStep;
-            this.MachineIdToLatestReceive[receiverId] = receiveStep;
+            if (MustCreateExplicitReceiveCalledStep)
+            {
+                ProgramStep lastStep = this.MachineIdToLastStep[machine.Id.Value];
+                ProgramStep explicitReceiveCalledStep = ProgramStep.CreateExplicitReceiveCalledStep(machine.Id.Value);
+                SetMachineThreadRelation(lastStep, explicitReceiveCalledStep);
+                this.MachineIdToLastStep[machine.Id.Value] = explicitReceiveCalledStep;
+            }
         }
 
         internal void RecordMachineCreation(ulong machineId, Machine machine)

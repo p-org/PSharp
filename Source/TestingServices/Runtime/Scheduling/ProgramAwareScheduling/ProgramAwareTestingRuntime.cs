@@ -16,16 +16,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal IProgramAwareSchedulingStrategy ProgramAwareStrategy;
         private readonly bool EnableEventDropping;
         private readonly HashSet<Machine> ReceivingMachines;
-        private Tuple<Machine, Event, int> SpeculativeSendForBlockedReceive;
         // Used by the EnqueueEvent and NotifyReceivedEvent to record the Send before the Receive.
-        private AsyncMachine ContextEnqueueSenderMachine;
 
         internal ProgramAwareTestingRuntime(Configuration configuration, IProgramAwareSchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
             : base(configuration, strategy, reporter)
         {
             this.ProgramAwareStrategy = strategy;
             this.EnableEventDropping = true;
-            this.ContextEnqueueSenderMachine = null;
             this.ReceivingMachines = new HashSet<Machine>();
         }
 
@@ -58,13 +55,18 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyReceiveCalled(Machine machine)
         {
             base.NotifyReceiveCalled(machine);
-            this.ReceivingMachines.Add(machine);
-            this.ProgramAwareStrategy.RecordReceiveCalled(machine);
+            // This check is needed because NotifyReceiveCalled gets called twice sometimes.
+            if (!this.ReceivingMachines.Contains(machine))
+            {
+                this.ReceivingMachines.Add(machine);
+                this.ProgramAwareStrategy.RecordReceiveCalled(machine);
+            }
         }
 
         internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
             base.NotifyReceivedEventWithoutWaiting(machine, e, eventInfo);
+            // This check is important, because (apparently) even regular receives can do this.
             if (this.ReceivingMachines.Contains(machine))
             {
                 this.ReceivingMachines.Remove(machine);
@@ -79,10 +81,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             base.NotifyReceivedEvent(machine, e, eventInfo);
             this.ReceivingMachines.Remove(machine);
-
-            this.SpeculativeSendForBlockedReceive = Tuple.Create(machine, e, eventInfo.SendStep);
-            this.ProgramAwareStrategy.RecordSendEvent(this.ContextEnqueueSenderMachine, machine, e, eventInfo.SendStep, true);
-            this.ProgramAwareStrategy.RecordReceiveEvent(machine, e, eventInfo.SendStep, true);
+            this.ProgramAwareStrategy.RecordExplicitReceiveEventEnabled(machine, e, eventInfo.SendStep);
         }
 
         // Called for any send
@@ -95,35 +94,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     this.ProgramAwareStrategy.ShouldEnqueueEvent(sender?.Id ?? null, targetMachine.Id, e);
 
             eventInfo = null;
-            {
-                // Braces just for the ContextEnqueueSenderMachine stuff to be explicitly seen
-                this.ContextEnqueueSenderMachine = sender;
-                enqueueStatus = enqueueEvent ?
-                    base.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo) :
-                    enqueueStatus = EnqueueStatus.Dropped;
-                this.ContextEnqueueSenderMachine = null;
-            }
+            enqueueStatus = enqueueEvent ?
+                base.EnqueueEvent(targetMachine, e, sender, opGroupId, options, out eventInfo) :
+                enqueueStatus = EnqueueStatus.Dropped;
 
             int sendStepIndex = eventInfo?.SendStep ?? this.ProgramAwareStrategy.GetScheduledSteps();
 
-            if (this.SpeculativeSendForBlockedReceive == null)
-            {
-                this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, enqueueEvent);
-            }
-            else
-            {
-                // Just verify we fed the right stuff.
-                if (this.SpeculativeSendForBlockedReceive.Item1 == targetMachine &&
-                    this.SpeculativeSendForBlockedReceive.Item2 == e &&
-                    this.SpeculativeSendForBlockedReceive.Item3 == sendStepIndex)
-                {
-                    this.SpeculativeSendForBlockedReceive = null; // Well done.
-                }
-                else
-                {
-                    throw new NotImplementedException("This is not implemented right");
-                }
-            }
+            this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, enqueueEvent);
 
             return enqueueStatus;
         }
@@ -158,31 +135,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.ProgramAwareStrategy.RecordNonDetIntegerChoice(intChoice);
             return intChoice;
         }
-
-#if false
-
-        internal override bool GetFairNondeterministicBooleanChoice(AsyncMachine caller, string uniqueId)
-        {
-            bool boolChoice = base.GetFairNondeterministicBooleanChoice(caller, uniqueId);
-            this.ProgramAwareStrategy.RecordNonDetBooleanChoice(boolChoice);
-            return boolChoice;
-        }
-        // utils
-        private static EventInfo CreateStandardizedEventInfo(AsyncMachine sender, Event evt)
-        {
-            EventOriginInfo originInfo;
-            if (sender is Machine)
-            {
-                originInfo = new EventOriginInfo(sender.Id, (sender as Machine).GetType().FullName, string.Empty);
-            }
-            else
-            {
-                // Message comes from outside P#.
-                originInfo = new EventOriginInfo(null, "Env", "Env");
-            }
-
-            return new EventInfo(evt, originInfo);
-        }
-#endif
     }
 }

@@ -88,6 +88,99 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
         }
     }
 
+    // Replay tests
+    public abstract class ValueEvent : Event
+    {
+        public readonly int Value;
+
+        public ValueEvent(int val)
+        {
+            this.Value = val;
+        }
+    }
+
+    public class AddEvent : ValueEvent
+    {
+        public AddEvent(int val)
+            : base(val)
+        {
+        }
+    }
+
+    public class ProductEvent : ValueEvent
+    {
+        public ProductEvent(int val)
+            : base(val)
+        {
+        }
+    }
+
+    public class TargetValueEvent : Event
+    {
+        public readonly int TargetValue;
+
+        public TargetValueEvent(int targetValue) => this.TargetValue = targetValue;
+    }
+
+    public class AssertValueEvent : Event
+    {
+        public readonly int ExpectedSum;
+        public readonly bool ShouldMatch;
+
+        public AssertValueEvent(int expectedSum, bool shouldMatch = true)
+        {
+            this.ExpectedSum = expectedSum;
+            this.ShouldMatch = shouldMatch;
+        }
+    }
+
+    public class SumProductMachine : Machine
+    {
+        private int Value;
+        private int? TargetValue;
+
+        [Start]
+        [OnEntry(nameof(InitializeValue))]
+        [OnEventDoAction(typeof(AddEvent), nameof(OnReceiveAdd))]
+        [OnEventDoAction(typeof(ProductEvent), nameof(OnReceiveProduct))]
+        [OnEventDoAction(typeof(AssertValueEvent), nameof(AssertValueEventOnReceive))]
+        public class Init : MachineState
+        {
+        }
+
+        private void InitializeValue()
+        {
+            this.Value = 0;
+            this.TargetValue = (this.ReceivedEvent != null && this.ReceivedEvent is TargetValueEvent) ?
+                (int?)(this.ReceivedEvent as TargetValueEvent).TargetValue :
+                null;
+        }
+
+        private void OnReceiveAdd()
+        {
+            this.Value += (this.ReceivedEvent as AddEvent).Value;
+
+            this.Assert(this.TargetValue != this.Value, "Hit the target value of " + this.TargetValue);
+        }
+
+        private void OnReceiveProduct()
+        {
+            this.Value *= (this.ReceivedEvent as ProductEvent).Value;
+
+            this.Assert(this.TargetValue != this.Value, "Hit the target value of " + this.TargetValue);
+        }
+
+        private void AssertValueEventOnReceive()
+        {
+            AssertValueEvent evt = this.ReceivedEvent as AssertValueEvent;
+            bool misMatch = this.Value != evt.ExpectedSum;
+
+            this.Assert(misMatch ^ evt.ShouldMatch, $"ExpectedMatching={evt.ShouldMatch}. Actual:{this.Value == evt.ExpectedSum} ({this.Value} =?= {evt.ExpectedSum})");
+        }
+    }
+
+    // Receive tests
+
     internal class NaturallyReceivedEvent : Event
     {
     }
@@ -121,6 +214,56 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
                         this.Send(eWrap.TargetId, eWrap.Event);
                     }
                 }
+            }
+        }
+    }
+
+    // Receive Replay tests
+
+    public class ContestingReceivesMachine : Machine
+    {
+        private int Value;
+        private int? TargetValue;
+
+        [Start]
+        [OnEntry(nameof(InitializeValue))]
+        public class Init : MachineState
+        {
+        }
+
+        [OnEntry(nameof(DoMainLoop))]
+        public class MainLoop : MachineState
+        {
+        }
+
+        private void InitializeValue()
+        {
+            this.Value = 1;
+            this.TargetValue = (this.ReceivedEvent != null && this.ReceivedEvent is TargetValueEvent) ?
+                (int?)(this.ReceivedEvent as TargetValueEvent).TargetValue :
+                null;
+            this.Goto<MainLoop>();
+        }
+
+        private async Task DoMainLoop()
+        {
+            while (true)
+            {
+                Event evt = await this.Receive(typeof(AddEvent), typeof(ProductEvent), typeof(BreakLoopEvent));
+                if (evt is BreakLoopEvent)
+                {
+                    return;
+                }
+                else if (evt is AddEvent)
+                {
+                    this.Value += (evt as AddEvent).Value;
+                }
+                else if (evt is ProductEvent)
+                {
+                    this.Value *= (evt as ProductEvent).Value;
+                }
+
+                this.Assert(this.TargetValue != this.Value, "Hit the target value of " + this.TargetValue);
             }
         }
     }

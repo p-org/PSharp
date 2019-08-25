@@ -33,7 +33,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// <summary>
         /// A non-deterministic boolean choice. Those decided by GetNextIntegerChoice
         /// </summary>
-        NonDetIntStep
+        NonDetIntStep,
+
+        /// <summary>
+        /// The machine called Receive.
+        /// </summary>
+        ExplicitReceiveCalled,
+
+        /// <summary>
+        /// The Receive call received a message
+        /// </summary>
+        ExplicitReceiveComplete,
     }
 
     /// <summary>
@@ -199,9 +209,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Initializes a new instance of the <see cref="ProgramStep"/> class.
         /// For those special steps
         /// </summary>
-        private ProgramStep(ulong srcId, bool? boolChoice, int? intChoice, AsyncOperationType? opType)
+        private ProgramStep(ProgramStepType stepType, ulong srcId, bool? boolChoice, int? intChoice, AsyncOperationType? opType)
         {
-            this.ProgramStepType = ProgramStepType.SpecialProgramStepType;
+            this.ProgramStepType = stepType;
             // this.Operation = null;
             this.SrcId = srcId;
             this.BooleanChoice = boolChoice;
@@ -215,13 +225,24 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
 
         internal static ProgramStep CreateSpecialProgramStep()
         {
-            return new ProgramStep(0, null, null, null);
+            return new ProgramStep(ProgramStepType.SpecialProgramStepType, 0, null, null, null);
+        }
+
+        internal static ProgramStep CreateExplicitReceiveCalledStep(ulong machineId)
+        {
+            return new ProgramStep(ProgramStepType.ExplicitReceiveCalled, machineId, null, null, AsyncOperationType.Yield);
+        }
+
+        internal static ProgramStep CreateExplicitReceiveCompleteStep(ulong receiverId, ProgramStepEventInfo pEventInfo)
+        {
+            ProgramStep step = new ProgramStep(ProgramStepType.ExplicitReceiveComplete, receiverId, null, null, AsyncOperationType.Receive);
+            step.EventInfo = pEventInfo;
+            return step;
         }
 
         internal static ProgramStep CreateSpecialProgramStep(ulong srcId, bool? boolChoice, int? intChoice, AsyncOperationType? opType)
         {
-            ProgramStep step = new ProgramStep(srcId, boolChoice, intChoice, opType);
-            return step;
+            return new ProgramStep(ProgramStepType.SpecialProgramStepType, srcId, boolChoice, intChoice, opType);
         }
 
         /// <inheritdoc/>
@@ -257,6 +278,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                     break;
                 case ProgramStepType.NonDetIntStep:
                     newStep = new ProgramStep(this.SrcId, (int)this.IntChoice);
+                    break;
+                case ProgramStepType.ExplicitReceiveCalled:
+                    newStep = CreateExplicitReceiveCalledStep(this.SrcId);
+                    break;
+                case ProgramStepType.ExplicitReceiveComplete:
+                    newStep = CreateExplicitReceiveCompleteStep(this.SrcId, this.EventInfo);
                     break;
                 case ProgramStepType.SpecialProgramStepType:
                     newStep = CreateSpecialProgramStep(this.SrcId, this.BooleanChoice, this.IntChoice, this.OpType);

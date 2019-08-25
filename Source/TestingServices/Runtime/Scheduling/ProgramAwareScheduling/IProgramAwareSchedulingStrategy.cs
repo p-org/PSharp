@@ -70,13 +70,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqeueued);
 
         /// <summary>
-        /// Records an executing a Send operation
+        /// Records a receive operation.
         /// </summary>
         /// <param name="machine">The machine receiving the event</param>
         /// <param name="e">The event</param>
         /// <param name="sendStepIndex">The stepIndex of the send step</param>
-        /// <param name="wasExplicitReceiveCall">Whether this was received by an explicit receive call</param>
+        /// <param name="wasExplicitReceiveCall">Tells whether this was received by an explicit receive call</param>
         void RecordReceiveEvent(Machine machine, Event e, int sendStepIndex, bool wasExplicitReceiveCall);
+
+        /// <summary>
+        /// Records an executing a Send operation
+        /// </summary>
+        /// <param name="machine">The machine receiving the event</param>
+        /// <param name="evt">The event</param>
+        /// <param name="sendStepIndex">The stepIndex of the send step</param>
+        void RecordExplicitReceiveEventEnabled(Machine machine, Event evt, int sendStepIndex);
 
         // Non-det choices
 

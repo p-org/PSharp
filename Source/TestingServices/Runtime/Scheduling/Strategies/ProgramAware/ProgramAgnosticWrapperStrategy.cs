@@ -99,6 +99,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
         }
 
+        public void RecordExplicitReceiveEventEnabled(Machine machine, Event evt, int sendStepIndex)
+        {
+        }
+
         public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e)
         {
             // Do Nothing
@@ -136,12 +140,5 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         {
             return true;
         }
-
-#if false
-        public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, EventInfo eventInfo)
-        {
-            throw new NotImplementedException();
-        }
-#endif
     }
 }

@@ -21,8 +21,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         // Some handy constants
         protected private const ulong TESTHARNESSMACHINEID = 0;
         protected private const ulong TESTHARNESSMACHINEHASH = 199999;
-
+        private readonly Dictionary<ulong, Tuple<Machine, Event, int>> PendingExplicitReceives;
         protected private ProgramModel ProgramModel;
+
+        // There's a case where you call AbstractBaseProgramModelStrategy.GetNext from GetNextOperation
+        private bool SafetyRecursionCheckThisHasBeenCalledOnce;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AbstractBaseProgramModelStrategy"/> class.
@@ -30,6 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public AbstractBaseProgramModelStrategy()
         {
             this.ResetProgramModel();
+            this.PendingExplicitReceives = new Dictionary<ulong, Tuple<Machine, Event, int>>();
         }
 
         /// <summary>
@@ -102,7 +106,46 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         public abstract void ForceNextIntegerChoice(int maxValue, int next);
 
         /// <inheritdoc/>
-        public abstract bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
+        public bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        {
+            bool ret = false;
+            if (!this.SafetyRecursionCheckThisHasBeenCalledOnce)
+            {
+                this.SafetyRecursionCheckThisHasBeenCalledOnce = true;
+                ret = this.GetNextOperation(out next, ops, current);
+                this.SafetyRecursionCheckThisHasBeenCalledOnce = false;
+            }
+            else
+            {
+                throw new NotImplementedException("Circular recursion detected. Please call this.GetNextOperation instead");
+            }
+
+            if (next != null && this.PendingExplicitReceives.ContainsKey(next.SourceId))
+            {
+                Tuple<Machine, Event, int> receiveTuple = this.PendingExplicitReceives[next.SourceId];
+                if (next.Type == AsyncOperationType.Receive && (ulong)receiveTuple.Item3 == next.MatchingSendIndex)
+                {
+                    this.RecordReceiveEvent(receiveTuple.Item1, receiveTuple.Item2, receiveTuple.Item3, true);
+                    this.PendingExplicitReceives.Remove(next.SourceId);
+                }
+                else
+                {
+                    throw new NotImplementedException("This is not implemented correctly");
+                }
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="ISchedulingStrategy.GetNext"/>
+        /// Forces the next asynchronous operation to be scheduled.
+        /// </summary>
+        /// <param name="next">The next operation to schedule.</param>
+        /// <param name="ops">List of operations that can be scheduled.</param>
+        /// <param name="current">The currently scheduled operation.</param>
+        /// <returns>True if there is a next choice, else false.</returns>
+        public abstract bool GetNextOperation(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
 
         /// <summary>
         /// Returns the steps in order of execution
@@ -164,19 +207,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
+        public void RecordExplicitReceiveEventEnabled(Machine machine, Event evt, int sendStepIndex)
+        {
+            ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, 0, sendStepIndex);
+            ProgramStep receiveStep = ProgramStep.CreateExplicitReceiveCompleteStep(machine.Id.Value, pEventInfo);
+            this.PendingExplicitReceives.Add(machine.Id.Value, Tuple.Create(machine, evt, sendStepIndex));
+        }
+
+        /// <inheritdoc/>
         public virtual void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex, bool wasExplicitReceiveCall)
         {
             ProgramStepEventInfo pEventInfo = new ProgramStepEventInfo(evt, 0, sendStepIndex);
-            if (wasExplicitReceiveCall)
-            {
-                this.ProgramModel.RecordExplicitReceive(machine, pEventInfo);
-            }
-            else
-            {
-                ProgramStep receiveStep = new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
-                // Also notify a send step, since we know it's coming.
-                this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
-            }
+
+            ProgramStep receiveStep = wasExplicitReceiveCall ?
+                ProgramStep.CreateExplicitReceiveCompleteStep(machine.Id.Value, pEventInfo) :
+                new ProgramStep(AsyncOperationType.Receive, machine.Id.Value, machine.Id.Value, pEventInfo);
+
+            this.ProgramModel.RecordStep(receiveStep, this.GetScheduledSteps());
         }
 
         /// <inheritdoc/>
@@ -236,7 +283,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <param name="bugFound">Was bug found in this run</param>
         public virtual void NotifySchedulingEnded(bool bugFound)
         {
-            // TODO: Liveness bugs.
             this.ProgramModel.RecordSchedulingEnded(bugFound);
         }
 

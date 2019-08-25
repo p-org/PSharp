@@ -118,6 +118,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
         public void RecordReceiveCalled(Machine machine) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordReceiveCalled(machine);
 
+        public void RecordExplicitReceiveEventEnabled(Machine machine, Event evt, int sendStepIndex) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordExplicitReceiveEventEnabled(machine, evt, sendStepIndex);
+
         public void RecordSendEvent(AsyncMachine sender, Machine targetMachine, Event e, int stepIndex, bool wasEnqueued) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordSendEvent(sender, targetMachine, e, stepIndex, wasEnqueued);
 
         public void RecordMonitorEvent(Type monitorType, AsyncMachine sender, Event e) => (this.CurrentStrategy as IProgramAwareSchedulingStrategy)?.RecordMonitorEvent(monitorType, sender, e);

@@ -23,7 +23,22 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// <summary>
         /// Tells us how many replays we need to do to be reasonably sure about whether we didn't get lucky with the bug.
         /// </summary>
-        public const int NREPLAYSFORBUGREPRODUCTION = 3;
+        public static int NREPLAYSFORBUGREPRODUCTION { get => StaticValueNREPLAYSFORBUGREPRODUCTION; }
+
+        private static int StaticValueNREPLAYSFORBUGREPRODUCTION = 3;
+
+        /// <summary>
+        /// Allows the user to set how many replays are required to reproduce the bug
+        /// before we conclude that the graph replay guarantees that the bug will be triggered ( regardless of the suffix )
+        /// </summary>
+        /// <param name="nReplays">The number of replays required. Must be positive</param>
+        public static void SetRequiredReplaysForBugReproduction(int nReplays)
+        {
+            if (nReplays > 0)
+            {
+                StaticValueNREPLAYSFORBUGREPRODUCTION = nReplays;
+            }
+        }
 
         private bool StopRecordingAfterGraphCompleted;
 
@@ -152,7 +167,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         }
 
         /// <inheritdoc/>
-        public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public override bool GetNextOperation(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
         {
             if (this.UseSuffixStrategy)
             {
@@ -174,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 {
                     this.HasReachedEndHard = true;
                     this.SwitchToSuffixStrategy(this.StopRecordingAfterGraphCompleted);
-                    return this.GetNext(out next, ops, current);
+                    return this.GetNextOperation(out next, ops, current);
                 }
 
                 Console.WriteLine("In GetNext");
@@ -410,6 +425,52 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 if (!wasEnqueued)
                 {
                     this.ProgramReplayHelper.RecordSendDropped(this.ProgramReplayHelper.GetCurrentStep());
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void RecordReceiveCalled(Machine machine)
+        {
+            base.RecordReceiveCalled(machine);
+
+            if (ProgramModel.MustCreateExplicitReceiveCalledStep)
+            {
+                ProgramStep receiveCalledStep = this.ProgramReplayHelper.GetNextNonSchedulableSteps()
+                    .FirstOrDefault(s => s.PrevMachineStep == this.ProgramReplayHelper.GetCurrentStep());
+
+                if (receiveCalledStep != null &&
+                    this.ProgramReplayHelper.MapOldToNewMachineId(receiveCalledStep.SrcId) == machine.Id.Value)
+                {
+                    this.ProgramReplayHelper.RecordChoice(receiveCalledStep, this.GetScheduledSteps());
+                }
+                else
+                {
+                    throw new NotImplementedException("This is not implemented right");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void RecordReceiveEvent(Machine machine, Event evt, int sendStepIndex, bool wasExplicitReceiveCall)
+        {
+            base.RecordReceiveEvent(machine, evt, sendStepIndex, wasExplicitReceiveCall);
+
+            // Slightly messy situation - If the current choice is the receiving machine,
+            // it means we're executing a scheduled ExplicitReceive.
+            if (wasExplicitReceiveCall && this.ProgramReplayHelper.GetCurrentStep().SrcId != machine.Id.Value)
+            {
+                ProgramStep explicitReceivedStep = this.ProgramReplayHelper.GetNextEnabledOperations()
+                    .FirstOrDefault(s => this.ProgramReplayHelper.MatchingSendIndices[s.CreatorParent] == (ulong)sendStepIndex);
+
+                if (explicitReceivedStep != null &&
+                    this.ProgramReplayHelper.MapOldToNewMachineId(explicitReceivedStep.SrcId) == machine.Id.Value)
+                {
+                    this.ProgramReplayHelper.RecordChoice(explicitReceivedStep, this.GetScheduledSteps());
+                }
+                else
+                {
+                    throw new NotImplementedException("This is not implemented right");
                 }
             }
         }
