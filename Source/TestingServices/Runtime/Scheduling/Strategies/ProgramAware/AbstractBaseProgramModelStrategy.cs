@@ -21,6 +21,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         // Some handy constants
         protected private const ulong TESTHARNESSMACHINEID = 0;
         protected private const ulong TESTHARNESSMACHINEHASH = 199999;
+
         private readonly Dictionary<ulong, Tuple<Machine, Event, int>> PendingExplicitReceives;
         protected private ProgramModel ProgramModel;
 
@@ -32,8 +33,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// </summary>
         public AbstractBaseProgramModelStrategy()
         {
-            this.ResetProgramModel();
             this.PendingExplicitReceives = new Dictionary<ulong, Tuple<Machine, Event, int>>();
+            this.ResetProgramModel();
         }
 
         /// <summary>
@@ -54,6 +55,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
         private void ResetProgramModel()
         {
+            this.PendingExplicitReceives.Clear();
             this.ProgramModel = new ProgramModel();
         }
 
