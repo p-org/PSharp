@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// If true, the program model appends a ExplicitReceiveCalled step
         /// as NextMachineStep of the step which called the explicit Receive
         /// </summary>
-        public const bool MustCreateExplicitReceiveCalledStep = true;
+        public static bool MustCreateExplicitReceiveCalledStep = true;
 
         private const bool ConnectSuccessiveHandlers = false;
         // if true, check if the monitor was indeed invoked by the machine executing CurrentStep

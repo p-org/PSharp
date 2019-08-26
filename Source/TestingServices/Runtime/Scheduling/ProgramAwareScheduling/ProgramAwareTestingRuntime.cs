@@ -84,11 +84,38 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.ProgramAwareStrategy.RecordExplicitReceiveEventEnabled(machine, e, eventInfo.SendStep);
         }
 
-        // Called for any send
+        private bool? WasInnerEnqueueCalled;
+
+        // Called for any send - Even a dropped one
+        protected override EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
+            SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
+        {
+            this.WasInnerEnqueueCalled = false;
+            EnqueueStatus enqueueStatus = base.EnqueueEvent(target, e, sender, opGroupId,
+            options, out targetMachine, out eventInfo);
+
+            if ( (targetMachine == null && enqueueStatus == EnqueueStatus.Dropped) == this.WasInnerEnqueueCalled)
+            {
+                throw new NotImplementedException("This is not done right");
+            }
+
+            this.WasInnerEnqueueCalled = null;
+
+            if (targetMachine == null && enqueueStatus == EnqueueStatus.Dropped)
+            {
+                int sendStepIndex = eventInfo?.SendStep ?? this.ProgramAwareStrategy.GetScheduledSteps();
+                this.ProgramAwareStrategy.RecordSendEvent(sender, targetMachine, e, sendStepIndex, true);
+            }
+
+            return enqueueStatus;
+        }
+
+        // Called by any sends where the enqueue succeeds
         // Called before the enqueue happens. Can also be a blocking receive.
         protected override EnqueueStatus EnqueueEvent(Machine targetMachine, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out EventInfo eventInfo)
         {
+            this.WasInnerEnqueueCalled = true;
             EnqueueStatus enqueueStatus;
             bool enqueueEvent = this.EnableEventDropping &&
                     this.ProgramAwareStrategy.ShouldEnqueueEvent(sender?.Id ?? null, targetMachine.Id, e);

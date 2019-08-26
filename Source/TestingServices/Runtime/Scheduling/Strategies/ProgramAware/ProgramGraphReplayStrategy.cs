@@ -25,6 +25,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
         /// </summary>
         public static int NREPLAYSFORBUGREPRODUCTION { get => StaticValueNREPLAYSFORBUGREPRODUCTION; }
 
+        /// <summary>
+        /// If true, the program model considers the order of messages received by monitors as part of the partial order.
+        /// Although it makes no difference to the ProgramModel itself, it does make a difference to the replay
+        /// </summary>
+        public static bool MonitorCommunicationIsPartOfPartialOrder = true;
+
         private static int StaticValueNREPLAYSFORBUGREPRODUCTION = 3;
 
         /// <summary>
@@ -191,6 +197,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                     this.SwitchToSuffixStrategy(this.StopRecordingAfterGraphCompleted);
                     return this.GetNextOperation(out next, ops, current);
                 }
+
+                // Do a sanity check on our model
+                this.ProgramReplayHelper.DoSanityCheck(ops);
 
                 Console.WriteLine("In GetNext");
                 List<IAsyncOperation> enabledOps = ops.Where(o => o.IsEnabled).ToList();
@@ -440,6 +449,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                     .FirstOrDefault(s => s.PrevMachineStep == this.ProgramReplayHelper.GetCurrentStep());
 
                 if (receiveCalledStep != null &&
+                    receiveCalledStep.ProgramStepType == ProgramStepType.ExplicitReceiveCalled &&
                     this.ProgramReplayHelper.MapOldToNewMachineId(receiveCalledStep.SrcId) == machine.Id.Value)
                 {
                     this.ProgramReplayHelper.RecordChoice(receiveCalledStep, this.GetScheduledSteps());
@@ -458,12 +468,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
 
             // Slightly messy situation - If the current choice is the receiving machine,
             // it means we're executing a scheduled ExplicitReceive.
-            if (wasExplicitReceiveCall && this.ProgramReplayHelper.GetCurrentStep().SrcId != machine.Id.Value)
+            if (wasExplicitReceiveCall &&
+                this.ProgramReplayHelper.MapOldToNewMachineId(this.ProgramReplayHelper.GetCurrentStep().SrcId) != machine.Id.Value)
             {
                 ProgramStep explicitReceivedStep = this.ProgramReplayHelper.GetNextEnabledOperations()
                     .FirstOrDefault(s => this.ProgramReplayHelper.MatchingSendIndices[s.CreatorParent] == (ulong)sendStepIndex);
 
                 if (explicitReceivedStep != null &&
+                    explicitReceivedStep.ProgramStepType == ProgramStepType.ExplicitReceiveComplete &&
                     this.ProgramReplayHelper.MapOldToNewMachineId(explicitReceivedStep.SrcId) == machine.Id.Value)
                 {
                     this.ProgramReplayHelper.RecordChoice(explicitReceivedStep, this.GetScheduledSteps());

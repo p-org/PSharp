@@ -235,7 +235,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                 pEventInfo.HashedState = this.HashEvent(e);
             }
 
-            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachine.Id.Value, pEventInfo);
+            ProgramStep sendStep = new ProgramStep(AsyncOperationType.Send, sender?.Id.Value ?? 0, targetMachine?.Id.Value ?? 0, pEventInfo);
             this.ProgramModel.RecordStep(sendStep, this.GetScheduledSteps());
 
             if (!wasEnqueued)

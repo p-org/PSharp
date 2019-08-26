@@ -88,6 +88,20 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
         }
     }
 
+    internal class MachineWhichJustHalts : Machine
+    {
+        [Start]
+        [OnEventDoAction(typeof(ForwarderEvent), nameof(DoFail))]
+        internal class Init : MachineState
+        {
+        }
+
+        private void DoFail()
+        {
+            this.Assert(false, "This was supposed to halt");
+        }
+    }
+
     // Replay tests
     public abstract class ValueEvent : Event
     {

@@ -31,6 +31,35 @@ namespace Microsoft.PSharp.ProgramAwareScheduling.Tests
         }
 
         [Fact(Timeout = 5000)]
+        public void TestDroppedEvent()
+        {
+            Action<IMachineRuntime> testAction = r =>
+            {
+                var fId = r.CreateMachine(typeof(ForwarderMachine), new Halt());
+                var hId = r.CreateMachine(typeof(MachineWhichJustHalts));
+                r.SendEvent(hId, new Halt());
+                r.SendEvent(fId, new ForwarderEvent(hId, new ForwarderEvent()));
+            };
+
+            AbstractBaseProgramModelStrategy strategy = new BasicProgramModelBasedStrategy(new RandomStrategy(0), false);
+            TestingReporter reporter = new TestingReporter(strategy);
+
+            Assert.True(SimpleTesterController.RunTest(testAction, strategy, reporter, 1, 0, true, 2), "The test encountered an unexpected error:\n" + SimpleTesterController.CaughtException);
+
+            Assert.True(
+                CheckTreePath(reporter.ProgramSummaries[0].PartialOrderRoot, new Tuple<TreeEdgeType, ProgramStepType, AsyncOperationType>[]
+                {
+                                            Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Create), // runtime.create(forwarder)
+                                            Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Create), // runtime.send(halter)
+                                            Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // runtime.send(halter)
+                                            Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // runtime.send(forwarder)
+                                            Tuple.Create(TreeEdgeType.Created, ProgramStepType.SchedulableStep, AsyncOperationType.Receive), // forwarder.receive()
+                                            Tuple.Create(TreeEdgeType.MachineThread, ProgramStepType.SchedulableStep, AsyncOperationType.Send), // forwarder.Send() - the dropped one
+                }),
+                "The tree was not as expected - CreatedStep between send and explicit receive");
+        }
+
+        [Fact(Timeout = 5000)]
         public void TestExplicitReceiveWithoutWaiting()
         {
             Action<IMachineRuntime> testActionReceiveWithoutWaiting = r =>

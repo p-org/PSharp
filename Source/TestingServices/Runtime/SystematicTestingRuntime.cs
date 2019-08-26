@@ -586,7 +586,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Enqueues an event to the machine with the specified id.
         /// </summary>
-        private EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
+        protected virtual EnqueueStatus EnqueueEvent(MachineId target, Event e, AsyncMachine sender, Guid opGroupId,
             SendOptions options, out Machine targetMachine, out EventInfo eventInfo)
         {
             this.Assert(this.CreatedMachineIds.Contains(target),

@@ -58,13 +58,17 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         /// Linearizes a partial order, and then returns a list based on the TotalOrderingIndex assigned by the linearization
         /// </summary>
         /// <param name="root">The root of the partial order</param>
+        /// <param name="resetTotalOrderingIndex">If true, the TotalOrderingIndex of each step will be set to match that in the returned linearizedOrder</param>
         /// <returns>A List of ProgramStep respecting the partial order</returns>
-        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root)
+        public static List<ProgramStep> ConsolidatePartialOrder(ProgramStep root, bool resetTotalOrderingIndex = false)
         {
             List<ProgramStep> linearizedOrder = LinearizePartialOrder(root);
-            for (int i = 0; i < linearizedOrder.Count; i++)
+            if (resetTotalOrderingIndex)
             {
-                // linearizedOrder[i].TotalOrderingIndex = i;
+                for (int i = 0; i < linearizedOrder.Count; i++)
+                {
+                    linearizedOrder[i].TotalOrderingIndex = i;
+                }
             }
 
             return linearizedOrder;
@@ -469,6 +473,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             }
         }
 
+#if SLICING_STEPS_IS_NOT_SIMPLE
         /// <summary>
         /// Slices out the subtree rooted at step from the partial order rooted at root.
         /// The subtree is defined as the set of nodes reachable through CreatedStep and NextMachineStep
@@ -478,6 +483,67 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
         {
             HashSet<ProgramStep> stepsInSubtree = GetStepsInSubtree(step);
             SliceStep(step, stepsInSubtree);
+        }
+#endif
+
+        /// <summary>
+        /// Slices out the subtree rooted at step from the partial order rooted at root.
+        /// The subtree is defined as the set of nodes reachable through CreatedStep and NextMachineStep
+        /// </summary>
+        /// <param name="root">The root of the subtree to be removed</param>
+        public static void SliceStep(ProgramStep root)
+        {
+            SimpleSliceStepRecursive(root);
+
+            if (root.PrevMachineStep != null && root.ProgramStepType != ProgramStepType.ExplicitReceiveCalled)
+            {
+                root.PrevMachineStep.NextMachineStep = null;
+            }
+
+            if (root.CreatorParent != null)
+            {
+                root.CreatorParent.CreatedStep = null;
+            }
+        }
+
+        /// <summary>
+        /// Slices out the subtree rooted at step from the partial order rooted at root.
+        /// The subtree is defined as the set of nodes reachable through CreatedStep and NextMachineStep
+        /// </summary>
+        /// <param name="step">The root of the subtree to be removed</param>
+        public static void SimpleSliceStepRecursive(ProgramStep step)
+        {
+            if (step.PrevInboxOrderingStep != null)
+            {
+                step.PrevInboxOrderingStep.NextInboxOrderingStep = step.NextInboxOrderingStep;
+                if (step.NextInboxOrderingStep != null)
+                {
+                    step.NextInboxOrderingStep.PrevInboxOrderingStep = step.PrevInboxOrderingStep;
+                }
+            }
+
+            if (step.PrevMonitorSteps != null)
+            {
+                foreach (KeyValuePair<Type, ProgramStep> kv in step.PrevMonitorSteps)
+                {
+                    ProgramStep thisNextMonitorStep = (step.NextMonitorSteps?.ContainsKey(kv.Key) ?? false) ? step.NextMonitorSteps[kv.Key] : null;
+                    kv.Value.NextMonitorSteps[kv.Key] = thisNextMonitorStep;
+                    if (thisNextMonitorStep != null)
+                    {
+                        thisNextMonitorStep.PrevMonitorSteps[kv.Key] = kv.Value;
+                    }
+                }
+            }
+
+            if (step.NextMachineStep != null)
+            {
+                SimpleSliceStepRecursive(step.NextMachineStep);
+            }
+
+            if (step.CreatedStep != null)
+            {
+                SimpleSliceStepRecursive(step.CreatedStep);
+            }
         }
 
         private static void SliceStep(ProgramStep step, HashSet<ProgramStep> stepsInSubtree)
@@ -493,7 +559,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
                 step.CreatorParent.CreatedStep = null;
             }
 
-            if (step.PrevInboxOrderingStep != null && !stepsInSubtree.Contains(step.PrevInboxOrderingStep))
+            if (step.OpType == AsyncOperationType.Send &&
+                step.PrevInboxOrderingStep != null && !stepsInSubtree.Contains(step.PrevInboxOrderingStep))
             {
                 ProgramStep firstSendOutsideSubtree = RecurseEnqueueTillOutOfSubtree(step, stepsInSubtree);
                 step.PrevInboxOrderingStep.NextInboxOrderingStep = firstSendOutsideSubtree;
