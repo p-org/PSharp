@@ -198,9 +198,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.Strategies.Program
                     return this.GetNextOperation(out next, ops, current);
                 }
 
-                // Do a sanity check on our model
-                this.ProgramReplayHelper.DoSanityCheck(ops);
-
                 Console.WriteLine("In GetNext");
                 List<IAsyncOperation> enabledOps = ops.Where(o => o.IsEnabled).ToList();
                 Dictionary<ProgramStep, IAsyncOperation> candidateSteps = this.ProgramReplayHelper.GetEnabledSteps(enabledOps);

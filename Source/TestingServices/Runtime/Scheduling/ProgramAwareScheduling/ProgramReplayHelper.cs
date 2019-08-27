@@ -233,65 +233,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime.Scheduling.ProgramAwareSchedu
             return this.MachineIdRemap[oldMachineId];
         }
 
-        internal void DoSanityCheck(List<IAsyncOperation> ops)
-        {
-            foreach (IAsyncOperation op in ops)
-            {
-                try
-                {
-                    if (op.IsEnabled && op.Type == AsyncOperationType.Receive && op.MatchingSendIndex != 0)
-                    {
-                        this.EnabledSteps.First( s => s.OpType == AsyncOperationType.Receive && this.MatchingSendIndices[s.CreatorParent] == op.MatchingSendIndex);
-                    }
-                    else if (op.IsEnabled)
-                    {
-                        // Stop we don't do
-                        this.EnabledSteps.First(s => s.OpType == op.Type && this.MapOldToNewMachineId(s.SrcId) == op.SourceId);
-                    }
-                }
-                catch (Exception e)
-                {
-                    bool isBad = false;
-                    ProgramStep lastMachineStep = this.SeenSteps.LastOrDefault(s => this.MapOldToNewMachineId(s.SrcId) == op.SourceId);
-                    if (lastMachineStep == null)
-                    {
-                        ProgramStep createStep = this.SeenSteps.LastOrDefault(s => s.OpType == AsyncOperationType.Create && this.MapOldToNewMachineId(s.TargetId) == op.TargetId);
-                        if (createStep == null)
-                        {
-                            isBad = true;
-                        }
-                    }
-                    else
-                    {
-                        // Check we're not the last step in the graph.
-                        if (lastMachineStep.NextMachineStep != null)
-                        {
-                            isBad = true;
-                        }
-                        else
-                        {
-                            ProgramStep at = lastMachineStep;
-                            while (at.OpType != AsyncOperationType.Start && at.OpType != AsyncOperationType.Receive)
-                            {
-                                at = at.PrevMachineStep;
-                            }
-
-                            // Now we're at the receive / start.
-                            if (at.NextInboxOrderingStep != null)
-                            {
-                                isBad = true;
-                            }
-                        }
-                    }
-
-                    if (isBad)
-                    {
-                        Console.WriteLine("IsBad : " + e);
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// Checks if step is the last Schedulable step of its machine in the graph
         /// </summary>
