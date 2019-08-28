@@ -105,8 +105,26 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         /// <param name="tasks">The tasks to wait for completion.</param>
         /// <returns>Task that represents the completion of all of the specified tasks.</returns>
+        internal override MachineTask WaitAllTasksAsync(params MachineTask[] tasks) =>
+            this.Runtime.WaitAllTasksAsync(tasks.Select(t => t.AwaiterTask));
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that will complete when all tasks
+        /// in the specified array have completed.
+        /// </summary>
+        /// <param name="tasks">The tasks to wait for completion.</param>
+        /// <returns>Task that represents the completion of all of the specified tasks.</returns>
         internal override MachineTask WaitAllTasksAsync(params Task[] tasks) =>
             this.Runtime.WaitAllTasksAsync(tasks);
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that will complete when all tasks
+        /// in the specified enumerable collection have completed.
+        /// </summary>
+        /// <param name="tasks">The tasks to wait for completion.</param>
+        /// <returns>Task that represents the completion of all of the specified tasks.</returns>
+        internal override MachineTask WaitAllTasksAsync(IEnumerable<MachineTask> tasks) =>
+            this.Runtime.WaitAllTasksAsync(tasks.Select(t => t.AwaiterTask));
 
         /// <summary>
         /// Creates a <see cref="MachineTask"/> that will complete when all tasks
@@ -124,8 +142,28 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <typeparam name="TResult">The result type of the task.</typeparam>
         /// <param name="tasks">The tasks to wait for completion.</param>
         /// <returns>Task that represents the completion of all of the specified tasks.</returns>
+        internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(params MachineTask<TResult>[] tasks) =>
+            this.Runtime.WaitAllTasksAsync(tasks.Select(t => t.AwaiterTask));
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that will complete when all tasks
+        /// in the specified array have completed.
+        /// </summary>
+        /// <typeparam name="TResult">The result type of the task.</typeparam>
+        /// <param name="tasks">The tasks to wait for completion.</param>
+        /// <returns>Task that represents the completion of all of the specified tasks.</returns>
         internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(params Task<TResult>[] tasks) =>
             this.Runtime.WaitAllTasksAsync(tasks);
+
+        /// <summary>
+        /// Creates a <see cref="MachineTask"/> that will complete when all tasks
+        /// in the specified enumerable collection have completed.
+        /// </summary>
+        /// <typeparam name="TResult">The result type of the task.</typeparam>
+        /// <param name="tasks">The tasks to wait for completion.</param>
+        /// <returns>Task that represents the completion of all of the specified tasks.</returns>
+        internal override MachineTask<TResult[]> WaitAllTasksAsync<TResult>(IEnumerable<MachineTask<TResult>> tasks) =>
+            this.Runtime.WaitAllTasksAsync(tasks.Select(t => t.AwaiterTask));
 
         /// <summary>
         /// Creates a <see cref="MachineTask"/> that will complete when all tasks
