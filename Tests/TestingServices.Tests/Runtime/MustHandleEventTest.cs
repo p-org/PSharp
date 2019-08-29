@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 var m = r.CreateMachine(typeof(M1));
                 r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
             },
-            configuration: Configuration.Create().WithNumberOfIterations(100),
+            configuration: Configuration.Create().WithNumberOfIterations(500),
             expectedErrors: new string[]
                 {
                     "A must-handle event 'E' was sent to the halted machine 'M1()'.",
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(m, new E());
                 r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
             },
-            configuration: Configuration.Create().WithNumberOfIterations(100),
+            configuration: Configuration.Create().WithNumberOfIterations(500),
             expectedErrors: new string[]
                 {
                     "A must-handle event 'E' was sent to the halted machine 'M2()'.",
@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
                 r.SendEvent(m, new E(), options: new SendOptions(mustHandle: true));
                 r.SendEvent(m, new Halt());
             },
-            configuration: Configuration.Create().WithNumberOfIterations(100));
+            configuration: Configuration.Create().WithNumberOfIterations(500));
         }
 
         [Fact(Timeout=5000)]
