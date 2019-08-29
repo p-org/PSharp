@@ -6,9 +6,12 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Microsoft.PSharp.VisualStudio.Outlining;
 
 namespace Microsoft.PSharp.VisualStudio
@@ -60,8 +63,8 @@ namespace Microsoft.PSharp.VisualStudio
 
         public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            // Do nothing if there is no content in the buffer, the current SnapshotPoint is not initialized, or we're at the end of the buffer.
-            if (spans.Count == 0 || !CurrentChar.HasValue || CurrentChar.Value.Position >= CurrentChar.Value.Snapshot.Length)
+            // Do nothing if there is no content in the buffer, the current SnapshotPoint is not initialized
+            if (spans.Count == 0 || !CurrentChar.HasValue)
             {
                 yield break;
             }
@@ -72,7 +75,11 @@ namespace Microsoft.PSharp.VisualStudio
                 : CurrentChar.Value.TranslateTo(spans[0].Snapshot, PointTrackingMode.Positive);
 
             // If the current char is an opening char, stay on it. Otherwise, back up one to see if the previous char is the close char.
-            char currentChar = currentCharPoint.GetChar();
+            char currentChar = '\0';
+            if (CurrentChar.Value.Position < CurrentChar.Value.Snapshot.Length)
+            {
+                currentChar = currentCharPoint.GetChar();
+            }
             var currentLine = currentCharPoint.GetContainingLine();
 
             bool isBoundaryChar(out bool isOpen)
@@ -129,12 +136,15 @@ namespace Microsoft.PSharp.VisualStudio
                 TagSpan<TextMarkerTag> getTag(int lineNumber, int offset)
                 {
                     var line = currentCharPoint.Snapshot.GetLineFromLineNumber(lineNumber);
-                    return new TagSpan<TextMarkerTag>(new SnapshotSpan(line.Start + offset, 1), new TextMarkerTag("blue"));
+                    return new TagSpan<TextMarkerTag>(new SnapshotSpan(line.Start + offset, 1), BraceHighlightTag);
                 }
 
                 yield return getTag(foundRegion.StartLineNumber, foundRegion.StartOffset);
                 yield return getTag(foundRegion.EndLineNumber, foundRegion.EndOffset - 1); // -1 here because EndOffset is after the close char
             }
         }
+
+        public static readonly TextMarkerTag BraceHighlightTag = new TextMarkerTag(ClassificationTypeDefinitions.BraceMatchingName);
     }
+
 }
