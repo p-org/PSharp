@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Runtime
             this.MachineIdCounter = 0;
             this.LogWriter = new RuntimeLogWriter
             {
-                Logger = configuration.IsVerbose ? (ILogger)new ConsoleLogger() : new DisposingLogger()
+                Logger = configuration.IsVerbose ? (ILogger)new ConsoleLogger() : new NulLogger()
             };
 
             this.IsRunning = true;
@@ -597,26 +597,24 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Use this method to override the <see cref="RuntimeLogWriter"/> for writing
-        /// and formatting log messages. The log writer uses the default or previously
-        /// installed <see cref="ILogger"/> and <see cref="IRuntimeLogFormatter"/>. To
-        /// set a new logger use <see cref="IMachineRuntime.SetLogger"/>, and to set a
-        /// new formatter use <see cref="IMachineRuntime.SetLogFormatter"/>.
+        /// Use this method to override the default <see cref="RuntimeLogWriter"/>
+        /// for logging runtime messages.
         /// </summary>
-        public void SetLogWriter(RuntimeLogWriter logWriter)
+        public RuntimeLogWriter SetLogWriter(RuntimeLogWriter logWriter)
         {
             var logger = this.LogWriter.Logger;
-            var formatter = this.LogWriter.Formatter;
+            var prevLogWriter = this.LogWriter;
             this.LogWriter = logWriter ?? throw new InvalidOperationException("Cannot install a null log writer.");
             this.SetLogger(logger);
-            this.SetLogFormatter(formatter);
+            return prevLogWriter;
         }
 
         /// <summary>
         /// Use this method to override the default <see cref="ILogger"/> for logging messages.
         /// </summary>
-        public void SetLogger(ILogger logger)
+        public ILogger SetLogger(ILogger logger)
         {
+            var prevLogger = this.LogWriter.Logger;
             if (this.LogWriter != null)
             {
                 this.LogWriter.Logger = logger ?? throw new InvalidOperationException("Cannot install a null logger.");
@@ -625,21 +623,8 @@ namespace Microsoft.PSharp.Runtime
             {
                 throw new InvalidOperationException("Cannot install a logger on a null log writer.");
             }
-        }
 
-        /// <summary>
-        /// Use this method to override the default <see cref="IRuntimeLogFormatter"/> for formatting log messages.
-        /// </summary>
-        public void SetLogFormatter(IRuntimeLogFormatter logFormatter)
-        {
-            if (this.LogWriter != null)
-            {
-                this.LogWriter.Formatter = logFormatter ?? throw new InvalidOperationException("Cannot install a null log formatter.");
-            }
-            else
-            {
-                throw new InvalidOperationException("Cannot install a log formatter on a null log writer.");
-            }
+            return prevLogger;
         }
 
         /// <summary>

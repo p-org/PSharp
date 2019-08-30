@@ -290,7 +290,7 @@ namespace Microsoft.PSharp.TestingServices
                     runtimeLogger = new InMemoryLogger();
                     runtime.SetLogger(runtimeLogger);
 
-                    var writer = new LogWriter(new DisposingLogger());
+                    var writer = new LogWriter(new NulLogger());
                     Console.SetOut(writer);
                     Console.SetError(writer);
                 }

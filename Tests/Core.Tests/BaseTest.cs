@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
             else
             {
-                logger = new DisposingLogger();
+                logger = new NulLogger();
             }
 
             try
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Core.Tests
             }
             else
             {
-                logger = new DisposingLogger();
+                logger = new NulLogger();
             }
 
             try

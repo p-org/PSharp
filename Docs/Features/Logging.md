@@ -1,8 +1,6 @@
 Logging in P#
 =============
-The P# runtime uses the `RuntimeLogWriter` to format and log all runtime messages. To achieve this, it uses the `IRuntimeLogFormatter` interface for formatting messages, and the `ILogger` interface for logging messages.
-
-By default, the P# runtime writes all log output to `Console` during production (when verbosity is enabled). During testing, the log output is redirected to an in-memory writer (which dumps it to a file when a bug is found). This behavior can be overriden by changing the default log-related interfaces to custom ones. Further, `RuntimeLogWriter` can be subclassed to change the behavior of how the runtime logs messages.
+The P# runtime uses the `RuntimeLogWriter` to log all runtime messages. The `RuntimeLogWriter` uses the `ILogger` interface for logging. By default, log output is written to the `Console` (when verbosity is enabled). This behavior can be overriden by installing a custom `ILogger`. Further, `RuntimeLogWriter` can be subclassed to change the behavior of how the runtime logs messages. During testing, and if verbosity is disabled, the log output is automatically redirected to an in-memory `ILogger` (which dumps it to a readable trace file when a bug is found). 
 
 # Using and replacing the logger
 The `ILogger` interface is responsible for writing log messages using the `Write` and `WriteLine` methods. The `IsVerbose` property is `true` when verbosity is enabled, and `false` when disabled.
@@ -96,86 +94,55 @@ public class CustomLogger : ILogger
 
 To replace the default logger, call the following `IMachineRuntime` method:
 ```C#
-void SetLogger(ILogger logger);
+ILogger SetLogger(ILogger logger);
 ```
-The above method replaces the previously installed logger on the `RuntimeLogWriter`, and installs the specified one.
+The above method replaces the previously installed logger on the `RuntimeLogWriter`, installs the specified one and returns the previously installed logger.
 
 Note that `SetLogger` is _not_ calling `Dispose` on the previously installed logger. This must be called explicitly by the user. This allows the logger to be accessed and used after being removed from the P# runtime.
 
-# Using and replacing the formatter
-The `IRuntimeLogFormatter` interface is responsible for formatting the various runtime log messages.
-```C#
-public interface IRuntimeLogFormatter
-{
-  string FormatOnEnqueueLogMessage(MachineId machineId, string eventName);
-  string FormatOnDequeueLogMessage(MachineId machineId, string currStateName, string eventName);
-  string FormatOnDefaultLogMessage(MachineId machineId, string currStateName);
-  string FormatOnGotoLogMessage(MachineId machineId, string currStateName, string newStateName);
-  string FormatOnPushLogMessage(MachineId machineId, string currStateName, string newStateName);
-  string FormatOnPopLogMessage(MachineId machineId, string currStateName, string restoredStateName);
-  string FormatOnPopUnhandledEventLogMessage(MachineId machineId, string currStateName, string eventName);
-  string FormatOnReceiveLogMessage(MachineId machineId, string currStateName, string eventName, bool wasBlocked);
-  string FormatOnWaitLogMessage(MachineId machineId, string currStateName, Type eventType);
-  string FormatOnWaitLogMessage(MachineId machineId, string currStateName, params Type[] eventTypes);
-  string FormatOnSendLogMessage(MachineId targetMachineId, MachineId senderId, string senderStateName,
-    string eventName, Guid opGroupId, bool isTargetHalted);
-  string FormatOnCreateMachineLogMessage(MachineId machineId, MachineId creator);
-  string FormatOnCreateMonitorLogMessage(string monitorTypeName, MachineId monitorId);
-  string FormatOnCreateTimerLogMessage(TimerInfo info);
-  string FormatOnStopTimerLogMessage(TimerInfo info);
-  string FormatOnHaltLogMessage(MachineId machineId, int inboxSize);
-  string FormatOnRandomLogMessage(MachineId machineId, object result);
-  string FormatOnMachineStateLogMessage(MachineId machineId, string stateName, bool isEntry);
-  string FormatOnMachineEventLogMessage(MachineId machineId, string currStateName, string eventName);
-  string FormatOnMachineActionLogMessage(MachineId machineId, string currStateName, string actionName);
-  string FormatOnMachineExceptionThrownLogMessage(MachineId machineId, string currStateName,
-    string actionName, Exception ex);
-  string FormatOnMachineExceptionHandledLogMessage(MachineId machineId, string currStateName,
-    string actionName, Exception ex);
-  string FormatOnMonitorStateLogMessage(string monitorTypeName, MachineId monitorId, string stateName,
-    bool isEntry, bool? isInHotState);
-  string FormatOnMonitorEventLogMessage(string monitorTypeName, MachineId monitorId, string currStateName,
-    string eventName, bool isProcessing);
-  string FormatOnMonitorActionLogMessage(string monitorTypeName, MachineId monitorId, string currStateName,
-    string actionName);
-  string FormatOnErrorLogMessage(string text);
-  string FormatOnStrategyErrorLogMessage(SchedulingStrategy strategy, string strategyDescription);
-}
-```
-
-The installed formatter is called by the `RuntimeLogWriter` to format the log messages before logging them using the installed `ILogger`. By creating a custom `IRuntimeLogFormatter`, you can create your own log message format.
-
-To replace the default formatter, call the following `IMachineRuntime` method:
-```C#
-void SetLogFormatter(IRuntimeLogFormatter logFormatter);
-```
-The above method replaces the previously installed formatter on the `RuntimeLogWriter`, and installs the specified one.
-
 # Customizing the runtime log writer
-The `RuntimeLogWriter` is used by the runtime to log both internal messages (e.g. a machine was created, or an event was sent), as well as user messages (e.g. via directly using `ILogger` through a machine or monitor). Although typically you would not want to modify the default implementation of the `RuntimeLogWriter`, you have the flexibility to subclass it and set a custom version that suits your needs.
+Although typically you would not want to modify the default implementation of the `RuntimeLogWriter`, you have the flexibility to subclass it and (partially) override the default methods to define a custom implementation that suits your needs.
 
 To do this, first subclass `RuntimeLogWriter` and override the methods that you are interested in:
 ```C#
 internal class CustomLogWriter : RuntimeLogWriter
 {
+  /* Callbacks on runtime events */
+
   public override void OnEnqueue(MachineId machineId, string eventName)
   {
-    // Do something.
+    // Override to change the behaviour. Base method logs an OnEnqueue runtime event
+    // using the base FormatOnEnqueueLogMessage formatting method.
   }
 
   public override void OnSend(MachineId targetMachineId, MachineId senderId, string senderStateName, string eventName,
       Guid opGroupId, bool isTargetHalted)
   {
-    // Do something.
+    // Override to change the behaviour. Base method logs an OnSend runtime event
+    // using the base FormatOnSendLogMessage formatting method.
   }
 
-  // More overriden methods.
+  // More methods that can be overriden.
+
+  /* Methods for formatting log messages */
+
+  protected override string FormatOnEnqueueLogMessage(MachineId machineId, string eventName)
+  {
+    // Override to change the text to be logged.
+  }
+
+  protected override string FormatOnSendLogMessage(MachineId targetMachineId, MachineId senderId, string senderStateName,
+    string eventName, Guid opGroupId, bool isTargetHalted)
+  {
+    // Override to change the text to be logged.
+  }
+
+  // More methods that can be overriden.
 }
 ```
 
-
 Finally, set the new implementation using the following `IMachineRuntime` method:
 ```C#
-void SetLogWriter(RuntimeLogWriter logWriter);
+RuntimeLogWriter SetLogWriter(RuntimeLogWriter logWriter);
 ```
-The above method replaces the previously installed log writer, and installs the specified one. The runtime is going to set the previously installed `ILogger` and `IRuntimeLogFormatter` on the new `RuntimeLogWriter`, so you do not need to reset them.
+The above method replaces the previously installed log writer, installs the specified one, and returns the previously installed one. The runtime is going to set the previously installed `ILogger` on the new `RuntimeLogWriter`, so you do not need to reset them.

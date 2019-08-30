@@ -40,66 +40,15 @@ namespace Microsoft.PSharp.TestingServices.Tests.LogMessages
                 Assert.True(engine.ReadableTrace.Length > 0, "Readable trace is empty.");
 
                 string expected = @"<TestHarnessLog> Running anonymous test.
-<CreateLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()' was created by the runtime.
-<StateLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()' enters state 'Init'.
+<CreateLog>.
+<StateLog>.
 <ActionLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()' in state 'Init' invoked action 'InitOnEntry'.
-<CreateLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.N()' was created by machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()'.
-<StateLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.N()' enters state 'Init'.
+<CreateLog>.
+<StateLog>.
 <DequeueLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.N()' in state 'Init' dequeued event 'Microsoft.PSharp.TestingServices.Tests.LogMessages.E'.
 <ActionLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.N()' in state 'Init' invoked action 'Act'.
 <DequeueLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()' in state 'Init' dequeued event 'Microsoft.PSharp.TestingServices.Tests.LogMessages.E'.
 <ActionLog> Machine 'Microsoft.PSharp.TestingServices.Tests.LogMessages.M()' in state 'Init' invoked action 'Act'.
-<ErrorLog> Bug found!
-<StrategyLog> Found bug using 'DFS' strategy.
-<StrategyLog> Testing statistics:
-<StrategyLog> Found  bug.
-<StrategyLog> Scheduling statistics:
-<StrategyLog> Explored  schedule:  fair and  unfair.
-<StrategyLog> Found .% buggy schedules.";
-                string actual = Regex.Replace(engine.ReadableTrace.ToString(), "[0-9]", string.Empty);
-
-                HashSet<string> expectedSet = new HashSet<string>(Regex.Split(expected, "\r\n|\r|\n"));
-                HashSet<string> actualSet = new HashSet<string>(Regex.Split(actual, "\r\n|\r|\n"));
-
-                Assert.Equal(expected, actual);
-            }
-            catch (Exception ex)
-            {
-                Assert.False(true, ex.Message + "\n" + ex.StackTrace);
-            }
-        }
-
-        [Fact(Timeout=5000)]
-        public void TestCustomLogWriterAndFormatter()
-        {
-            Configuration configuration = GetConfiguration().WithStrategy(SchedulingStrategy.DFS);
-            BugFindingEngine engine = BugFindingEngine.Create(configuration,
-                r =>
-                {
-                    r.SetLogFormatter(new CustomLogFormatter());
-                    r.SetLogWriter(new CustomLogWriter());
-                    r.CreateMachine(typeof(M));
-                });
-
-            try
-            {
-                engine.Run();
-
-                var numErrors = engine.TestReport.NumOfFoundBugs;
-                Assert.True(numErrors == 1, GetBugReport(engine));
-                Assert.True(engine.ReadableTrace != null, "Readable trace is null.");
-                Assert.True(engine.ReadableTrace.Length > 0, "Readable trace is empty.");
-
-                string expected = @"<TestHarnessLog> Running anonymous test.
-<CreateLog>.
-<StateLog>.
-<ActionLog>.
-<CreateLog>.
-<StateLog>.
-<DequeueLog>.
-<ActionLog>.
-<DequeueLog>.
-<ActionLog>.
 <ErrorLog> Bug found!
 <StrategyLog> Found bug using 'DFS' strategy.
 <StrategyLog> Testing statistics:

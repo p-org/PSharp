@@ -18,5 +18,9 @@ namespace Microsoft.PSharp.TestingServices.Tests.LogMessages
             Guid opGroupId, bool isTargetHalted)
         {
         }
+
+        protected override string FormatOnCreateMachineLogMessage(MachineId machineId, MachineId creator) => $"<CreateLog>.";
+
+        protected override string FormatOnMachineStateLogMessage(MachineId machineId, string stateName, bool isEntry) => $"<StateLog>.";
     }
 }
