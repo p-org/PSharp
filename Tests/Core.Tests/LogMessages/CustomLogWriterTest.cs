@@ -33,6 +33,7 @@ namespace Microsoft.PSharp.Core.Tests.LogMessages
             runtime.CreateMachine(typeof(M), new Configure(tcs));
 
             await WaitAsync(tcs.Task);
+            await Task.Delay(200);
 
             string expected = @"<CreateLog>.
 <StateLog>.
