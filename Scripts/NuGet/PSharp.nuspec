@@ -2,13 +2,13 @@
 <package >
   <metadata>
     <id>Microsoft.PSharp</id>
-    <version>1.6.8</version>
+    <version>1.6.9</version>
     <authors>Microsoft</authors>
     <projectUrl>https://github.com/p-org/PSharp</projectUrl>
     <license type="expression">MIT</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>P# is a framework for rapid development of reliable asynchronous software.</description>
-    <releaseNotes>This release contains the 1.6.8 version of the P# framework.</releaseNotes>
+    <releaseNotes>This release contains the 1.6.9 version of the P# framework.</releaseNotes>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>asynchrony reliability specifications reactive state-machines testing</tags>
   </metadata>
