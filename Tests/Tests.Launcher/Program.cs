@@ -23,56 +23,6 @@ namespace Microsoft.PSharp.Tests.Launcher
 {
     public sealed class CoreTest : BaseCoreTest
     {
-        internal class E : Event
-        {
-            public MachineId Id;
-
-            public E(MachineId id)
-            {
-                this.Id = id;
-            }
-        }
-
-        internal class Unit : Event
-        {
-        }
-
-        internal class M : Machine
-        {
-            [Start]
-            [OnEntry(nameof(InitOnEntry))]
-            [OnEventDoAction(typeof(E), nameof(Act))]
-            private class Init : MachineState
-            {
-            }
-
-            private void InitOnEntry()
-            {
-                var n = this.CreateMachine(typeof(N));
-                this.Send(n, new E(this.Id));
-            }
-
-            private void Act()
-            {
-                this.Assert(false);
-            }
-        }
-
-        internal class N : Machine
-        {
-            [Start]
-            [OnEventDoAction(typeof(E), nameof(Act))]
-            private class Init : MachineState
-            {
-            }
-
-            private void Act()
-            {
-                MachineId m = (this.ReceivedEvent as E).Id;
-                this.Send(m, new E(this.Id));
-            }
-        }
-
         public CoreTest(ITestOutputHelper output)
             : base(output)
         {
@@ -81,30 +31,6 @@ namespace Microsoft.PSharp.Tests.Launcher
 #pragma warning disable CA1822 // Mark members as static
         public async Task Run()
         {
-            Configuration configuration = GetConfiguration();
-            BugFindingEngine engine = BugFindingEngine.Create(configuration,
-                r =>
-                {
-                    // CustomLogFormatter logFormatter = new CustomLogFormatter();
-                    // r.SetLogFormatter(logFormatter);
-                    r.CreateMachine(typeof(M));
-                });
-
-            // var logger = new Common.TestOutputLogger(this.TestOutput, true);
-
-            try
-            {
-                // engine.SetLogger(logger);
-                engine.Run();
-
-                var numErrors = engine.TestReport.NumOfFoundBugs;
-                Assert.True(engine.ReadableTrace != null, "Readable trace is null.");
-                Assert.True(engine.ReadableTrace.Length > 0, "Readable trace is empty.");
-            }
-            catch (Exception ex)
-            {
-            }
-
             await Task.CompletedTask;
         }
 #pragma warning restore CA1822 // Mark members as static
@@ -121,7 +47,6 @@ namespace Microsoft.PSharp.Tests.Launcher
         [Test]
         public static void Execute(IMachineRuntime r)
         {
-            r.CreateMachine(typeof(CoreTest.M));
         }
 #pragma warning restore CA1801 // Parameter not used
     }
