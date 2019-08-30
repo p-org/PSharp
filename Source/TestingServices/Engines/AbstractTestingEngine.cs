@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// The installed logger.
         /// </summary>
-        protected IO.ILogger Logger;
+        protected ILogger Logger;
 
         /// <summary>
         /// The bug-finding scheduling strategy.
@@ -132,115 +132,6 @@ namespace Microsoft.PSharp.TestingServices
         /// Interface for registering runtime operations.
         /// </summary>
         public IRegisterRuntimeOperation Reporter { get; protected set; }
-
-        /// <summary>
-        /// Runs the P# testing engine.
-        /// </summary>
-        public ITestingEngine Run()
-        {
-            try
-            {
-                Task task = this.CreateTestingTask();
-
-                if (this.Configuration.AttachDebugger)
-                {
-                    System.Diagnostics.Debugger.Launch();
-                }
-
-                if (this.Configuration.EnableDataRaceDetection)
-                {
-                    this.CreateRuntimeTracesDirectory();
-                }
-
-                if (this.Configuration.Timeout > 0)
-                {
-                    this.CancellationTokenSource.CancelAfter(
-                        this.Configuration.Timeout * 1000);
-                }
-
-                this.Profiler.StartMeasuringExecutionTime();
-
-                task.Start();
-                task.Wait(this.CancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                if (this.CancellationTokenSource.IsCancellationRequested)
-                {
-                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
-                }
-            }
-            catch (AggregateException aex)
-            {
-                aex.Handle((ex) =>
-                {
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(ex.StackTrace);
-                    return true;
-                });
-
-                if (aex.InnerException is FileNotFoundException)
-                {
-                    Error.ReportAndExit($"{aex.InnerException.Message}");
-                }
-
-                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
-                    "machine, possibly in a test method. Please use " +
-                    "/debug /v:2 to print more information.");
-            }
-            catch (Exception ex)
-            {
-                this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
-                this.TestReport.InternalErrors.Add(ex.ToString());
-            }
-            finally
-            {
-                this.Profiler.StopMeasuringExecutionTime();
-
-                // if (!this.Configuration.KeepTemporaryFiles &&
-                //    this.Assembly != null)
-                // {
-                //    this.CleanTemporaryFiles();
-                // }
-            }
-
-            return this;
-        }
-
-        /// <summary>
-        /// Creates a new testing task.
-        /// </summary>
-        protected abstract Task CreateTestingTask();
-
-        /// <summary>
-        /// Stops the P# testing engine.
-        /// </summary>
-        public void Stop()
-        {
-            this.CancellationTokenSource.Cancel();
-        }
-
-        /// <summary>
-        /// Tries to emit the testing traces, if any.
-        /// </summary>
-        public virtual void TryEmitTraces(string directory, string file)
-        {
-            // No-op, must be implemented in subclass.
-        }
-
-        /// <summary>
-        /// Registers a callback to invoke at the end of each iteration. The callback takes as
-        /// a parameter an integer representing the current iteration.
-        /// </summary>
-        public void RegisterPerIterationCallBack(Action<int> callback)
-        {
-            this.PerIterationCallbacks.Add(callback);
-        }
-
-        /// <summary>
-        /// Returns a report with the testing results.
-        /// </summary>
-        public abstract string Report();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AbstractTestingEngine"/> class.
@@ -337,7 +228,7 @@ namespace Microsoft.PSharp.TestingServices
         private void Initialize(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.Logger = new ConsoleLogger(true);
+            this.Logger = new ConsoleLogger();
             this.ErrorReporter = new ErrorReporter(this.Configuration, this.Logger);
             this.Profiler = new Profiler();
 
@@ -431,17 +322,121 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Runs the P# testing engine.
+        /// </summary>
+        public ITestingEngine Run()
+        {
+            try
+            {
+                Task task = this.CreateTestingTask();
+
+                if (this.Configuration.AttachDebugger)
+                {
+                    System.Diagnostics.Debugger.Launch();
+                }
+
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    this.CreateRuntimeTracesDirectory();
+                }
+
+                if (this.Configuration.Timeout > 0)
+                {
+                    this.CancellationTokenSource.CancelAfter(
+                        this.Configuration.Timeout * 1000);
+                }
+
+                this.Profiler.StartMeasuringExecutionTime();
+
+                task.Start();
+                task.Wait(this.CancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                if (this.CancellationTokenSource.IsCancellationRequested)
+                {
+                    this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} timed out.");
+                }
+            }
+            catch (AggregateException aex)
+            {
+                aex.Handle((ex) =>
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                    return true;
+                });
+
+                if (aex.InnerException is FileNotFoundException)
+                {
+                    Error.ReportAndExit($"{aex.InnerException.Message}");
+                }
+
+                Error.ReportAndExit("Exception thrown during testing outside the context of a " +
+                    "machine, possibly in a test method. Please use " +
+                    "/debug /v:2 to print more information.");
+            }
+            catch (Exception ex)
+            {
+                this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} failed due to an internal error: {ex}");
+                this.TestReport.InternalErrors.Add(ex.ToString());
+            }
+            finally
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+
+                // if (!this.Configuration.KeepTemporaryFiles &&
+                //    this.Assembly != null)
+                // {
+                //    this.CleanTemporaryFiles();
+                // }
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Creates a new testing task.
+        /// </summary>
+        protected abstract Task CreateTestingTask();
+
+        /// <summary>
+        /// Stops the P# testing engine.
+        /// </summary>
+        public void Stop()
+        {
+            this.CancellationTokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// Returns a report with the testing results.
+        /// </summary>
+        public abstract string GetReport();
+
+        /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        public virtual void TryEmitTraces(string directory, string file)
+        {
+            // No-op, must be implemented in subclass.
+        }
+
+        /// <summary>
+        /// Registers a callback to invoke at the end of each iteration. The callback takes as
+        /// a parameter an integer representing the current iteration.
+        /// </summary>
+        public void RegisterPerIterationCallBack(Action<int> callback)
+        {
+            this.PerIterationCallbacks.Add(callback);
+        }
+
+        /// <summary>
         /// Finds the testing runtime factory method, if one is provided.
         /// </summary>
         private void FindRuntimeFactoryMethod()
         {
             BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod;
             List<MethodInfo> runtimeFactoryMethods = this.FindTestMethodsWithAttribute(typeof(TestRuntimeCreateAttribute), flags, this.RuntimeAssembly);
-            foreach (var x in runtimeFactoryMethods)
-            {
-                Console.WriteLine(x.Name);
-            }
-
             if (runtimeFactoryMethods.Count == 0)
             {
                 Error.ReportAndExit($"Failed to find a testing runtime factory method in the '{this.RuntimeAssembly.FullName}' assembly.");
@@ -698,18 +693,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Cleans the temporary files.
-        /// </summary>
-        protected void CleanTemporaryFiles()
-        {
-            string directoryPath = this.GetRuntimeTracesDirectory();
-            if (Directory.Exists(directoryPath))
-            {
-                Directory.Delete(directoryPath, true);
-            }
-        }
-
-        /// <summary>
         /// Installs the specified <see cref="IO.ILogger"/>.
         /// </summary>
         public void SetLogger(IO.ILogger logger)
@@ -731,6 +714,18 @@ namespace Microsoft.PSharp.TestingServices
         {
             int seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.RandomNumberGenerator = new DefaultRandomNumberGenerator(seed);
+        }
+
+        /// <summary>
+        /// Cleans the temporary files.
+        /// </summary>
+        protected void CleanTemporaryFiles()
+        {
+            string directoryPath = this.GetRuntimeTracesDirectory();
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, true);
+            }
         }
     }
 }

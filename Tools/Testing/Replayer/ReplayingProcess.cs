@@ -37,7 +37,7 @@ namespace Microsoft.PSharp
             ITestingEngine engine = TestingEngineFactory.CreateReplayEngine(this.Configuration);
 
             engine.Run();
-            Output.WriteLine(engine.Report());
+            Output.WriteLine(engine.GetReport());
         }
 
         /// <summary>

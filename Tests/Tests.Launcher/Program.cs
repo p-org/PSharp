@@ -5,9 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.TestingServices.Tests;
 using Microsoft.PSharp.Tests.Common;
 using Microsoft.PSharp.Timers;
@@ -69,7 +72,7 @@ namespace Microsoft.PSharp.Tests.Launcher
     {
         private static async Task Main()
         {
-            var test = new CoreTest(new TestConsoleLogger());
+            var test = new CoreTest(new TestConsoleLogger(true));
             await test.Run();
         }
     }

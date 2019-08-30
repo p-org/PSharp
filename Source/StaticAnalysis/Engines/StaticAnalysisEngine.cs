@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static StaticAnalysisEngine Create(CompilationContext context)
         {
-            return new StaticAnalysisEngine(context, new ConsoleLogger(true));
+            return new StaticAnalysisEngine(context, new ConsoleLogger());
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private StaticAnalysisEngine(CompilationContext context, ILogger logger)
         {
             this.ErrorReporter = new ErrorReporter(context.Configuration, logger);
-            this.Logger = logger ?? new ConsoleLogger(true);
+            this.Logger = logger ?? new ConsoleLogger();
             this.Profiler = new Profiler();
             this.CompilationContext = context;
         }

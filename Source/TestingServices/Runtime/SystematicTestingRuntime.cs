@@ -516,7 +516,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
 
-            this.Logger.OnCreateMachine(mid, creator?.Id);
+            this.LogWriter.OnCreateMachine(mid, creator?.Id);
 
             if (this.Configuration.EnableDataRaceDetection)
             {
@@ -607,7 +607,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             targetMachine = this.GetMachineFromId<Machine>(target);
             if (targetMachine is null)
             {
-                this.Logger.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+                this.LogWriter.OnSend(target, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                     e.GetType().FullName, opGroupId, isTargetHalted: true);
                 this.Assert(options is null || !options.MustHandle,
                     "A must-handle event '{0}' was sent to the halted machine '{1}'.", e.GetType().FullName, target);
@@ -656,7 +656,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 SendStep = this.Scheduler.ScheduledSteps
             };
 
-            this.Logger.OnSend(machine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
+            this.LogWriter.OnSend(machine.Id, sender?.Id, (sender as Machine)?.CurrentStateName ?? string.Empty,
                 e.GetType().FullName, opGroupId, isTargetHalted: false);
 
             if (sender != null)
@@ -818,7 +818,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             monitor.Initialize(this, mid);
             monitor.InitializeStateInformation();
 
-            this.Logger.OnCreateMonitor(type.FullName, monitor.Id);
+            this.LogWriter.OnCreateMonitor(type.FullName, monitor.Id);
 
             this.ReportActivityCoverageOfMonitor(monitor);
             this.BugTrace.AddCreateMonitorStep(mid);
@@ -1023,7 +1023,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(maxValue);
-            this.Logger.OnRandom(caller?.Id, choice);
+            this.LogWriter.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : string.Empty;
             this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
@@ -1050,7 +1050,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             var choice = this.Scheduler.GetNextNondeterministicBooleanChoice(2, uniqueId);
-            this.Logger.OnRandom(caller?.Id, choice);
+            this.LogWriter.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : string.Empty;
             this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
@@ -1076,7 +1076,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             var choice = this.Scheduler.GetNextNondeterministicIntegerChoice(maxValue);
-            this.Logger.OnRandom(caller?.Id, choice);
+            this.LogWriter.OnRandom(caller?.Id, choice);
 
             var stateName = caller is Machine ? (caller as Machine).CurrentStateName : string.Empty;
             this.BugTrace.AddRandomChoiceStep(caller?.Id, stateName, choice);
@@ -1092,7 +1092,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddGotoStateStep(machine.Id, machineState);
 
-            this.Logger.OnMachineState(machine.Id, machineState, isEntry: true);
+            this.LogWriter.OnMachineState(machine.Id, machineState, isEntry: true);
         }
 
         /// <summary>
@@ -1103,7 +1103,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string monitorState = monitor.CurrentStateNameWithTemperature;
             this.BugTrace.AddGotoStateStep(monitor.Id, monitorState);
 
-            this.Logger.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, true, monitor.GetHotState());
+            this.LogWriter.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, true, monitor.GetHotState());
         }
 
         /// <summary>
@@ -1111,7 +1111,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyExitedState(Machine machine)
         {
-            this.Logger.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
+            this.LogWriter.OnMachineState(machine.Id, machine.CurrentStateName, isEntry: false);
         }
 
         /// <summary>
@@ -1120,7 +1120,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal override void NotifyExitedState(Monitor monitor)
         {
             string monitorState = monitor.CurrentStateNameWithTemperature;
-            this.Logger.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, false, monitor.GetHotState());
+            this.LogWriter.OnMonitorState(monitor.GetType().FullName, monitor.Id, monitorState, false, monitor.GetHotState());
         }
 
         /// <summary>
@@ -1133,7 +1133,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
-            this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
+            this.LogWriter.OnMachineAction(machine.Id, machineState, action.Name);
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = true;
@@ -1162,7 +1162,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
-            this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
+            this.LogWriter.OnMachineAction(machine.Id, machineState, action.Name);
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = true;
@@ -1192,7 +1192,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
 
-            this.Logger.OnMachineAction(machine.Id, machineState, action.Name);
+            this.LogWriter.OnMachineAction(machine.Id, machineState, action.Name);
             if (this.Configuration.EnableDataRaceDetection)
             {
                 this.Reporter.InAction[machine.Id.Value] = true;
@@ -1220,7 +1220,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string monitorState = monitor.CurrentStateName;
             this.BugTrace.AddInvokeActionStep(monitor.Id, monitorState, action);
 
-            this.Logger.OnMonitorAction(monitor.GetType().FullName, monitor.Id, action.Name, monitorState);
+            this.LogWriter.OnMonitorAction(monitor.GetType().FullName, monitor.Id, action.Name, monitorState);
         }
 
         /// <summary>
@@ -1233,7 +1233,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string machineState = machine.CurrentStateName;
             this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
 
-            this.Logger.OnMachineEvent(machine.Id, machineState, eventInfo.EventName);
+            this.LogWriter.OnMachineEvent(machine.Id, machineState, eventInfo.EventName);
         }
 
         /// <summary>
@@ -1244,7 +1244,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             string monitorState = monitor.CurrentStateName;
             this.BugTrace.AddRaiseEventStep(monitor.Id, monitorState, eventInfo);
 
-            this.Logger.OnMonitorEvent(monitor.GetType().FullName, monitor.Id, monitor.CurrentStateName,
+            this.LogWriter.OnMonitorEvent(monitor.GetType().FullName, monitor.Id, monitor.CurrentStateName,
                 eventInfo.EventName, isProcessing: false);
         }
 
@@ -1268,7 +1268,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 ResetProgramCounter(machine);
             }
 
-            this.Logger.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
+            this.LogWriter.OnDequeue(machine.Id, machine.CurrentStateName, eventInfo.EventName);
 
             if (this.Configuration.EnableDataRaceDetection)
             {
@@ -1292,7 +1292,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.AssertCorrectCallerMachine(machine, "Pop");
             this.AssertTransitionStatement(machine);
 
-            this.Logger.OnPop(machine.Id, string.Empty, machine.CurrentStateName);
+            this.LogWriter.OnPop(machine.Id, string.Empty, machine.CurrentStateName);
 
             if (this.Configuration.ReportActivityCoverage)
             {
@@ -1333,12 +1333,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             var eventWaitTypesArray = eventTypes.ToArray();
             if (eventWaitTypesArray.Length == 1)
             {
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray[0]);
+                this.LogWriter.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray[0]);
                 eventNames = eventWaitTypesArray[0].FullName;
             }
             else
             {
-                this.Logger.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray);
+                this.LogWriter.OnWait(machine.Id, machine.CurrentStateName, eventWaitTypesArray);
                 if (eventWaitTypesArray.Length > 0)
                 {
                     string[] eventNameArray = new string[eventWaitTypesArray.Length - 1];
@@ -1365,7 +1365,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyReceivedEvent(Machine machine, Event e, EventInfo eventInfo)
         {
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: true);
+            this.LogWriter.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: true);
             this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
             // A subsequent enqueue unblocked the receive action of machine.
@@ -1391,7 +1391,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
-            this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
+            this.LogWriter.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
 
             AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
             op.MatchingSendIndex = (ulong)eventInfo.SendStep;
