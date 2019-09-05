@@ -102,6 +102,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         internal readonly int? RootTaskId;
 
         /// <summary>
+        /// Disable external concurrency check
+        /// </summary>
+        private readonly bool disableExternalConcurrencyCheck = true;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
         internal SystematicTestingRuntime(Configuration configuration, ISchedulingStrategy strategy, IRegisterRuntimeOperation reporter)
@@ -974,6 +979,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal void AssertNoExternalConcurrencyUsed()
         {
+            if (this.disableExternalConcurrencyCheck)
+            {
+                return;
+            }
+
             var machine = this.GetExecutingMachine<AsyncMachine>();
             this.Assert(machine != null && Task.CurrentId.HasValue && this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value),
                 "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
