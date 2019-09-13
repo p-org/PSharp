@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -129,6 +130,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.SourceId);
 
             Debug.WriteLine($"<ScheduleDebug> Schedule '{next.SourceName}' with task id '{this.ScheduledOperation.Task.Id}'.");
+            // Console.WriteLine($"<Testing::::::ScheduleDebug> Schedule '{this.ScheduledOperation.SourceName}' for - '{this.ScheduledOperation.Type}'.");
 
             if (current != next)
             {
@@ -395,7 +397,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         private void CheckIfProgramHasLivelocked(IEnumerable<AsyncOperation> ops)
         {
-            var blockedOnReceiveOperations = ops.Where(op => op.IsWaitingToReceive).ToList();
+            var blockedOnReceiveOperationsFailureDomainCheck = ops.Where(op => op.IsWaitingToReceive).ToList();
+            List<AsyncOperation> blockedOnReceiveOperations = new List<AsyncOperation>();
+
+            // the FailureDomain - Code
+            for (int i = 0; i < blockedOnReceiveOperationsFailureDomainCheck.Count; i++)
+            {
+                var m1 = this.Runtime.CreatedMachineIds.Where(op1 => op1.Name.Equals(blockedOnReceiveOperationsFailureDomainCheck[i].SourceName)).ToList();
+                for (int j = 0; j < m1.Count; j++)
+                {
+                    Machine machine = this.Runtime.GetMachineFromId<Machine>(m1[j]);
+                    if (!machine.MachineFailureDomain.DomainFailure)
+                    {
+                        // blockedOnReceiveOperationsFailureDomainCheck[i].IsWaitingToReceive = false;
+                        blockedOnReceiveOperations.Add(blockedOnReceiveOperationsFailureDomainCheck[i]);
+                    }
+                }
+            }
+
+            // blockedOnReceiveOperations = ops.Where(op => op.IsWaitingToReceive).ToList();
+            // the end
+
             if (blockedOnReceiveOperations.Count == 0)
             {
                 return;
