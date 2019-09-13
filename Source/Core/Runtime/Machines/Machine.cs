@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -537,6 +538,14 @@ namespace Microsoft.PSharp
         /// </summary>
         internal EnqueueStatus Enqueue(Event e, Guid opGroupId, EventInfo info)
         {
+            if (!this.IsHalted && this.MachineFailureDomain.DomainFailure)
+            {
+                // Console.WriteLine("The Halting Machine: Check7");
+                this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");
+                Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                this.HaltMachine();
+            }
+
             if (this.IsHalted)
             {
                 return EnqueueStatus.Dropped;
@@ -551,87 +560,97 @@ namespace Microsoft.PSharp
         /// </summary>
         internal async Task RunEventHandlerAsync()
         {
+            if (!this.IsHalted && this.MachineFailureDomain.DomainFailure)
+            {
+                // Console.WriteLine("The Halting Machine: Check1");
+                this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");
+                Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                this.HaltMachine();
+                return;
+            }
+
             if (this.IsHalted)
             {
                 return;
             }
 
             Event lastDequeuedEvent = null;
-            while (!this.IsHalted && this.Runtime.IsRunning)
+            try
             {
-                (DequeueStatus status, Event e, Guid opGroupId, EventInfo info) = this.Inbox.Dequeue();
-                if (opGroupId != Guid.Empty)
+                while (!this.IsHalted && this.Runtime.IsRunning)
                 {
-                    // Inherit the operation group id of the dequeue or raise operation, if it is non-empty.
-                    this.StateManager.OperationGroupId = opGroupId;
-                }
-
-                if (status is DequeueStatus.Success)
-                {
-                    // Notify the runtime for a new event to handle. This is only used
-                    // during bug-finding and operation bounding, because the runtime
-                    // has to schedule a machine when a new operation is dequeued.
-                    try
+                    (DequeueStatus status, Event e, Guid opGroupId, EventInfo info) = this.Inbox.Dequeue();
+                    if (opGroupId != Guid.Empty)
                     {
+                        // Inherit the operation group id of the dequeue or raise operation, if it is non-empty.
+                        this.StateManager.OperationGroupId = opGroupId;
+                    }
+
+                    if (status is DequeueStatus.Success)
+                    {
+                        // Notify the runtime for a new event to handle. This is only used
+                        // during bug-finding and operation bounding, because the runtime
+                        // has to schedule a machine when a new operation is dequeued.
                         this.Runtime.NotifyDequeuedEvent(this, e, info);
                     }
-                    catch (FailureException ex)
+                    else if (status is DequeueStatus.Raised)
                     {
-                        if (ex is FailureException)
-                        {
-                            // this.IsHalted = true;
-                            Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
-                            this.HaltMachine();
-                        }
+                        this.Runtime.NotifyHandleRaisedEvent(this, e);
+                    }
+                    else if (status is DequeueStatus.Default)
+                    {
+                        this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
+
+                        // If the default event was handled, then notify the runtime.
+                        // This is only used during bug-finding, because the runtime
+                        // has to schedule a machine between default handlers.
+                        this.Runtime.NotifyDefaultHandlerFired(this);
+                    }
+                    else if (status is DequeueStatus.NotAvailable)
+                    {
+                        break;
+                    }
+
+                    // Assigns the received event.
+                    this.ReceivedEvent = e;
+
+                    if (status is DequeueStatus.Success)
+                    {
+                        // Inform the user of a successful dequeue once ReceivedEvent is set.
+                        lastDequeuedEvent = e;
+                        await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventDequeued, lastDequeuedEvent);
+                    }
+
+                    if (e is TimerElapsedEvent timeoutEvent &&
+                        timeoutEvent.Info.Period.TotalMilliseconds < 0)
+                    {
+                        // If the timer is not periodic, then dispose it.
+                        this.UnregisterTimer(timeoutEvent.Info);
+                    }
+
+                    // Handles next event.
+                    if (!this.IsHalted)
+                    {
+                        await this.HandleEvent(e);
+                    }
+
+                    if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.IsHalted)
+                    {
+                        // Inform the user that the machine is done handling the current event.
+                        // The machine will either go idle or dequeue its next event.
+                        await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventHandled, lastDequeuedEvent);
+                        lastDequeuedEvent = null;
                     }
                 }
-                else if (status is DequeueStatus.Raised)
-                {
-                    this.Runtime.NotifyHandleRaisedEvent(this, e);
-                }
-                else if (status is DequeueStatus.Default)
-                {
-                    this.Runtime.Logger.OnDefault(this.Id, this.CurrentStateName);
-
-                    // If the default event was handled, then notify the runtime.
-                    // This is only used during bug-finding, because the runtime
-                    // has to schedule a machine between default handlers.
-                    this.Runtime.NotifyDefaultHandlerFired(this);
-                }
-                else if (status is DequeueStatus.NotAvailable)
-                {
-                    break;
-                }
-
-                // Assigns the received event.
-                this.ReceivedEvent = e;
-
-                if (status is DequeueStatus.Success)
-                {
-                    // Inform the user of a successful dequeue once ReceivedEvent is set.
-                    lastDequeuedEvent = e;
-                    await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventDequeued, lastDequeuedEvent);
-                }
-
-                if (e is TimerElapsedEvent timeoutEvent &&
-                    timeoutEvent.Info.Period.TotalMilliseconds < 0)
-                {
-                    // If the timer is not periodic, then dispose it.
-                    this.UnregisterTimer(timeoutEvent.Info);
-                }
-
-                // Handles next event.
+            }
+            catch (FailureException)
+            {
                 if (!this.IsHalted)
                 {
-                    await this.HandleEvent(e);
-                }
-
-                if (!this.Inbox.IsEventRaised && lastDequeuedEvent != null && !this.IsHalted)
-                {
-                    // Inform the user that the machine is done handling the current event.
-                    // The machine will either go idle or dequeue its next event.
-                    await this.ExecuteUserCallbackAsync(EventHandlerStatus.EventHandled, lastDequeuedEvent);
-                    lastDequeuedEvent = null;
+                    // Console.WriteLine("The Halting Machine: Check3");
+                    this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");
+                    Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                    this.HaltMachine();
                 }
             }
         }
@@ -895,9 +914,12 @@ namespace Microsoft.PSharp
                 }
                 else if (innerException is FailureException)
                 {
-                    // this.IsHalted = true;
-                    Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
-                    this.HaltMachine();
+                    // Console.WriteLine("The Halting Machine: Check4");
+                    if (!this.IsHalted)
+                    {
+                        Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                        this.HaltMachine();
+                    }
                 }
                 else
                 {
@@ -967,9 +989,12 @@ namespace Microsoft.PSharp
                 }
                 else if (innerException is FailureException)
                 {
-                    // this.IsHalted = true;
-                    Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
-                    this.HaltMachine();
+                    // Console.WriteLine("The Halting Machine: Check5");
+                    if (!this.IsHalted)
+                    {
+                        Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+                        this.HaltMachine();
+                    }
                 }
                 else
                 {
@@ -1648,7 +1673,7 @@ namespace Microsoft.PSharp
             if (ex is ExecutionCanceledException || ex is FailureException)
             {
                 // Internal exception, used during testing. With Logger for Failure Exception.
-                if (ex is FailureException)
+                if (ex is FailureException && !this.IsHalted)
                 {
                     this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, methodName);
                 }
@@ -1735,6 +1760,7 @@ namespace Microsoft.PSharp
 
             // Dispose any held resources.
             this.Inbox.Dispose();
+
             foreach (var timer in this.Timers.Keys.ToList())
             {
                 this.UnregisterTimer(timer);
@@ -1750,6 +1776,15 @@ namespace Microsoft.PSharp
         protected void TriggerFailureDomain()
         {
             this.Runtime.TriggerFailureDomain(this.MachineFailureDomain);
+            // throw new FailureException();
+        }
+
+        internal void HaltMachineForFailureDomain()
+        {
+            // Console.WriteLine("The Halting Machine: Check6");
+            this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");
+            Debug.WriteLine($"<Failure> Machine '{this.Id}' has received failure from its domain.");
+            this.HaltMachine();
         }
     }
 }
