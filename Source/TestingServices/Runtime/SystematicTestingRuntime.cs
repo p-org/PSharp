@@ -106,6 +106,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal FailureDomain NoneFailureDomain;
 
+        // internal ConcurrentDictionary<FailureDomain, LinkedList<MachineId>> MachineDomainMap;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
@@ -479,9 +481,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             // the id of its target, because the id does not exist yet.
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Create, AsyncOperationTarget.Task, ulong.MaxValue);
 
-            if (creator != null && this.CheckDomainFailure(creator.Id))
+            if (creator != null)
             {
-                throw new FailureException();
+                this.CheckDomainFailure(creator.Id);
             }
 
             ResetProgramCounter(creator);
@@ -539,7 +541,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             {
                 machine.MachineFailureDomain = createOptions.MachineFailureDomain;
             }
-            else if (creator != null && creator.MachineFailureDomain != null)
+            else if (creator != null)
             {
                 machine.MachineFailureDomain = creator.MachineFailureDomain;
             }
@@ -619,10 +621,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
 
-            if (sender != null && this.CheckDomainFailure(sender.Id))
-            {
-                throw new FailureException();
-            }
+            // Checking for Failure Domain - While sending an event
+            this.CheckDomainFailure(sender.Id);
 
             ResetProgramCounter(sender as Machine);
 
@@ -726,6 +726,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 {
                     BugFindingScheduler.NotifyOperationStarted(op);
 
+                    // Check for Failure Domain - before the Machine calling its Init method.
+                    if (!machine.IsHalted && machine.MachineFailureDomain.DomainFailure)
+                    {
+                        machine.HaltMachineForFailureDomain();
+                        isFresh = false;
+                    }
+
                     if (isFresh)
                     {
                         await machine.GotoStartState(initialEvent);
@@ -774,11 +781,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     {
                         IO.Debug.WriteLine($"<Exception> TaskSchedulerException was thrown from machine '{machine.Id}'.");
                     }
-
-                    /* else if (innerException is FailureException)
-                    {
-                        machine.IsHalted = true;
-                    } */
                     else if (innerException is ObjectDisposedException)
                     {
                         IO.Debug.WriteLine($"<Exception> ObjectDisposedException was thrown from machine '{machine.Id}' with reason '{ex.Message}'.");
@@ -1302,10 +1304,8 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 op.MatchingSendIndex = (ulong)eventInfo.SendStep;
                 this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
 
-                if (machine != null && this.CheckDomainFailure(machine.Id))
-                {
-                    throw new FailureException();
-                }
+                // Checking for Failure Domain - While dequeueing an event
+                this.CheckDomainFailure(machine.Id);
 
                 ResetProgramCounter(machine);
             }
@@ -1367,6 +1367,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyWaitEvent(Machine machine, IEnumerable<Type> eventTypes)
         {
+            // Checking for Failure Domain - While waiting to receive an event
+            this.CheckDomainFailure(machine.Id);
+
             AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
             op.IsEnabled = false;
             op.IsWaitingToReceive = true;
@@ -1399,6 +1402,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
             this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, eventNames);
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+
             ResetProgramCounter(machine);
         }
 
@@ -1433,6 +1437,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal override void NotifyReceivedEventWithoutWaiting(Machine machine, Event e, EventInfo eventInfo)
         {
+            // Checking for Failure Domain
+            this.CheckDomainFailure(machine.Id);
+
             this.Logger.OnReceive(machine.Id, machine.CurrentStateName, e.GetType().FullName, wasBlocked: false);
 
             AsyncOperation op = this.GetAsynchronousOperation(machine.Id.Value);
@@ -1444,6 +1451,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             }
 
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+
             ResetProgramCounter(machine);
         }
 
@@ -1463,6 +1471,9 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, machine.Id.Value);
 
+            // Checking for Failure Domain
+            this.CheckDomainFailure(machine.Id);
+
             // If the default event handler fires, the next receive in NotifyDefaultHandlerFired
             // will use this as its MatchingSendIndex.
             // If it does not fire, MatchingSendIndex will be overwritten.
@@ -1476,6 +1487,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             // MatchingSendIndex is set in NotifyDefaultEventHandlerCheck.
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Receive, AsyncOperationTarget.Inbox, machine.Id.Value);
+
+            // Checking for Failure Domain
+            this.CheckDomainFailure(machine.Id);
+
             ResetProgramCounter(machine);
         }
 
@@ -1741,12 +1756,15 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Method to check the failure domain status
+        /// Method to check the failure domain status and throw Failure Exception
         /// </summary>
-        /// <returns> Returns the failure status of a domain</returns>
-        private bool CheckDomainFailure (MachineId machineId)
+        private void CheckDomainFailure (MachineId machineId)
         {
-            return this.GetMachineFromId<Machine>(machineId).MachineFailureDomain.DomainFailure;
+            // if (this.GetMachineFromId<Machine>(machineId).MachineFailureDomain.DomainFailure)
+            if (!this.GetMachineFromId<Machine>(machineId).IsHalted && this.GetMachineFromId<Machine>(machineId).MachineFailureDomain.DomainFailure)
+            {
+                throw new FailureException();
+            }
         }
 
         /// <summary>
@@ -1758,6 +1776,11 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             if (failureDomain != null && !ReferenceEquals(failureDomain, this.NoneFailureDomain))
             {
                 failureDomain.TriggerDomainFailure();
+                Machine machine = this.GetExecutingMachine<Machine>();
+                if (!machine.IsHalted && ReferenceEquals(failureDomain, machine.MachineFailureDomain))
+                {
+                    throw new FailureException();
+                }
             }
             else
             {
