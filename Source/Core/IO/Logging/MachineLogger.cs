@@ -846,7 +846,14 @@ namespace Microsoft.PSharp.IO
         /// <param name="actionName">The name of the action being executed.</param>
         public virtual string FormatOnMachineFailureDomainThrownString(MachineId machineId, string currStateName, string actionName)
         {
-            return $"<FailureLog> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' has received failure from its domain.";
+            if (actionName.Equals("Dequeue"))
+            {
+                return $"<FailureLog1> Machine '{machineId}' in state '{currStateName}' has received failure from its domain.";
+            }
+            else
+            {
+                return $"<FailureLog2> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' has received failure from its domain.";
+            }
         }
 
         /// <summary>
