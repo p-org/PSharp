@@ -848,11 +848,11 @@ namespace Microsoft.PSharp.IO
         {
             if (actionName.Equals("Dequeue"))
             {
-                return $"<FailureLog1> Machine '{machineId}' in state '{currStateName}' has received failure from its domain.";
+                return $"<FailureLog> Machine '{machineId}' in state '{currStateName}' has received failure from its domain.";
             }
             else
             {
-                return $"<FailureLog2> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' has received failure from its domain.";
+                return $"<FailureLog> Machine '{machineId}' in state '{currStateName}' running action '{actionName}' has received failure from its domain.";
             }
         }
 

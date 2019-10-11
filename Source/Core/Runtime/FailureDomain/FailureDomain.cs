@@ -38,7 +38,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// To trigger failure domain
         /// </summary>
-        internal void TriggerDomainFailure ()
+        internal void TriggerDomainFailure()
         {
             this.DomainFailure = true;
         }

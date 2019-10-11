@@ -538,7 +538,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal EnqueueStatus Enqueue(Event e, Guid opGroupId, EventInfo info)
         {
-            if (!this.IsHalted && this.MachineFailureDomain.DomainFailure)
+            if (!this.IsHalted && this.MachineFailureDomain != null && this.MachineFailureDomain.DomainFailure)
             {
                 // Console.WriteLine("The Halting Machine: Check7");
                 this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");
@@ -560,7 +560,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal async Task RunEventHandlerAsync()
         {
-            if (!this.IsHalted && this.MachineFailureDomain.DomainFailure)
+            if (!this.IsHalted && this.MachineFailureDomain != null && this.MachineFailureDomain.DomainFailure)
             {
                 // Console.WriteLine("The Halting Machine: Check1");
                 this.Logger.OnMachineFailureDomain(this.Id, this.CurrentStateName, "Dequeue");

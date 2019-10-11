@@ -106,8 +106,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// </summary>
         internal FailureDomain NoneFailureDomain;
 
-        // internal ConcurrentDictionary<FailureDomain, LinkedList<MachineId>> MachineDomainMap;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
         /// </summary>
@@ -622,7 +620,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
 
             // Checking for Failure Domain - While sending an event
-            this.CheckDomainFailure(sender.Id);
+            if (sender != null)
+            {
+                this.CheckDomainFailure(sender.Id);
+            }
 
             ResetProgramCounter(sender as Machine);
 
@@ -727,9 +728,12 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                     BugFindingScheduler.NotifyOperationStarted(op);
 
                     // Check for Failure Domain - before the Machine calling its Init method.
-                    if (!machine.IsHalted && machine.MachineFailureDomain.DomainFailure)
+                    if (machine.MachineFailureDomain.DomainFailure)
                     {
-                        machine.HaltMachineForFailureDomain();
+                        if (!machine.IsHalted)
+                        {
+                            machine.HaltMachineForFailureDomain();
+                        }
                         isFresh = false;
                     }
 
