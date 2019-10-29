@@ -1,6 +1,6 @@
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/p-org/PSharp/master/LICENSE.txt)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/p-org/PSharp/master/LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/Microsoft.PSharp.svg)](https://www.nuget.org/packages/Microsoft.PSharp/)
-[![Build status](https://p-language.visualstudio.com/plang-ci/_apis/build/status/psharp/psharp-win-build-and-test?branchName=master)](https://p-language.visualstudio.com/plang-ci/_build/latest?definitionId=1)
+[![Build status](https://dev.azure.com/foundry99/Coyote/_apis/build/status/PSharp/PSharp-Windows-CI)](https://dev.azure.com/foundry99/Coyote/_build/latest?definitionId=63)
 
 P# is a framework for rapid development of reliable asynchronous software. P# is used by several teams in [Azure](https://azure.microsoft.com/) to design, implement and automatically test production distributed systems and services.
 
