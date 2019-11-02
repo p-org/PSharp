@@ -13,54 +13,54 @@ namespace Raft
 {
     machine Client
     {
-		machine Cluster;
-		int LatestCommand;
-		int Counter;
+	machine Cluster;
+	int LatestCommand;
+	int Counter;
 
-		start state Init
+	start state Init
+	{
+		entry
 		{
-			entry
-			{
-				this.LatestCommand = -1;
-				this.Counter = 0;
-			}
-
-			on CConfigureEvent do Configure;
-			on LocalEvent goto PumpRequest;
+			this.LatestCommand = -1;
+			this.Counter = 0;
 		}
 
-		void Configure()
+		on CConfigureEvent do Configure;
+		on LocalEvent goto PumpRequest;
+	}
+
+	void Configure()
+	{
+	    this.Cluster = (trigger as CConfigureEvent).Cluster;
+	    raise(LocalEvent);
+	}
+
+	state PumpRequest
+	{
+		entry
 		{
-		    this.Cluster = (trigger as CConfigureEvent).Cluster;
-		    raise(LocalEvent);
+			this.LatestCommand = new Random().Next(100);
+			this.Counter++;
+			this.Logger.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
+			send(this.Cluster, Request, this.Id, this.LatestCommand);
 		}
 
-		state PumpRequest
-		{
-			entry
-			{
-				this.LatestCommand = new Random().Next(100);
-				this.Counter++;
-				this.Logger.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
-				send(this.Cluster, Request, this.Id, this.LatestCommand);
-			}
+		on Response do ProcessResponse;
+		on LocalEvent goto PumpRequest;
+	}
 
-			on Response do ProcessResponse;
-			on LocalEvent goto PumpRequest;
-		}
-
-		void ProcessResponse()
-		{
-		    if (this.Counter == 3)
-		    {
-			send(this.Cluster, ShutDown);
-			raise(Halt);
-		    }
-		    else
-		    {
-			raise(LocalEvent);
-		    }
-		}
+	void ProcessResponse()
+	{
+	    if (this.Counter == 3)
+	    {
+		send(this.Cluster, ShutDown);
+		raise(Halt);
+	    }
+	    else
+	    {
+		raise(LocalEvent);
+	    }
+	}
     }
 }
 
