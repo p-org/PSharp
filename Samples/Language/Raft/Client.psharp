@@ -14,8 +14,8 @@ namespace Raft
     machine Client
     {
 		machine Cluster;
-        int LatestCommand;
-        int Counter;
+		int LatestCommand;
+		int Counter;
 
 		start state Init
 		{
@@ -30,10 +30,10 @@ namespace Raft
 		}
 
 		void Configure()
-        {
-            this.Cluster = (trigger as CConfigureEvent).Cluster;
-            raise(LocalEvent);
-        }
+		{
+		    this.Cluster = (trigger as CConfigureEvent).Cluster;
+		    raise(LocalEvent);
+		}
 
 		state PumpRequest
 		{
@@ -50,17 +50,17 @@ namespace Raft
 		}
 
 		void ProcessResponse()
-        {
-            if (this.Counter == 3)
-            {
-                send(this.Cluster, ShutDown);
-                raise(Halt);
-            }
-            else
-            {
-                raise(LocalEvent);
-            }
-        }
+		{
+		    if (this.Counter == 3)
+		    {
+			send(this.Cluster, ShutDown);
+			raise(Halt);
+		    }
+		    else
+		    {
+			raise(LocalEvent);
+		    }
+		}
     }
 }
 
