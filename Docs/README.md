@@ -30,7 +30,6 @@ Learn how to use the P# testing infrastructure to write unit-tests, thoroughly c
 ## Tools
 The following provides information regarding the available tools in the P# ecosystem:
 - [P# Compiler](Tools/Compiler.md)
-- [P# Trace Viewer](Tools/TraceViewer.md)
 - [P# Race Detector](Tools/RaceDetection.md)
 - [P# Batch Tester](https://github.com/p-org/PSharpBatchTesting)
 

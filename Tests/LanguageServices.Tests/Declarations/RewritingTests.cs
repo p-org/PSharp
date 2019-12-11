@@ -5,8 +5,6 @@
 
 using System;
 
-using Microsoft.PSharp.LanguageServices.Parsing;
-
 using Xunit;
 
 namespace Microsoft.PSharp.LanguageServices.Tests

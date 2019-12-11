@@ -12,77 +12,77 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     /// Class implementing a P# bug trace step.
     /// </summary>
     [DataContract(IsReference = true)]
-    internal sealed class BugTraceStep
+    public sealed class BugTraceStep
     {
         /// <summary>
         /// The unique index of this bug trace step.
         /// </summary>
-        internal int Index;
+        public int Index { get; internal set; }
 
         /// <summary>
         /// The type of this bug trace step.
         /// </summary>
         [DataMember]
-        internal BugTraceStepType Type { get; private set; }
+        public BugTraceStepType Type { get; private set; }
 
         /// <summary>
         /// The machine initiating the action.
         /// </summary>
         [DataMember]
-        internal MachineId Machine;
+        public MachineId Machine { get; internal set; }
 
         /// <summary>
         /// The machine state.
         /// </summary>
         [DataMember]
-        internal string MachineState;
+        public string MachineState { get; internal set; }
 
         /// <summary>
         /// Information about the event being sent.
         /// </summary>
         [DataMember]
-        internal EventInfo EventInfo;
+        public EventInfo EventInfo { get; internal set; }
 
         /// <summary>
         /// The invoked action.
         /// </summary>
         [DataMember]
-        internal string InvokedAction;
+        public string InvokedAction { get; internal set; }
 
         /// <summary>
         /// The target machine.
         /// </summary>
         [DataMember]
-        internal MachineId TargetMachine;
+        public MachineId TargetMachine { get; internal set; }
 
         /// <summary>
         /// The taken nondeterministic boolean choice.
         /// </summary>
         [DataMember]
-        internal bool? RandomBooleanChoice;
+        public bool? RandomBooleanChoice { get; internal set; }
 
         /// <summary>
         /// The taken nondeterministic integer choice.
         /// </summary>
         [DataMember]
-        internal int? RandomIntegerChoice;
+        public int? RandomIntegerChoice { get; internal set; }
 
         /// <summary>
         /// Extra information that can be used to
         /// enhance the trace reported to the user.
         /// </summary>
         [DataMember]
-        internal string ExtraInfo;
+        public string ExtraInfo { get; internal set; }
 
         /// <summary>
         /// Previous bug trace step.
         /// </summary>
-        internal BugTraceStep Previous;
+        public BugTraceStep Previous { get; internal set; }
 
         /// <summary>
         /// Next bug trace step.
         /// </summary>
-        internal BugTraceStep Next;
+        public BugTraceStep Next { get; internal set; }
 
         /// <summary>
         /// Creates a bug trace step.

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.PSharp.Timers;
 using Xunit;
 using Xunit.Abstractions;

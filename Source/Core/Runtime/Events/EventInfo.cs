@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Runtime.Serialization;
 
 using Microsoft.PSharp.Runtime;
@@ -14,19 +13,19 @@ namespace Microsoft.PSharp
     /// Contains an <see cref="Event"/>, and its associated metadata.
     /// </summary>
     [DataContract]
-    internal class EventInfo
+    public class EventInfo
     {
         /// <summary>
         /// Event name.
         /// </summary>
         [DataMember]
-        internal string EventName { get; private set; }
+        public string EventName { get; private set; }
 
         /// <summary>
         /// Information regarding the event origin.
         /// </summary>
         [DataMember]
-        internal EventOriginInfo OriginInfo { get; private set; }
+        public EventOriginInfo OriginInfo { get; private set; }
 
         /// <summary>
         /// True if this event must always be handled, else false.

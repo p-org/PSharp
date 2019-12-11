@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.PSharp.DataFlowAnalysis;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {

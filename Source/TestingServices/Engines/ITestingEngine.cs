@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices
 {
