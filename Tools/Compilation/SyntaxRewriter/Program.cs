@@ -5,8 +5,6 @@
 
 using System;
 using System.IO;
-
-using Microsoft.Build.Framework;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Compilation;

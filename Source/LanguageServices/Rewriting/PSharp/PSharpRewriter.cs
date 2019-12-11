@@ -3,13 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System.Linq;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
-
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>

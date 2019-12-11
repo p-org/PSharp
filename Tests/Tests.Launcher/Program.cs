@@ -4,16 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Runtime;
-using Microsoft.PSharp.TestingServices;
-using Microsoft.PSharp.TestingServices.Tests;
 using Microsoft.PSharp.Tests.Common;
-using Microsoft.PSharp.Timers;
 using Xunit.Abstractions;
 
 using BaseBugFindingTest = Microsoft.PSharp.TestingServices.Tests.BaseTest;

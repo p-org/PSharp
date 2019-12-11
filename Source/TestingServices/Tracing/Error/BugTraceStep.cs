@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// Information about the event being sent.
         /// </summary>
         [DataMember]
-        internal EventInfo EventInfo;
+        public EventInfo EventInfo { get; internal set; }
 
         /// <summary>
         /// The invoked action.
