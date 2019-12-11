@@ -16,7 +16,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     /// some end state.
     /// </summary>
     [DataContract]
-    internal sealed class BugTrace : IEnumerable, IEnumerable<BugTraceStep>
+    public sealed class BugTrace : IEnumerable, IEnumerable<BugTraceStep>
     {
         /// <summary>
         /// The steps of the bug trace.
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// The number of steps in the bug trace.
         /// </summary>
-        internal int Count
+        public int Count
         {
             get { return this.Steps.Count; }
         }
@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Index for the bug trace.
         /// </summary>
-        internal BugTraceStep this[int index]
+        public BugTraceStep this[int index]
         {
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
@@ -212,6 +212,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
+        /// <returns>The enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
@@ -220,6 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
+        /// <returns>The enumerator.</returns>
         IEnumerator<BugTraceStep> IEnumerable<BugTraceStep>.GetEnumerator()
         {
             return this.Steps.GetEnumerator();

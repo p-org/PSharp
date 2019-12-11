@@ -11,8 +11,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     /// The bug trace step type.
     /// </summary>
     [DataContract]
-    internal enum BugTraceStepType
+    public enum BugTraceStepType
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         [EnumMember(Value = "CreateMachine")]
         CreateMachine = 0,
         [EnumMember(Value = "CreateMonitor")]
@@ -35,5 +36,6 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         RandomChoice,
         [EnumMember(Value = "Halt")]
         Halt
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }
