@@ -1,6 +1,6 @@
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/p-org/PSharp/master/LICENSE)
-[![NuGet](https://img.shields.io/nuget/v/Microsoft.PSharp.svg)](https://www.nuget.org/packages/Microsoft.PSharp/)
-[![Build status](https://dev.azure.com/foundry99/Coyote/_apis/build/status/PSharp/PSharp-Windows-CI)](https://dev.azure.com/foundry99/Coyote/_build/latest?definitionId=63)
+**News**: P# has evolved into [Coyote](https://microsoft.github.io/coyote/). This repository is now deprecated and development has moved [here](https://github.com/microsoft/coyote). Check it out!
+
+---
 
 P# is a framework for rapid development of reliable asynchronous software. P# is used by several teams in [Azure](https://azure.microsoft.com/) to design, implement and automatically test production distributed systems and services.
 
