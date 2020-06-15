@@ -2,7 +2,7 @@
 
 ---
 
-P# is a framework for rapid development of reliable asynchronous software. P# is used by several teams in [Azure](https://azure.microsoft.com/) to design, implement and automatically test production distributed systems and services.
+P# is a framework for rapid development of reliable asynchronous software. The P# project, which started as a collaboration between [Microsoft Research](https://www.microsoft.com/en-us/research/) and [Imperial College London](http://www.imperial.ac.uk/), is used by several teams in [Azure](https://azure.microsoft.com/) to design, implement and automatically test production distributed systems and services.
 
 ## Features
 The P# framework provides:
