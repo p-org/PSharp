@@ -11,27 +11,19 @@
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>asynchrony reliability specifications reactive state-machines testing</tags>
     <dependencies>
-      <group targetFramework=".NETStandard2.0" />
-      <group targetFramework=".NETCoreApp2.1" />
-      <group targetFramework=".NETFramework4.6" />
+      <group targetFramework=".NETStandard2.1" />
+      <group targetFramework=".NETCoreApp3.1" />
     </dependencies>
   </metadata>
   <files>
-    <!-- .NET Standard 2.0 -->
-    <file src="..\..\bin\netstandard2.0\*.dll" target="lib\netstandard2.0" />
-    <file src="..\..\bin\netstandard2.0\*.mdb" target="lib\netstandard2.0" />
-    <file src="..\..\bin\netstandard2.0\*.xml" target="lib\netstandard2.0" />
-    <!-- .NET Core 2.1 -->
+    <!-- .NET Standard 2.1 -->
+    <file src="..\..\bin\NETStandard2.1\*.dll" target="lib\NETStandard2.1" />
+    <file src="..\..\bin\NETStandard2.1\*.mdb" target="lib\NETStandard2.1" />
+    <file src="..\..\bin\NETStandard2.1\*.xml" target="lib\NETStandard2.1" />
+    <!-- .NET Core 3.1 -->
     <file src="..\..\bin\netcoreapp3.1\*.dll" target="lib\netcoreapp3.1" />
     <file src="..\..\bin\netcoreapp3.1\*.mdb" target="lib\netcoreapp3.1" />
     <file src="..\..\bin\netcoreapp3.1\*.xml" target="lib\netcoreapp3.1" />
     <file src="..\..\bin\netcoreapp3.1\*.runtimeconfig.json" target="lib\netcoreapp3.1" />
-    <!-- .NET Framework 4.6 -->
-    <file src="..\..\bin\net462\*.dll" target="lib\net462" />
-    <file src="..\..\bin\net462\*.mdb" target="lib\net462" />
-    <file src="..\..\bin\net462\*.xml" target="lib\net462" />
-    <file src="..\..\bin\net462\*.exe" target="lib\net462" />
-    <file src="..\..\bin\net462\*.exe.config" target="lib\net462" />
-    <file src="..\..\bin\net462\*.targets" target="lib\net462" />
   </files>
 </package>
