@@ -91,11 +91,11 @@ Change to the Samples directory.
 First build all the samples as described [here](https://github.com/p-org/PSharp/tree/master/Samples), or only the `PingPong.PSharpLanguage` example: `msbuild PingPong\PingPong.PSharpLanguage`
 
 Then run `PSharpTester.exe` with one of the coverage flags, as well as the other options you want. Here are some minimal examples:
-* `..\bin\net46\PSharpTester.exe /i:10 /coverage .\bin\net46\PingPong.PSharpLanguage.exe`
-  * This will create the directory `.\bin\net46\Output\PingPong.PSharpLanguage.exe\PSharpTesterOutput`.
+* `..\bin\net462\PSharpTester.exe /i:10 /coverage .\bin\net462\PingPong.PSharpLanguage.exe`
+  * This will create the directory `.\bin\net462\Output\PingPong.PSharpLanguage.exe\PSharpTesterOutput`.
   * This generates coverage files for both activity and code coverage. `/coverage` is the equivalent of specifying both `/coverage:code` and `/coverage:activity`.
-* `..\bin\net46\PSharpTester.exe /i:10 /coverage:activity .\bin\net46\PingPong.PSharpLanguage.exe /o:C:\PSharp_Coverage\PingPongAsLanguage`
+* `..\bin\net462\PSharpTester.exe /i:10 /coverage:activity .\bin\net462\PingPong.PSharpLanguage.exe /o:C:\PSharp_Coverage\PingPongAsLanguage`
   * This will create the directory `C:\PSharp_Coverage\PingPongAsLanguage\PSharpTesterOutput`.
   * This generates only activity coverage.
-* `..\bin\net46\PSharpTester.exe /i:10 /coverage:activity-debug /coverage:code .\bin\net46\PingPong.PSharpLanguage.exe`
+* `..\bin\net462\PSharpTester.exe /i:10 /coverage:activity-debug /coverage:code .\bin\net462\PingPong.PSharpLanguage.exe`
   * This generates code and activity coverage, including debug activity output.

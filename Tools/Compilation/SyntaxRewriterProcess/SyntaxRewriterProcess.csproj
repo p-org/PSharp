@@ -5,13 +5,13 @@
     <Description>The P# syntax rewriter.</Description>
     <AssemblyName>PSharpSyntaxRewriterProcess</AssemblyName>
     <RootNamespace>PSharpSyntaxRewriterProcess</RootNamespace>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net462</TargetFrameworks>
     <PackageTags>syntax;rewriter;psharp</PackageTags>
     <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net462</TargetFrameworks>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='UNIX'">
@@ -20,10 +20,10 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net462'">
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net462'">
     <None Include="PSharp.AsProcess.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -31,7 +31,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net462'">
     <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
   </ItemGroup>
   <ItemGroup>

@@ -27,11 +27,11 @@
     <file src="..\..\bin\netcoreapp2.1\*.xml" target="lib\netcoreapp2.1" />
     <file src="..\..\bin\netcoreapp2.1\*.runtimeconfig.json" target="lib\netcoreapp2.1" />
     <!-- .NET Framework 4.6 -->
-    <file src="..\..\bin\net46\*.dll" target="lib\net46" />
-    <file src="..\..\bin\net46\*.mdb" target="lib\net46" />
-    <file src="..\..\bin\net46\*.xml" target="lib\net46" />
-    <file src="..\..\bin\net46\*.exe" target="lib\net46" />
-    <file src="..\..\bin\net46\*.exe.config" target="lib\net46" />
-    <file src="..\..\bin\net46\*.targets" target="lib\net46" />
+    <file src="..\..\bin\net462\*.dll" target="lib\net462" />
+    <file src="..\..\bin\net462\*.mdb" target="lib\net462" />
+    <file src="..\..\bin\net462\*.xml" target="lib\net462" />
+    <file src="..\..\bin\net462\*.exe" target="lib\net462" />
+    <file src="..\..\bin\net462\*.exe.config" target="lib\net462" />
+    <file src="..\..\bin\net462\*.targets" target="lib\net462" />
   </files>
 </package>

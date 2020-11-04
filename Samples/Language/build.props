@@ -1,8 +1,8 @@
 <Project>
   <Import Project="..\..\Common\build.props" />
-  <Import Project="..\..\bin\net46\PSharp.vs2017.targets" />
+  <Import Project="..\..\bin\net462\PSharp.vs2017.targets" />
   <PropertyGroup>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net462</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreSources>$(RestoreSources);../../../bin/nuget</RestoreSources>

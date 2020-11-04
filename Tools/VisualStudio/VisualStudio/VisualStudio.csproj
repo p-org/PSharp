@@ -202,19 +202,19 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Source\Core\Core.csproj">
       <!-- AdditionalProperties required per https://github.com/dotnet/sdk/issues/433 -->
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net462</AdditionalProperties>
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Source\LanguageServices\LanguageServices.csproj">
       <!-- AdditionalProperties required per https://github.com/dotnet/sdk/issues/433 -->
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net462</AdditionalProperties>
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilation\SyntaxRewriter\SyntaxRewriter.csproj">
       <!-- AdditionalProperties required per https://github.com/dotnet/sdk/issues/433 -->
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net462</AdditionalProperties>
       <Project>{09842F43-E27A-4DFC-8DE6-61DDACB788CD}</Project>
       <Name>SyntaxRewriter</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

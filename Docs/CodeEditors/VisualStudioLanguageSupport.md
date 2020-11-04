@@ -11,7 +11,7 @@ IDE features of VS, including debugging.
 Build P# as described [here](../BuildInstructions.md).
 
 ## Sample
-Set the environment variable `PSharpBinaries` to point to the `Psharp\bin\net46` folder. Then
+Set the environment variable `PSharpBinaries` to point to the `Psharp\bin\net462` folder. Then
 open `Samples\PingPong\PingPong.MixedMode\PingPong.MixedMode.csproj`.
 
 ## Useful Instructions
@@ -29,7 +29,7 @@ Update your csproj file to include a reference to `PSharp.targets` as follows:
     <!-- Insert this line -->
     <Import Project="$(PSharpBinaries)\PSharp.targets" /> 
 
-Change `PSharp.targets` to `PSharp.vs2017.targets` when using VS 2017. Make sure that the environment variable `$(PSharpBinaries)` points to the `PSharp\bin\net46` folder so that it can find the targets file.
+Change `PSharp.targets` to `PSharp.vs2017.targets` when using VS 2017. Make sure that the environment variable `$(PSharpBinaries)` points to the `PSharp\bin\net462` folder so that it can find the targets file.
  
 Mark “Build Action” for all .psharp files to PSharp. See image:
 ![Setting Build Action to PSharp](../Images/BuildActionToPSharp.png)
