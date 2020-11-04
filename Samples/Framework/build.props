@@ -1,10 +1,7 @@
 <Project>
   <Import Project="..\..\Common\build.props" />
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreSources>$(RestoreSources);../../../bin/nuget</RestoreSources>

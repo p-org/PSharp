@@ -1,6 +1,6 @@
 param(
     [string]$dotnet="dotnet",
-    [ValidateSet("all","netcoreapp2.1","net462")]
+    [ValidateSet("all","netcoreapp3.1")]
     [string]$framework="all",
     [ValidateSet("all","core","testing-services","shared-objects","language-services","static-analysis")]
     [string]$test="all",
@@ -11,7 +11,7 @@ param(
 
 Import-Module $PSScriptRoot\powershell\common.psm1
 
-$frameworks = "netcoreapp2.1", "net462"
+$frameworks = "netcoreapp3.1"
 
 $targets = [ordered]@{
     "core" = "Core.Tests"
@@ -32,8 +32,8 @@ foreach ($kvp in $targets.GetEnumerator()) {
             continue
         }
 
-        if ((($($kvp.Name) -eq "language-services") -and ($f -eq "netcoreapp2.1")) -or
-            (($($kvp.Name) -eq "static-analysis") -and ($f -eq "netcoreapp2.1"))) {
+        if ((($($kvp.Name) -eq "language-services") -and ($f -eq "netcoreapp3.1")) -or
+            (($($kvp.Name) -eq "static-analysis") -and ($f -eq "netcoreapp3.1"))) {
             # Not supported
             continue
         }

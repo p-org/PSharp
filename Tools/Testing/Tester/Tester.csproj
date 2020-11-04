@@ -9,13 +9,10 @@
     <OutputType>Exe</OutputType>
     <OutputPath>..\..\..\bin\</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.1|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp3.1|AnyCPU'">
     <DefineConstants></DefineConstants>
   </PropertyGroup>
   <ItemGroup>

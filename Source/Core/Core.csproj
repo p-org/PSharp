@@ -10,11 +10,8 @@
     <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net462</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net462'">
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />

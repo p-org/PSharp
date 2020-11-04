@@ -8,11 +8,8 @@
     <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\TestingServices\TestingServices.csproj" />
